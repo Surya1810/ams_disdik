@@ -7,13 +7,15 @@ use Illuminate\Support\Facades\Auth;
 
 
 Route::get('/', function () {
-    return redirect()->route('dashboard');
+    return view('dashboard');
+    // return redirect()->route('dashboard');
 });
+
+Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
 
 Auth::routes();
 Route::middleware('auth')->group(function () {
     // Dashboard
-    Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
 
     // =========================================================== Asset ==================================================================
 
