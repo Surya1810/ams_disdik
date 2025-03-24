@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tags', function (Blueprint $table) {
-            $table->string('rfid_number')->primary()->unique();
-            $table->enum('status', ['available', 'used'])->default('available');
+        Schema::create('scans', function (Blueprint $table) {
+            $table->id();
+            $table->enum('category', ['agunan', 'dokumen']);
+            $table->integer('total')->default(1);
             $table->timestamps();
         });
     }
@@ -23,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tags');
+        Schema::dropIfExists('scans');
     }
 };

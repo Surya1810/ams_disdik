@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tags', function (Blueprint $table) {
-            $table->string('rfid_number')->primary()->unique();
-            $table->enum('status', ['available', 'used'])->default('available');
+        Schema::create('sekolahs', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('kecamatan_id')->constrained()->cascadeOnDelete();
+            $table->string('name');
             $table->timestamps();
         });
     }
@@ -23,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tags');
+        Schema::dropIfExists('sekolahs');
     }
 };

@@ -18,14 +18,22 @@
     <!-- Nucleo Icons -->
     <link href="{{ asset('assets/Material/assets/css/nucleo-icons.css') }}" rel="stylesheet" />
     <link href="{{ asset('assets/Material/assets/css/nucleo-svg.css') }}" rel="stylesheet" />
+    <!-- Font Awesome Icons -->
+    <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
     <!-- Material Icons -->
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+
+    <!-- Styles / Scripts -->
+    {{-- @vite(['resources/js/app.js']) --}}
     <!-- Theme Style -->
     <link id="pagestyle" href="{{ asset('assets/Material/assets/css/material-dashboard.css?v=3.2.0') }}"
         rel="stylesheet" />
     <!-- Our style -->
     <link rel="stylesheet" href="{{ asset('assets/CSS/style.css') }}">
+
+    <!-- Datatables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css" />
 
     @stack('css')
 </head>
@@ -37,7 +45,7 @@
             <i class="fas fa-times p-3 cursor-pointer text-dark opacity-5 position-absolute end-0 top-0 d-none d-xl-none"
                 aria-hidden="true" id="iconSidenav"></i>
             <a class="navbar-brand px-4 py-3 m-0" href="{{ route('dashboard') }}">
-                <img src="../assets/img/logo-ct-dark.png" class="navbar-brand-img" width="26" height="26"
+                <img src="{{ asset('assets/Image/logo/Main.png') }}" class="navbar-brand-img" height="50"
                     alt="main_logo">
             </a>
         </div>
@@ -54,7 +62,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-dark" href="{{ route('dashboard') }}">
+                    <a class="nav-link text-dark" href="#">
                         <i class="material-symbols-rounded opacity-5">monitoring</i>
                         <span class="nav-link-text ms-1">Report</span>
                     </a>
@@ -74,7 +82,7 @@
                     <div class="collapse" id="submenu">
                         <ul class="nav flex-column">
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="#">Asset List</a>
+                                <a class="nav-link text-dark" href="{{ route('asset.index') }}">Asset List</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" href="#">Maintenance</a>
@@ -123,7 +131,7 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-dark" href="#">
+                    <a class="nav-link text-dark" href="{{ route('tag.index') }}">
                         <i class="material-symbols-rounded opacity-5">sell</i>
                         <span class="nav-link-text ms-1">Tag RFID</span>
                     </a>
@@ -138,13 +146,13 @@
                     <div class="collapse" id="masterdata">
                         <ul class="nav flex-column">
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="#">Kecamatan</a>
+                                <a class="nav-link text-dark" href="{{ route('kecamatan.index') }}">Kecamatan</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="#">Sekolah</a>
+                                <a class="nav-link text-dark" href="{{ route('sekolah.index') }}">Sekolah</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="#">Pengguna</a>
+                                <a class="nav-link text-dark" href="{{ route('user.index') }}">Pengguna</a>
                             </li>
                         </ul>
                     </div>
@@ -153,167 +161,26 @@
         </div>
         <div class="sidenav-footer position-absolute w-100 bottom-0 ">
             <div class="mx-3">
-                <a class="btn bg-gradient-danger w-100" href="#" type="button">
+                <a class="btn bg-gradient-danger w-100 rounded-5" href="{{ route('logout') }}"
+                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                     <i class="material-symbols-rounded opacity-5">power_settings_new</i>
                     Logout</a>
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                    @csrf
+                </form>
             </div>
         </div>
     </aside>
     <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
-        <nav class="navbar navbar-main navbar-expand-lg px-0 mx-3 border-radius-xl position-sticky mt-4 top-1 z-index-sticky shadow-none"
-            id="navbarBlur" data-scroll="true" navbar-scroll="true">
-            <div class="container-fluid py-1 px-3">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-                        <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark"
-                                href="javascript:;">Pages</a></li>
-                        <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Profile</li>
-                    </ol>
-                </nav>
-                <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
-                    <div class="ms-md-auto pe-md-3 d-flex align-items-center">
-
-                    </div>
-                    <ul class="navbar-nav d-flex align-items-center  justify-content-end">
-                        <li class="mt-1">
-                            <span></span>
-                        </li>
-                        <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
-                            <a href="javascript:;" class="nav-link p-0 text-body" id="iconNavbarSidenav">
-                                <div class="sidenav-toggler-inner">
-                                    <i class="sidenav-toggler-line"></i>
-                                    <i class="sidenav-toggler-line"></i>
-                                    <i class="sidenav-toggler-line"></i>
-                                </div>
-                            </a>
-                        </li>
-                        <li class="nav-item px-3 d-flex align-items-center">
-                            <a href="javascript:;" class="nav-link p-0 text-body">
-                                <i class="material-symbols-rounded fixed-plugin-button-nav">settings</i>
-                            </a>
-                        </li>
-                        <li class="nav-item dropdown pe-3 d-flex align-items-center">
-                            <a href="javascript:;" class="nav-link p-0 text-body" id="dropdownMenuButton"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="material-symbols-rounded">notifications</i>
-                            </a>
-                            <ul class="dropdown-menu  dropdown-menu-end  px-2 py-3 me-sm-n4"
-                                aria-labelledby="dropdownMenuButton">
-                                <li class="mb-2">
-                                    <a class="dropdown-item border-radius-md" href="javascript:;">
-                                        <div class="d-flex py-1">
-                                            <div class="my-auto">
-                                                <img src="../assets/img/team-2.jpg" class="avatar avatar-sm  me-3 ">
-                                            </div>
-                                            <div class="d-flex flex-column justify-content-center">
-                                                <h6 class="text-sm font-weight-normal mb-1">
-                                                    <span class="font-weight-bold">New message</span> from Laur
-                                                </h6>
-                                                <p class="text-xs text-secondary mb-0">
-                                                    <i class="fa fa-clock me-1"></i>
-                                                    13 minutes ago
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li class="mb-2">
-                                    <a class="dropdown-item border-radius-md" href="javascript:;">
-                                        <div class="d-flex py-1">
-                                            <div class="my-auto">
-                                                <img src="../assets/img/small-logos/logo-spotify.svg"
-                                                    class="avatar avatar-sm bg-gradient-dark  me-3 ">
-                                            </div>
-                                            <div class="d-flex flex-column justify-content-center">
-                                                <h6 class="text-sm font-weight-normal mb-1">
-                                                    <span class="font-weight-bold">New album</span> by Travis Scott
-                                                </h6>
-                                                <p class="text-xs text-secondary mb-0">
-                                                    <i class="fa fa-clock me-1"></i>
-                                                    1 day
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item border-radius-md" href="javascript:;">
-                                        <div class="d-flex py-1">
-                                            <div class="avatar avatar-sm bg-gradient-secondary  me-3  my-auto">
-                                                <svg width="12px" height="12px" viewBox="0 0 43 36"
-                                                    version="1.1" xmlns="http://www.w3.org/2000/svg"
-                                                    xmlns:xlink="http://www.w3.org/1999/xlink">
-                                                    <title>credit-card</title>
-                                                    <g stroke="none" stroke-width="1" fill="none"
-                                                        fill-rule="evenodd">
-                                                        <g transform="translate(-2169.000000, -745.000000)"
-                                                            fill="#FFFFFF" fill-rule="nonzero">
-                                                            <g transform="translate(1716.000000, 291.000000)">
-                                                                <g transform="translate(453.000000, 454.000000)">
-                                                                    <path class="color-background"
-                                                                        d="M43,10.7482083 L43,3.58333333 C43,1.60354167 41.3964583,0 39.4166667,0 L3.58333333,0 C1.60354167,0 0,1.60354167 0,3.58333333 L0,10.7482083 L43,10.7482083 Z"
-                                                                        opacity="0.593633743"></path>
-                                                                    <path class="color-background"
-                                                                        d="M0,16.125 L0,32.25 C0,34.2297917 1.60354167,35.8333333 3.58333333,35.8333333 L39.4166667,35.8333333 C41.3964583,35.8333333 43,34.2297917 43,32.25 L43,16.125 L0,16.125 Z M19.7083333,26.875 L7.16666667,26.875 L7.16666667,23.2916667 L19.7083333,23.2916667 L19.7083333,26.875 Z M35.8333333,26.875 L28.6666667,26.875 L28.6666667,23.2916667 L35.8333333,23.2916667 L35.8333333,26.875 Z">
-                                                                    </path>
-                                                                </g>
-                                                            </g>
-                                                        </g>
-                                                    </g>
-                                                </svg>
-                                            </div>
-                                            <div class="d-flex flex-column justify-content-center">
-                                                <h6 class="text-sm font-weight-normal mb-1">
-                                                    Payment successfully completed
-                                                </h6>
-                                                <p class="text-xs text-secondary mb-0">
-                                                    <i class="fa fa-clock me-1"></i>
-                                                    2 days
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item d-flex align-items-center">
-                            <a href="../pages/sign-in.html" class="nav-link font-weight-bold px-0 text-body">
-                                <i class="material-symbols-rounded">account_circle</i>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-
-        <div class="container-fluid py-2">
-            @yield('content')
-        </div>
-
-        <footer class="footer py-4 px-3">
-            <div class="container-fluid">
-                <div class="row align-items-center justify-content-lg-between">
-                    <div class="col-lg-6 mb-lg-0 mb-4">
-                        <div class="copyright text-center text-sm text-muted text-lg-start">
-                            ©
-                            <script>
-                                document.write(new Date().getFullYear())
-                            </script>
-                            <a href="https://partnership.co.id">Partnership</a></strong>
-                            All rights
-                            reserved.
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <div class="nav nav-footer justify-content-center justify-content-lg-end">
-                            <p class="text-sm"><i>Your Solution Partner</i></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </footer>
-
+        @yield('content')
     </main>
+
+
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Datatables JS -->
+    <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
 
     <!--   Core JS Files   -->
     <script src="{{ asset('assets/Material/assets/js/core/popper.min.js') }}"></script>
@@ -321,241 +188,6 @@
     <script src="{{ asset('assets/Material/assets/js/plugins/perfect-scrollbar.min.js') }}"></script>
     <script src="{{ asset('assets/Material/assets/js/plugins/smooth-scrollbar.min.js') }}"></script>
     <script src="{{ asset('assets/Material/assets/js/plugins/chartjs.min.js') }}"></script>
-    <script>
-        var ctx = document.getElementById("chart-bars").getContext("2d");
-
-        new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels: ["M", "T", "W", "T", "F", "S", "S"],
-                datasets: [{
-                    label: "Views",
-                    tension: 0.4,
-                    borderWidth: 0,
-                    borderRadius: 4,
-                    borderSkipped: false,
-                    backgroundColor: "#43A047",
-                    data: [50, 45, 22, 28, 50, 60, 76],
-                    barThickness: 'flex'
-                }, ],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false,
-                    }
-                },
-                interaction: {
-                    intersect: false,
-                    mode: 'index',
-                },
-                scales: {
-                    y: {
-                        grid: {
-                            drawBorder: false,
-                            display: true,
-                            drawOnChartArea: true,
-                            drawTicks: false,
-                            borderDash: [5, 5],
-                            color: '#e5e5e5'
-                        },
-                        ticks: {
-                            suggestedMin: 0,
-                            suggestedMax: 500,
-                            beginAtZero: true,
-                            padding: 10,
-                            font: {
-                                size: 14,
-                                lineHeight: 2
-                            },
-                            color: "#737373"
-                        },
-                    },
-                    x: {
-                        grid: {
-                            drawBorder: false,
-                            display: false,
-                            drawOnChartArea: false,
-                            drawTicks: false,
-                            borderDash: [5, 5]
-                        },
-                        ticks: {
-                            display: true,
-                            color: '#737373',
-                            padding: 10,
-                            font: {
-                                size: 14,
-                                lineHeight: 2
-                            },
-                        }
-                    },
-                },
-            },
-        });
-
-
-        var ctx2 = document.getElementById("chart-line").getContext("2d");
-
-        new Chart(ctx2, {
-            type: "line",
-            data: {
-                labels: ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
-                datasets: [{
-                    label: "Sales",
-                    tension: 0,
-                    borderWidth: 2,
-                    pointRadius: 3,
-                    pointBackgroundColor: "#43A047",
-                    pointBorderColor: "transparent",
-                    borderColor: "#43A047",
-                    backgroundColor: "transparent",
-                    fill: true,
-                    data: [120, 230, 130, 440, 250, 360, 270, 180, 90, 300, 310, 220],
-                    maxBarThickness: 6
-
-                }],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false,
-                    },
-                    tooltip: {
-                        callbacks: {
-                            title: function(context) {
-                                const fullMonths = ["January", "February", "March", "April", "May", "June",
-                                    "July", "August", "September", "October", "November", "December"
-                                ];
-                                return fullMonths[context[0].dataIndex];
-                            }
-                        }
-                    }
-                },
-                interaction: {
-                    intersect: false,
-                    mode: 'index',
-                },
-                scales: {
-                    y: {
-                        grid: {
-                            drawBorder: false,
-                            display: true,
-                            drawOnChartArea: true,
-                            drawTicks: false,
-                            borderDash: [4, 4],
-                            color: '#e5e5e5'
-                        },
-                        ticks: {
-                            display: true,
-                            color: '#737373',
-                            padding: 10,
-                            font: {
-                                size: 12,
-                                lineHeight: 2
-                            },
-                        }
-                    },
-                    x: {
-                        grid: {
-                            drawBorder: false,
-                            display: false,
-                            drawOnChartArea: false,
-                            drawTicks: false,
-                            borderDash: [5, 5]
-                        },
-                        ticks: {
-                            display: true,
-                            color: '#737373',
-                            padding: 10,
-                            font: {
-                                size: 12,
-                                lineHeight: 2
-                            },
-                        }
-                    },
-                },
-            },
-        });
-
-        var ctx3 = document.getElementById("chart-line-tasks").getContext("2d");
-
-        new Chart(ctx3, {
-            type: "line",
-            data: {
-                labels: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-                datasets: [{
-                    label: "Tasks",
-                    tension: 0,
-                    borderWidth: 2,
-                    pointRadius: 3,
-                    pointBackgroundColor: "#43A047",
-                    pointBorderColor: "transparent",
-                    borderColor: "#43A047",
-                    backgroundColor: "transparent",
-                    fill: true,
-                    data: [50, 40, 300, 220, 500, 250, 400, 230, 500],
-                    maxBarThickness: 6
-
-                }],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false,
-                    }
-                },
-                interaction: {
-                    intersect: false,
-                    mode: 'index',
-                },
-                scales: {
-                    y: {
-                        grid: {
-                            drawBorder: false,
-                            display: true,
-                            drawOnChartArea: true,
-                            drawTicks: false,
-                            borderDash: [4, 4],
-                            color: '#e5e5e5'
-                        },
-                        ticks: {
-                            display: true,
-                            padding: 10,
-                            color: '#737373',
-                            font: {
-                                size: 14,
-                                lineHeight: 2
-                            },
-                        }
-                    },
-                    x: {
-                        grid: {
-                            drawBorder: false,
-                            display: false,
-                            drawOnChartArea: false,
-                            drawTicks: false,
-                            borderDash: [4, 4]
-                        },
-                        ticks: {
-                            display: true,
-                            color: '#737373',
-                            padding: 10,
-                            font: {
-                                size: 14,
-                                lineHeight: 2
-                            },
-                        }
-                    },
-                },
-            },
-        });
-    </script>
 
     @stack('scripts')
 
@@ -578,7 +210,7 @@
 
             document.querySelectorAll(".nav-link").forEach(function(link) {
                 if (link.href === url || url.startsWith(link.href)) {
-                    link.classList.add("active");
+                    link.classList.add("active", "text-white", "bg-gradient-info");
                     let parent = link.closest(".collapse");
                     if (parent) {
                         parent.classList.add("show");
