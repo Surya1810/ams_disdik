@@ -62,7 +62,7 @@
                     </div>
                     <div class="card-body table-responsive pb-2">
                         <table id="kecamatanTable" class="table text-sm">
-                            <thead class="text-center text-uppercase font-weight-bolder">
+                            <thead class="text-uppercase font-weight-bolder">
                                 <tr>
                                     <th>Kecamatan</th>
                                     <th>Jumlah Sekolah</th>
@@ -113,16 +113,18 @@
                 ajax: "{{ route('kecamatan.index') }}",
                 columns: [{
                         data: 'name',
-                        name: 'name'
+                        name: 'name',
+                        className: "text-start"
                     },
                     {
                         data: 'sekolahs_count',
                         name: 'sekolahs_count',
-                        className: "text-center"
+                        className: "text-start"
                     },
                     {
                         data: 'action',
                         name: 'action',
+                        className: "text-start",
                         orderable: false,
                         searchable: false
                     }

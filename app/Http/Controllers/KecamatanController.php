@@ -27,8 +27,8 @@ class KecamatanController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     return '
-                    <button type="button" class="btn btn-sm btn-danger text-sm mb-0"
-                        onclick="deleteKecamatan(' . $row->id . ')">Hapus</button>
+                    <button type="button" class="btn btn-danger mb-0 rounded-partner"
+                        onclick="deleteKecamatan(' . $row->id . ')"><i class="fa-solid fa-trash"></i></button>
                     <form id="delete-form-' . $row->id . '" 
                         action="' . route('kecamatan.destroy', $row->id) . '" 
                         method="POST" style="display: none;">

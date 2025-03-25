@@ -1,0 +1,11 @@
+.rounded-partner {
+    border-radius: 20px;
+}
+
+/* Cell color */
+.bg-success-2 {
+    background-color: #b6d7a8;
+}
+.bg-danger-2 {
+    background-color: #ea9999;
+}
