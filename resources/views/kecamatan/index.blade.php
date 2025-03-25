@@ -61,6 +61,9 @@
                         </div>
                     </div>
                     <div class="card-body table-responsive pb-2">
+                        <button type="button" class="btn btn-info rounded-partner" data-bs-toggle="modal"
+                            data-bs-target="#addKecamatan"> <i class="fa-solid fa-plus"></i> Tambah
+                        </button>
                         <table id="kecamatanTable" class="table text-sm">
                             <thead class="text-uppercase font-weight-bolder">
                                 <tr>
@@ -102,6 +105,32 @@
             </div>
         </div>
     </footer>
+
+    <!-- Modal Add Kecamatan -->
+    <div class="modal fade" id="addKecamatan" tabindex="-1" aria-labelledby="addKecamatanLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-partner">
+                <div class="modal-header">
+                    <h5 class="modal-title font-weight-normal" id="exampleModalLabel">Tambah Kecamatan</h5>
+                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ route('kecamatan.store') }}" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="input-group input-group-outline info my-3">
+                            <label class="form-label">Nama Kecamatan</label>
+                            <input type="text" class="form-control" autofocus required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary rounded-partner">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')

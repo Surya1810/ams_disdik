@@ -14,10 +14,42 @@ return new class extends Migration
         Schema::create('assets', function (Blueprint $table) {
             $table->id();
             $table->string('rfid_number')->unique()->references('rfid_number')->on('tags');
-            $table->foreignId('kecamatan_id')->constrained()->cascadeOnDelete();
             $table->foreignId('sekolah_id')->constrained()->cascadeOnDelete();
-            $table->string('name');
 
+            $table->string('kode');
+            $table->string('name');
+            $table->string('register');
+            $table->string('merk');
+            $table->string('ukuran');
+            $table->string('bahan');
+            $table->year('tahun_pembelian');
+            $table->string('pabrik');
+            $table->string('rangka')->nullable();
+            $table->string('mesin')->nullable();
+            $table->string('polisi')->nullable();
+            $table->string('bpkb')->nullable();
+
+            $table->string('nip_pic');
+            $table->string('nama_pic');
+            $table->string('jabatan_pic');
+            $table->integer('telp_pic');
+
+            $table->string('asal_perolehan');
+            $table->decimal('nilai_perolehan', 15, 2);
+            $table->enum('kondisi', ['Baik', 'Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat', 'Hilang']);
+            $table->date('tanggal_perawatan');
+            $table->decimal('harga_perawatan', 15, 2);
+
+            $table->string('gedung');
+            $table->string('lantai');
+            $table->string('ruangan');
+            $table->string('detail');
+
+            $table->string('foto_awal')->default('dummy.jpg');
+            $table->string('foto_kondisi')->nullable();
+
+            $table->string('status')->nullable(); //dipinjam, dijual, dihibahkan dsb
+            $table->text('desc')->nullable(); //kolom tambahan bila diperlukan
             $table->boolean('is_there')->default(true);
             $table->timestamps();
         });

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sekolah;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 
 class SekolahController extends Controller
@@ -28,7 +29,17 @@ class SekolahController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string',
+            'kecamatan_id' => 'required',
+        ]);
+
+        $kecamatan = Sekolah::create([
+            'name' => $request->input('name'),
+            'kecamatan_id' => $request->input('kecamatan_id'),
+        ]);
+
+        return redirect()->route('sekolah.index')->with(['pesan' => 'Sekolah berhasil ditambahkan', 'level-alert' => 'alert-success']);
     }
 
     /**
@@ -52,7 +63,15 @@ class SekolahController extends Controller
      */
     public function update(Request $request, Sekolah $sekolah)
     {
-        //
+        // Validasi data yang masuk
+        $validatedData = $request->validate([
+            'name' => 'required|string',
+            'kecamatan_id' => 'required|string',
+        ]);
+
+        $sekolah->update($validatedData);
+
+        return redirect()->route('sekolah.index')->with(['pesan' => 'Sekolah berhasil diperbarui', 'level-alert' => 'alert-warning']);
     }
 
     /**

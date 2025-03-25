@@ -10,4 +10,9 @@ class Kecamatan extends Model
     {
         return $this->hasMany(Sekolah::class);
     }
+
+    public function tags()
+    {
+        return $this->hasMany(Tag::class);
+    }
 }

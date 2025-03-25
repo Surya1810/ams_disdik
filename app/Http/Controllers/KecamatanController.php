@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kecamatan;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -56,7 +57,17 @@ class KecamatanController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string',
+        ]);
+
+        $old = session()->getOldInput();
+
+        Kecamatan::create([
+            'name' => $request->input('name'),
+        ]);
+
+        return redirect()->route('kecamatan.index')->with(['pesan' => 'Kecamatan berhasil ditambahkan', 'level-alert' => 'alert-success']);
     }
 
     /**
@@ -80,7 +91,14 @@ class KecamatanController extends Controller
      */
     public function update(Request $request, Kecamatan $kecamatan)
     {
-        //
+        // Validasi data yang masuk
+        $validatedData = $request->validate([
+            'name' => 'required|string',
+        ]);
+
+        $kecamatan->update($validatedData);
+
+        return redirect()->route('kecamatan.index')->with(['pesan' => 'Kecamatan berhasil diperbarui', 'level-alert' => 'alert-warning']);
     }
 
     /**
