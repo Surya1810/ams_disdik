@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Kecamatan extends Model
 {
+    protected $fillable = [
+        'name',
+    ];
+
     public function sekolahs()
     {
         return $this->hasMany(Sekolah::class);

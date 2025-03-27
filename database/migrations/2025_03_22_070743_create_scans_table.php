@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('scans', function (Blueprint $table) {
             $table->id();
-            $table->enum('category', ['agunan', 'dokumen']);
             $table->integer('total')->default(1);
             $table->timestamps();
         });

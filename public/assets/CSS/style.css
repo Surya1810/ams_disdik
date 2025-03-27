@@ -1,5 +1,83 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+* {
+    /* scroll-behavior: smooth; */
+    font-family: "Montserrat", sans-serif;
+}
+
+/* Untuk semua browser */
+::-webkit-scrollbar {
+    display: none;
+}
+
+html,
+body {
+    scrollbar-width: none; /* Untuk Firefox */
+    -ms-overflow-style: none; /* Untuk Internet Explorer */
+}
+
 .rounded-partner {
     border-radius: 20px;
+}
+
+/* Update Style Brand Logo */
+.sidenav-header {
+    height: 85px; /* Sesuaikan tinggi jika perlu */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.navbar-brand-img {
+    max-height: 65px !important;
+    width: auto;
+}
+
+/* Update Modal Backdrop*/
+.modal {
+    z-index: 1050 !important;
+}
+
+.modal-backdrop {
+    z-index: 1045 !important;
+}
+
+#sidenav-main {
+    z-index: 1030 !important;
+}
+
+/* Sweetalert custom color */
+.colored-toast.swal2-icon-success {
+    background-color: #a5dc86 !important;
+}
+
+.colored-toast.swal2-icon-error {
+    background-color: #f27474 !important;
+}
+
+.colored-toast.swal2-icon-warning {
+    background-color: #f8bb86 !important;
+}
+
+.colored-toast.swal2-icon-info {
+    background-color: #3fc3ee !important;
+}
+
+.colored-toast.swal2-icon-question {
+    background-color: #87adbd !important;
+}
+
+.colored-toast .swal2-title {
+    color: white;
+}
+
+.colored-toast .swal2-close {
+    color: white;
+}
+
+.colored-toast .swal2-html-container {
+    color: white;
 }
 
 /* Cell color */

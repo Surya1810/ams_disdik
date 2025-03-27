@@ -28,8 +28,8 @@ class KecamatanController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     return '
-                    <button type="button" class="btn btn-danger mb-0 rounded-partner"
-                        onclick="deleteKecamatan(' . $row->id . ')"><i class="fa-solid fa-trash"></i></button>
+                    <a role="button" class="text-danger px-3 mb-0 border-radius-lg"
+                        onclick="deleteKecamatan(' . $row->id . ')"><i class="fa-solid fa-trash"></i></a>
                     <form id="delete-form-' . $row->id . '" 
                         action="' . route('kecamatan.destroy', $row->id) . '" 
                         method="POST" style="display: none;">
@@ -106,6 +106,6 @@ class KecamatanController extends Controller
      */
     public function destroy(Kecamatan $kecamatan)
     {
-        //
+        return redirect()->back()->with(['pesan' => 'Kecamatan dilarang dihapus', 'level-alert' => 'alert-danger']);
     }
 }

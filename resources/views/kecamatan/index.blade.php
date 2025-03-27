@@ -7,69 +7,39 @@
 @push('css')
 @endpush
 
-@section('content')
-    <!-- header -->
-    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-3 border-radius-xl position-sticky mt-4 top-1 z-index-sticky shadow-none"
-        id="navbarBlur" data-scroll="true" navbar-scroll="true">
-        <div class="container-fluid py-1 px-3">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-                    <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="javascript:;">Halaman</a></li>
-                    <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Kecamatan</li>
-                </ol>
-            </nav>
-            <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
-                <div class="ms-md-auto pe-md-3 d-flex align-items-center">
-
-                </div>
-                <ul class="navbar-nav d-flex align-items-center  justify-content-end">
-                    <li class="mt-1">
-                        <span></span>
-                    </li>
-                    <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
-                        <a href="javascript:;" class="nav-link p-0 text-body" id="iconNavbarSidenav">
-                            <div class="sidenav-toggler-inner">
-                                <i class="sidenav-toggler-line"></i>
-                                <i class="sidenav-toggler-line"></i>
-                                <i class="sidenav-toggler-line"></i>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="nav-item px-3 d-flex align-items-center">
-                        <a href="{{ route('profile.edit') }}" class="nav-link p-0 text-body">
-                            <i class="material-symbols-rounded fixed-plugin-button-nav">settings</i>
-                        </a>
-                    </li>
-                    <li class="nav-item d-flex align-items-center">
-                        <a href="{{ route('profile.edit') }}" class="nav-link font-weight-bold px-0 text-body">
-                            <i class="material-symbols-rounded">account_circle</i>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
+@section('navbar')
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+            <li class="breadcrumb-item text-sm">
+                <a class="text-white opacity-5" href="javascript:;">Halaman</a>
+            </li>
+            <li class="breadcrumb-item text-sm text-white active" aria-current="page">Kecamatan</li>
+        </ol>
+        <h6 class="nav-breadcrumb font-weight-bolder text-white mb-0">Kecamatan</h6>
     </nav>
+@endsection
 
+@section('content')
     <!-- content -->
     <div class="container-fluid py-2">
         <div class="row">
             <div class="col-12">
                 <div class="card my-4">
                     <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
-                        <div class="bg-gradient-info shadow-dark border-radius-lg pt-4 pb-3">
+                        <div class="bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3">
                             <h6 class="text-white text-capitalize ps-3">List Kecamatan</h6>
                         </div>
                     </div>
                     <div class="card-body table-responsive pb-2">
-                        <button type="button" class="btn btn-info rounded-partner" data-bs-toggle="modal"
+                        <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
                             data-bs-target="#addKecamatan"> <i class="fa-solid fa-plus"></i> Tambah
                         </button>
                         <table id="kecamatanTable" class="table text-sm">
-                            <thead class="text-uppercase font-weight-bolder">
+                            <thead class="font-weight-bolder">
                                 <tr>
-                                    <th>Kecamatan</th>
-                                    <th>Jumlah Sekolah</th>
-                                    <th>Aksi</th>
+                                    <th class="text-uppercase">Kecamatan</th>
+                                    <th class="text-uppercase">Jumlah Sekolah</th>
+                                    <th class="text-uppercase">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -82,52 +52,34 @@
         </div>
     </div>
 
-    <!-- footer -->
-    <footer class="footer py-4 px-3">
-        <div class="container-fluid">
-            <div class="row align-items-center justify-content-lg-between">
-                <div class="col-lg-6 mb-lg-0 mb-4">
-                    <div class="copyright text-center text-sm text-muted text-lg-start">
-                        ©
-                        <script>
-                            document.write(new Date().getFullYear())
-                        </script>
-                        <a href="https://partnership.co.id">Partnership</a></strong>
-                        All rights
-                        reserved.
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="nav nav-footer justify-content-center justify-content-lg-end">
-                        <p class="text-sm"><i>Your Solution Partner</i></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </footer>
-
     <!-- Modal Add Kecamatan -->
-    <div class="modal fade" id="addKecamatan" tabindex="-1" aria-labelledby="addKecamatanLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-partner">
-                <div class="modal-header">
-                    <h5 class="modal-title font-weight-normal" id="exampleModalLabel">Tambah Kecamatan</h5>
-                    <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+    <div class="modal fade" id="addKecamatan" aria-labelledby="addKecamatan" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="card card-plain">
+                        <form action="{{ route('kecamatan.store') }}" method="POST">
+                            <div class="card-header pb-0 text-left">
+                                <h4 class="text-primary text-gradient">Tambah <strong>Kecamatan</strong></h4>
+                            </div>
+                            <div class="card-body mb-3">
+                                @csrf
+                                <label>Nama Kecamatan</label>
+                                <input type="text" class="form-control @error('name') is-invalid @enderror"
+                                    name="name" value="{{ old('name') }}" required placeholder="Nama Kecamatan"
+                                    autofocus aria-label="Name">
+                                @error('name')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
+                            <div class="card-footer text-center pt-0 px-lg-2 px-1">
+                                <button type="submit" class="btn btn-primary  rounded-partner m-0">Simpan</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <form action="{{ route('kecamatan.store') }}" method="POST">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="input-group input-group-outline info my-3">
-                            <label class="form-label">Nama Kecamatan</label>
-                            <input type="text" class="form-control" autofocus required>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary rounded-partner">Simpan</button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
