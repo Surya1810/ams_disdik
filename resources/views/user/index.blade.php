@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    Sekolah
+    Pengguna
 @endsection
 
 @push('css')
@@ -13,9 +13,9 @@
             <li class="breadcrumb-item text-sm">
                 <a class="text-white opacity-5" href="javascript:;">Halaman</a>
             </li>
-            <li class="breadcrumb-item text-sm text-white active" aria-current="page">Sekolah</li>
+            <li class="breadcrumb-item text-sm text-white active" aria-current="page">Pengguna</li>
         </ol>
-        <h6 class="nav-breadcrumb font-weight-bolder text-white mb-0">Sekolah</h6>
+        <h6 class="nav-breadcrumb font-weight-bolder text-white mb-0">Pengguna</h6>
     </nav>
 @endsection
 
@@ -27,18 +27,19 @@
                 <div class="card my-4">
                     <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
                         <div class="bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3">
-                            <h6 class="text-white text-capitalize ps-3">List Sekolah</h6>
+                            <h6 class="text-white text-capitalize ps-3">List Pengguna</h6>
                         </div>
                     </div>
                     <div class="card-body table-responsive pb-2">
                         <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
-                            data-bs-target="#addSekolah"> <i class="fa-solid fa-plus"></i> Tambah
+                            data-bs-target="#addPengguna"> <i class="fa-solid fa-plus"></i> Tambah
                         </button>
-                        <table id="sekolahTable" class="table text-sm">
+                        <table id="penggunaTable" class="table text-sm">
                             <thead class="font-weight-bolder">
                                 <tr>
                                     <th class="text-uppercase">Nama</th>
                                     <th class="text-uppercase">Kecamatan</th>
+                                    <th class="text-uppercase">Jumlah Sekolah</th>
                                     <th class="text-uppercase">Jumlah Aset</th>
                                     <th class="text-uppercase">Aksi</th>
                                 </tr>
@@ -53,19 +54,19 @@
         </div>
     </div>
 
-    <!-- Modal Add Sekolah -->
-    <div class="modal fade" id="addSekolah" aria-labelledby="addSekolah" aria-hidden="true">
+    <!-- Modal Add Pengguna -->
+    <div class="modal fade" id="addPengguna" aria-labelledby="addPengguna" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-md" role="document">
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">
-                        <form action="{{ route('sekolah.store') }}" method="POST">
+                        <form action="{{ route('user.store') }}" method="POST">
                             <div class="card-header pb-0 text-left">
-                                <h4 class="text-primary text-gradient">Tambah <strong>Sekolah</strong></h4>
+                                <h4 class="text-primary text-gradient">Tambah <strong>Pengguna</strong></h4>
                             </div>
                             <div class="card-body mb-3">
                                 @csrf
-                                <label>Nama Sekolah</label>
+                                <label>Nama Pengguna</label>
                                 <input type="text" class="form-control @error('name') is-invalid @enderror"
                                     name="name" value="{{ old('name') }}" required placeholder="Nama Sekolah" autofocus
                                     aria-label="Name">
@@ -89,10 +90,10 @@
 @push('scripts')
     <script type="text/javascript">
         $(document).ready(function() {
-            $('#sekolahTable').DataTable({
+            $('#penggunaTable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('sekolah.index') }}",
+                ajax: "{{ route('user.index') }}",
                 columns: [{
                         data: 'name',
                         name: 'name',
@@ -101,6 +102,11 @@
                     {
                         data: 'kecamatan',
                         name: 'kecamatan',
+                        className: "text-start"
+                    },
+                    {
+                        data: 'sekolahs_count',
+                        name: 'sekolahs_count',
                         className: "text-start"
                     },
                     {
@@ -119,10 +125,10 @@
             });
         });
 
-        function deleteSekolah(id) {
+        function deletePengguna(id) {
             Swal.fire({
                 title: 'Apakah Anda yakin?',
-                text: "Data sekolah & asetnya akan dihapus permanen!",
+                text: "Data pengguna akan dihapus permanen!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',

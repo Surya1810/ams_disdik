@@ -18,11 +18,11 @@
 <body>
     <main class="main-content">
         <div class="page-header align-items-start min-vh-50 pt-5 pb-11 m-3 border-radius-lg"
-            style="background-image: url('{{ asset('assets/Image/background/Pattern_Dark.jpg') }}');">
+            style="background-image: url('{{ asset('assets/Image/background/Pattern_Dark.webp') }}');">
             <div class="container">
                 <div class="row justify-content-center">
                     <div class="col-lg-5 text-center mx-auto">
-                        <img src="{{ asset('assets/Image/logo/Light.png') }}" alt="main_logo" width="250"
+                        <img src="{{ asset('assets/Image/logo/Light.webp') }}" alt="main_logo" width="250"
                             class="mt-5">
                     </div>
                 </div>

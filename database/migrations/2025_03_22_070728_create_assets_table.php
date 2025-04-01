@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('register');
             $table->string('merk');
-            $table->string('ukuran');
+            $table->string('ukuran')->nullable();
             $table->string('bahan');
             $table->year('tahun_pembelian');
             $table->string('pabrik');
@@ -39,6 +39,7 @@ return new class extends Migration
             $table->enum('kondisi', ['Baik', 'Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat', 'Hilang']);
             $table->date('tanggal_perawatan');
             $table->decimal('harga_perawatan', 15, 2);
+            $table->integer('waktu_perawatan');
 
             $table->string('gedung');
             $table->string('lantai');

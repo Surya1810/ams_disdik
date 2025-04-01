@@ -44,8 +44,11 @@
         <!-- Section Profile -->
         <div class="d-flex align-items-center justify-content-center my-3">
             <img src="{{ asset('assets/Image/profile/profile.jpg') }}" alt="Avatar" class="rounded-circle shadow me-2"
-                width="35" height="35">
-            <a href="#" class="text-dark fw-bold text-decoration-none">{{ Auth::user()->name }}</a>
+                width="45" height="45">
+            <div class="d-flex flex-column">
+                <p class="text-dark fw-bold mb-0">{{ Auth::user()->name }}</p>
+                <small class="text-dark">{{ Auth::user()->role->name }}</small>
+            </div>
         </div>
 
 
@@ -87,7 +90,7 @@
                                 <a class="nav-link text-dark" href="#">Maintenance</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="#">Mutasion</a>
+                                <a class="nav-link text-dark" href="#">Mutation</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" href="#">Disposal</a>
@@ -119,10 +122,19 @@
 
                 <li class="nav-item">
                     <a class="nav-link text-dark" href="#">
-                        <i class="fa-solid fa-clipboard-check"></i>
-                        <span class="nav-link-text ms-1">Approval</span>
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span class="nav-link-text ms-1">Scan</span>
                     </a>
                 </li>
+
+                @if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2)
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="#">
+                            <i class="fa-solid fa-clipboard-check"></i>
+                            <span class="nav-link-text ms-1">Approval</span>
+                        </a>
+                    </li>
+                @endif
 
                 <li class="nav-item mt-3">
                     <h6 class="ps-4 ms-2 text-uppercase text-xs text-dark font-weight-bolder opacity-5">Data
@@ -136,26 +148,29 @@
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a class="nav-link text-dark dropdown-toggle" href="#" id="menuDropdown" role="button"
-                        data-bs-toggle="collapse" data-bs-target="#masterdata" aria-expanded="false">
-                        <i class="fa-solid fa-database"></i>
-                        <span class="nav-link-text ms-1">Master Data</span>
-                    </a>
-                    <div class="collapse" id="masterdata">
-                        <ul class="nav flex-column">
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('kecamatan.index') }}">Kecamatan</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('sekolah.index') }}">Sekolah</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('user.index') }}">Pengguna</a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
+                @if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2)
+                    <li class="nav-item">
+                        <a class="nav-link text-dark dropdown-toggle" href="#" id="menuDropdown"
+                            role="button" data-bs-toggle="collapse" data-bs-target="#masterdata"
+                            aria-expanded="false">
+                            <i class="fa-solid fa-database"></i>
+                            <span class="nav-link-text ms-1">Master Data</span>
+                        </a>
+                        <div class="collapse" id="masterdata">
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" href="{{ route('kecamatan.index') }}">Kecamatan</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" href="{{ route('sekolah.index') }}">Sekolah</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" href="{{ route('user.index') }}">Pengguna</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                @endif
             </ul>
         </div>
         <div class="sidenav-footer position-absolute w-100 bottom-0 text-center">

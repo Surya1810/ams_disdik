@@ -5,19 +5,73 @@ namespace App\Http\Controllers;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $roles = Role::all()->except(1);
-        $users = User::all()->except(1);
+        if (!Auth::check() || Auth::user()->role_id == 3) {
+            abort(403, 'Unauthorized');
+        } else {
+            if ($request->ajax()) {
+                if (auth()->role_id == 1) {
+                    $users = User::with('kecamatan');
 
-        return view('user.index', compact('roles', 'users'));
+                    return DataTables::of($users)
+                        ->filter(function ($query) use ($request) {
+                            if (!empty($request->search['value'])) {
+                                $search = $request->search['value'];
+                                $query->where('name', 'like', "%{$search}%");
+                            }
+                        })
+                        ->addColumn('action', function ($row) {
+                            return '
+                            <a role="button" class="text-danger px-3 mb-0 border-radius-lg"
+                                onclick="deleteUser(' . $row->id . ')"><i class="fa-solid fa-trash"></i></a>
+                            <form id="delete-form-' . $row->id . '" 
+                                action="' . route('user.destroy', $row->id) . '" 
+                                method="POST" style="display: none;">
+                                ' . csrf_field() . method_field('DELETE') . '
+                            </form>
+                        ';
+                        })
+                        ->rawColumns(['action']) // Izinkan HTML dalam kolom action
+                        ->make(true);
+                }
+                if (auth()->role_id == 2) {
+                    $users = User::with('kecamatan')
+                        ->whereNot('id', 1);
+
+                    return DataTables::of($users)
+                        ->filter(function ($query) use ($request) {
+                            if (!empty($request->search['value'])) {
+                                $search = $request->search['value'];
+                                $query->where('name', 'like', "%{$search}%");
+                            }
+                        })
+                        ->addColumn('action', function ($row) {
+                            return '
+                            <a role="button" class="text-danger px-3 mb-0 border-radius-lg"
+                                onclick="deletePengguna(' . $row->id . ')"><i class="fa-solid fa-trash"></i></a>
+                            <form id="delete-form-' . $row->id . '" 
+                                action="' . route('user.destroy', $row->id) . '" 
+                                method="POST" style="display: none;">
+                                ' . csrf_field() . method_field('DELETE') . '
+                            </form>
+                        ';
+                        })
+                        ->rawColumns(['action']) // Izinkan HTML dalam kolom action
+                        ->make(true);
+                }
+            }
+            return view('user.index');
+        }
     }
 
     /**

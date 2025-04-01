@@ -4,15 +4,57 @@ namespace App\Http\Controllers;
 
 use App\Models\Asset;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
 
 class AssetController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        // $user = Auth::user();
+
+        // if (!Auth::check() || Auth::user()->role_id == 1) {
+        //     if ($request->ajax()) {
+        //         $assets = Asset::whereHas('sekolah', function ($query) use ($user) {
+        //             $query->where('kecamatan_id', $user->kecamatan_id);
+        //         })->with(['asset.kecamatan'])
+        //             ->get();
+
+        //         return DataTables::of($assets)
+        //             ->filter(function ($query) use ($request) {
+        //                 if (!empty($request->search['value'])) {
+        //                     $search = $request->search['value'];
+        //                     $query->where('name', 'like', "%{$search}%");
+        //                 }
+        //             })
+        //             ->addColumn('action', function ($row) {
+        //                 return '
+        //                     <a role="button" class="text-danger px-3 mb-0 border-radius-lg"
+        //                         onclick="deleteUser(' . $row->id . ')"><i class="fa-solid fa-trash"></i></a>
+        //                     <form id="delete-form-' . $row->id . '" 
+        //                         action="' . route('user.destroy', $row->id) . '" 
+        //                         method="POST" style="display: none;">
+        //                         ' . csrf_field() . method_field('DELETE') . '
+        //                     </form>
+        //                 ';
+        //             })
+        //             ->rawColumns(['action']) // Izinkan HTML dalam kolom action
+        //             ->make(true);
+        //     }
+        //     return view('asset.index');
+        // } elseif (!Auth::check() || Auth::user()->role_id == 2) {
+        //     return view('asset.index');
+        // } elseif (!Auth::check() || Auth::user()->role_id == 3) {
+        //     return view('asset.index');
+        // } else {
+        //     abort(403, 'Unauthorized');
+        // }
+        $assets = Asset::all();
+
+        return view('asset.index', compact('assets'));
     }
 
     /**
@@ -36,7 +78,7 @@ class AssetController extends Controller
             'name' => 'required|string|max:255',
             'register' => 'required|string|max:255',
             'merk' => 'required|string|max:255',
-            'ukuran' => 'required|string|max:255',
+            'ukuran' => 'string|max:255',
             'bahan' => 'required|string|max:255',
             'tahun_pembelian' => 'required|year',
             'pabrik' => 'required|string|max:255',
@@ -56,6 +98,7 @@ class AssetController extends Controller
             'kondisi' => 'required',
             'tanggal_perawatan' => 'required|date',
             'harga_perawatan' => 'required|numeric|min:0',
+            'waktu_perawatan' => 'required|numeric|min:0',
 
             'gedung' => 'required',
             'lantai' => 'required',

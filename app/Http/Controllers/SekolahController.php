@@ -5,15 +5,43 @@ namespace App\Http\Controllers;
 use App\Models\Sekolah;
 use App\Models\Tag;
 use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
 
 class SekolahController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        if ($request->ajax()) {
+            // Ambil data sekolah dengan jumlah sekolah, kecuali id 1 dan 2
+            $sekolahs = Sekolah::withCount('assets')->with('kecamatan')
+                ->whereNotIn('id', [1, 2]);
+
+            return DataTables::of($sekolahs)
+                ->filter(function ($query) use ($request) {
+                    if (!empty($request->search['value'])) {
+                        $search = $request->search['value'];
+                        $query->where('name', 'like', "%{$search}%");
+                    }
+                })
+                ->addColumn('action', function ($row) {
+                    return '
+                    <a role="button" class="text-danger px-3 mb-0 border-radius-lg"
+                        onclick="deleteSekolah(' . $row->id . ')"><i class="fa-solid fa-trash"></i></a>
+                    <form id="delete-form-' . $row->id . '" 
+                        action="' . route('sekolah.destroy', $row->id) . '" 
+                        method="POST" style="display: none;">
+                        ' . csrf_field() . method_field('DELETE') . '
+                    </form>
+                ';
+                })
+                ->rawColumns(['action']) // Izinkan HTML dalam kolom action
+                ->make(true);
+        }
+
+        return view('sekolah.index');
     }
 
     /**
