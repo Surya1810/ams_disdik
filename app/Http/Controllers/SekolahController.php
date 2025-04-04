@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sekolah;
-use App\Models\Tag;
+use App\Models\Kecamatan;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -15,41 +15,41 @@ class SekolahController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            // Ambil data sekolah dengan jumlah sekolah, kecuali id 1 dan 2
-            $sekolahs = Sekolah::withCount('assets')->with('kecamatan')
-                ->whereNotIn('id', [1, 2]);
+            $sekolahs = Sekolah::with('kecamatan')
+                ->withCount('assets')
+                ->whereHas('kecamatan', function ($query) {
+                    $query->whereNotIn('id', [1, 2]); // Optional: filter kecamatan tertentu
+                });
 
             return DataTables::of($sekolahs)
-                ->filter(function ($query) use ($request) {
-                    if (!empty($request->search['value'])) {
-                        $search = $request->search['value'];
-                        $query->where('name', 'like', "%{$search}%");
-                    }
+                ->addColumn('kecamatan', function ($row) {
+                    return $row->kecamatan ? $row->kecamatan->name : '-';
+                })
+                ->addColumn('assets_count', function ($row) {
+                    return $row->assets_count;
                 })
                 ->addColumn('action', function ($row) {
                     return '
-                    <a role="button" class="text-danger px-3 mb-0 border-radius-lg"
-                        onclick="deleteSekolah(' . $row->id . ')"><i class="fa-solid fa-trash"></i></a>
-                    <form id="delete-form-' . $row->id . '" 
-                        action="' . route('sekolah.destroy', $row->id) . '" 
-                        method="POST" style="display: none;">
+                    <a role="button" class="text-warning px-3 mb-0 border-radius-lg" 
+                        data-bs-toggle="modal" data-bs-target="#editSekolahModal" 
+                        onclick="editSekolah(' . $row->id . ', \'' . $row->name . '\')">
+                        <i class="fa-solid fa-pencil"></i>
+                    </a>
+                    <a role="button" class="text-danger px-3 mb-0 border-radius-lg" 
+                        onclick="deleteSekolah(' . $row->id . ')">
+                        <i class="fa-solid fa-trash"></i>
+                    </a>
+                    <form id="delete-form-' . $row->id . '" action="' . route('sekolah.destroy', $row->id) . '" method="POST" style="display: none;">
                         ' . csrf_field() . method_field('DELETE') . '
                     </form>
-                ';
+                    ';
                 })
-                ->rawColumns(['action']) // Izinkan HTML dalam kolom action
+                ->rawColumns(['action'])
                 ->make(true);
         }
 
-        return view('sekolah.index');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $kecamatans = Kecamatan::all();
+        return view('sekolah.index', compact('kecamatans'));
     }
 
     /**
@@ -58,32 +58,30 @@ class SekolahController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string',
-            'kecamatan_id' => 'required',
+            'name' => 'required|string|max:255',
+            'category' => 'required|string',
+            'kecamatan_id' => 'required|integer|exists:kecamatans,id',
         ]);
 
-        $kecamatan = Sekolah::create([
-            'name' => $request->input('name'),
-            'kecamatan_id' => $request->input('kecamatan_id'),
+        Sekolah::create([
+            'name' => $request->name,
+            'category' => $request->category,
+            'kecamatan_id' => $request->kecamatan_id, // Pastikan kecamatan_id disertakan
         ]);
 
-        return redirect()->route('sekolah.index')->with(['pesan' => 'Sekolah berhasil ditambahkan', 'level-alert' => 'alert-success']);
+        return redirect()->route('sekolah.index');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Sekolah $sekolah)
+    public function edit($id)
     {
-        //
+        $sekolah = Sekolah::findOrFail($id); // Ambil data sekolah berdasarkan ID
+        return response()->json($sekolah); // Kembalikan data dalam format JSON
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Sekolah $sekolah)
+    public function create()
     {
-        //
+        $kecamatans = Kecamatan::all();
+        return view('sekolah.create', compact('kecamatans'));
     }
 
     /**
@@ -91,15 +89,20 @@ class SekolahController extends Controller
      */
     public function update(Request $request, Sekolah $sekolah)
     {
-        // Validasi data yang masuk
-        $validatedData = $request->validate([
-            'name' => 'required|string',
-            'kecamatan_id' => 'required|string',
+        $request->validate([
+            'name' => 'required|string|unique:sekolahs,name,' . $sekolah->id,
+            'kecamatan_id' => 'required|exists:kecamatans,id',
         ]);
 
-        $sekolah->update($validatedData);
+        $sekolah->update([
+            'name' => $request->input('name'),
+            'kecamatan_id' => $request->input('kecamatan_id'),
+        ]);
 
-        return redirect()->route('sekolah.index')->with(['pesan' => 'Sekolah berhasil diperbarui', 'level-alert' => 'alert-warning']);
+        return redirect()->route('sekolah.index')->with([
+            'pesan' => 'Sekolah berhasil diperbarui',
+            'level-alert' => 'alert-warning'
+        ]);
     }
 
     /**
@@ -107,6 +110,18 @@ class SekolahController extends Controller
      */
     public function destroy(Sekolah $sekolah)
     {
-        //
+        if ($sekolah->assets()->count() > 0) {
+            return redirect()->route('sekolah.index')->with([
+                'pesan' => 'Tidak bisa menghapus, sekolah masih memiliki aset.',
+                'level-alert' => 'alert-danger'
+            ]);
+        }
+
+        $sekolah->delete();
+
+        return redirect()->route('sekolah.index')->with([
+            'pesan' => 'Sekolah berhasil dihapus',
+            'level-alert' => 'alert-success'
+        ]);
     }
 }

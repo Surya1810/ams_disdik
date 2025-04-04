@@ -9,11 +9,11 @@ class Sekolah extends Model
     protected $fillable = [
         'name',
         'category',
+        'kecamatan_id', // Tambahkan ini
     ];
-
     public function kecamatan()
     {
-        return $this->belongsTo(Kecamatan::class);
+        return $this->belongsTo(Kecamatan::class, 'kecamatan_id');
     }
 
     public function assets()

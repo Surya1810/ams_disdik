@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kecamatan;
-use App\Models\Tag;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -28,28 +27,25 @@ class KecamatanController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     return '
-                    <a role="button" class="text-danger px-3 mb-0 border-radius-lg"
-                        onclick="deleteKecamatan(' . $row->id . ')"><i class="fa-solid fa-trash"></i></a>
-                    <form id="delete-form-' . $row->id . '" 
-                        action="' . route('kecamatan.destroy', $row->id) . '" 
-                        method="POST" style="display: none;">
+                    <a role="button" class="text-warning px-3 mb-0 border-radius-lg" 
+                        data-bs-toggle="modal" data-bs-target="#editKecamatanModal" 
+                        onclick="editKecamatan(' . $row->id . ', \'' . $row->name . '\')">
+                        <i class="fa-solid fa-pencil"></i>
+                    </a>
+                    <a role="button" class="text-danger px-3 mb-0 border-radius-lg" 
+                        onclick="deleteKecamatan(' . $row->id . ')">
+                        <i class="fa-solid fa-trash"></i>
+                    </a>
+                    <form id="delete-form-' . $row->id . '" action="' . route('kecamatan.destroy', $row->id) . '" method="POST" style="display: none;">
                         ' . csrf_field() . method_field('DELETE') . '
                     </form>
-                ';
+                    ';
                 })
-                ->rawColumns(['action']) // Izinkan HTML dalam kolom action
+                ->rawColumns(['action'])
                 ->make(true);
         }
 
         return view('kecamatan.index');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -61,29 +57,11 @@ class KecamatanController extends Controller
             'name' => 'required|string',
         ]);
 
-        $old = session()->getOldInput();
-
         Kecamatan::create([
             'name' => $request->input('name'),
         ]);
 
         return redirect()->route('kecamatan.index')->with(['pesan' => 'Kecamatan berhasil ditambahkan', 'level-alert' => 'alert-success']);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Kecamatan $kecamatan)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Kecamatan $kecamatan)
-    {
-        //
     }
 
     /**
@@ -106,6 +84,11 @@ class KecamatanController extends Controller
      */
     public function destroy(Kecamatan $kecamatan)
     {
-        return redirect()->back()->with(['pesan' => 'Kecamatan dilarang dihapus', 'level-alert' => 'alert-danger']);
+        if ($kecamatan->sekolahs()->exists()) {
+            return redirect()->back()->with(['pesan' => 'Kecamatan ini memiliki sekolah, tidak bisa dihapus.', 'level-alert' => 'alert-danger']);
+        }
+
+        $kecamatan->delete();
+        return redirect()->route('kecamatan.index')->with(['pesan' => 'Kecamatan berhasil dihapus', 'level-alert' => 'alert-success']);
     }
 }

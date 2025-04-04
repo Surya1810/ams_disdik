@@ -12,7 +12,7 @@ class Kecamatan extends Model
 
     public function sekolahs()
     {
-        return $this->hasMany(Sekolah::class);
+        return $this->hasMany(Sekolah::class, 'kecamatan_id');
     }
 
     public function tags()

@@ -4,27 +4,35 @@ namespace App\Http\Controllers;
 
 use App\Exports\TagsExport;
 use App\Models\Tag;
+use App\Models\Kecamatan;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
+use Yajra\DataTables\Facades\DataTables;
 
 class TagController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $rfids = Tag::all();
+        if ($request->ajax()) {
+            $data = Tag::with('kecamatan')->select('rfid_number', 'status', 'kecamatan_id');
+            return DataTables::of(Tag::with('kecamatan')) // Load relasi kecamatan
+                ->addColumn('kecamatan', function ($tag) {
+                    return $tag->kecamatan ? $tag->kecamatan->name : '-'; // Ambil nama kecamatan
+                })
+                ->addColumn('action', function ($tag) {
+                    return '<button onclick="deleteTag(' . "'" . $tag->rfid_number . "'" . ')" class="btn btn-danger btn-sm">
+                <i class="fa-solid fa-trash"></i>
+            </button>';
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
 
-        return view('tag.index', compact('rfids'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $kecamatan = Kecamatan::all();
+        return view('tag.index', compact('kecamatan'));
     }
 
     /**
@@ -33,51 +41,35 @@ class TagController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'from' => 'required|string|unique:tags,rfid_number',
-            'until' => 'required|string|unique:tags,rfid_number',
+            'from' => 'required|numeric',
+            'until' => 'required|numeric',
+            'kecamatan_id' => 'required|exists:kecamatans,id'
         ]);
 
-        if (!ctype_digit($request->from) || !ctype_digit($request->until)) {
-            return redirect()->route('tag.index')->with(['pesan' => 'Must be number', 'level-alert' => 'alert-danger']);
+        // Cek RFID yang sudah ada
+        $existingTags = Tag::whereIn('rfid_number', range($request->from, $request->until))
+            ->pluck('rfid_number')->toArray();
+        if (count($existingTags) > 0) {
+            return response()->json([
+                'message' => 'RFID sudah ada: ' . implode(', ', $existingTags)
+            ], 422);
         }
 
+        // Inject RFID
         $tags = [];
         for ($i = (int) $request->from; $i <= (int) $request->until; $i++) {
-            $formattedNumber = str_pad($i, strlen($request->until), '0', STR_PAD_LEFT);
+            $rfid = str_pad($i, strlen($request->until), '0', STR_PAD_LEFT);
             $tags[] = [
-                'rfid_number' => $formattedNumber,
+                'rfid_number' => $rfid,
+                'status' => 'available',
+                'kecamatan_id' => $request->kecamatan_id,
                 'created_at' => now(),
                 'updated_at' => now()
             ];
         }
 
-        Tag::insert($tags); // Mass insert untuk efisiensi
-
-        return redirect()->route('tag.index')->with(['pesan' => 'Tag created successfully', 'level-alert' => 'alert-success']);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Tag $tag)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Tag $tag)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Tag $tag)
-    {
-        //
+        Tag::insert($tags);
+        return response()->json(['message' => 'RFID berhasil diinject!']);
     }
 
     /**
@@ -87,13 +79,18 @@ class TagController extends Controller
     {
         $tag = Tag::where('rfid_number', $rfid_number)->first();
 
+        if (!$tag) {
+            return redirect()->back()->with(['pesan' => 'Tag not found', 'level-alert' => 'alert-danger']);
+        }
+
         if ($tag->document == null) {
             $tag->delete();
-            return redirect()->back()->with(['pesan' => 'Tag deleted successfully', 'level-alert' => 'alert-danger']);
+            return redirect()->back()->with(['pesan' => 'Tag deleted successfully', 'level-alert' => 'alert-success']);
         } else {
-            return redirect()->back()->with(['pesan' => 'Tag used on document', 'level-alert' => 'alert-danger']);
+            return redirect()->back()->with(['pesan' => 'Tag is used in a document', 'level-alert' => 'alert-danger']);
         }
     }
+
 
     public function export()
     {
