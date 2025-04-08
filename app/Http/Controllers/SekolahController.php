@@ -30,12 +30,12 @@ class SekolahController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     return '
-                    <a role="button" class="text-warning px-3 mb-0 border-radius-lg" 
+                    <a role="button" class="text-danger mb-0 border-radius-lg" 
                         data-bs-toggle="modal" data-bs-target="#editSekolahModal" 
                         onclick="editSekolah(' . $row->id . ', \'' . $row->name . '\')">
                         <i class="fa-solid fa-pencil"></i>
                     </a>
-                    <a role="button" class="text-danger px-3 mb-0 border-radius-lg" 
+                    <a role="button" class="text-danger ms-2 mb-0 border-radius-lg" 
                         onclick="deleteSekolah(' . $row->id . ')">
                         <i class="fa-solid fa-trash"></i>
                     </a>
@@ -66,7 +66,7 @@ class SekolahController extends Controller
         Sekolah::create([
             'name' => $request->name,
             'category' => $request->category,
-            'kecamatan_id' => $request->kecamatan_id, // Pastikan kecamatan_id disertakan
+            'kecamatan_id' => $request->kecamatan_id,
         ]);
 
         return redirect()->route('sekolah.index');
@@ -74,8 +74,8 @@ class SekolahController extends Controller
 
     public function edit($id)
     {
-        $sekolah = Sekolah::findOrFail($id); // Ambil data sekolah berdasarkan ID
-        return response()->json($sekolah); // Kembalikan data dalam format JSON
+        $sekolah = Sekolah::findOrFail($id);
+        return response()->json($sekolah);
     }
 
     public function create()

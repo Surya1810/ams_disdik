@@ -27,12 +27,12 @@ class KecamatanController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     return '
-                    <a role="button" class="text-warning px-3 mb-0 border-radius-lg" 
+                    <a role="button" class="text-danger mb-0 border-radius-lg" 
                         data-bs-toggle="modal" data-bs-target="#editKecamatanModal" 
                         onclick="editKecamatan(' . $row->id . ', \'' . $row->name . '\')">
                         <i class="fa-solid fa-pencil"></i>
                     </a>
-                    <a role="button" class="text-danger px-3 mb-0 border-radius-lg" 
+                    <a role="button" class="text-danger ms-2 mb-0 border-radius-lg" 
                         onclick="deleteKecamatan(' . $row->id . ')">
                         <i class="fa-solid fa-trash"></i>
                     </a>

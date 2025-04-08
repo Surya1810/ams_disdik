@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\AssetController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KecamatanController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SekolahController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\UserController;
@@ -18,7 +20,11 @@ Route::get('/', function () {
 Auth::routes();
 Route::middleware('auth')->group(function () {
     // Dashboard
-    Route::get('/dashboard', [App\Http\Controllers\HomeController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
+
+    // Report
+    Route::resource('report', ReportController::class);
+
 
     // Profile Section
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
