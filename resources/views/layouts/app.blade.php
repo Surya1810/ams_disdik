@@ -87,13 +87,13 @@
                                 <a class="nav-link text-dark" href="{{ route('asset.index') }}">Asset List</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="#">Maintenance</a>
+                                <a class="nav-link text-dark" href="{{ route('maintenance.index') }}">Maintenance</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="#">Mutation</a>
+                                <a class="nav-link text-dark" href="{{ route('mutation.index') }}">Mutation</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="#">Disposal</a>
+                                <a class="nav-link text-dark" href="{{ route('disposal.index') }}">Disposal</a>
                             </li>
                         </ul>
                     </div>
@@ -131,7 +131,7 @@
 
                 @if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2)
                     <li class="nav-item">
-                        <a class="nav-link text-dark" href="#">
+                        <a class="nav-link text-dark" href="{{ route('approval.index') }}">
                             <i class="fa-solid fa-clipboard-check"></i>
                             <span class="nav-link-text ms-1">Approval</span>
                         </a>

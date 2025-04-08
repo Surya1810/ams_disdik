@@ -36,6 +36,19 @@ Route::middleware('auth')->group(function () {
     // Asset
     Route::resource('asset', AssetController::class);
 
+    // Maintenance
+    Route::get('maintenance', function () {
+        return view('asset.maintenance');
+    })->name('maintenance.index');
+    // Mutation
+    Route::get('mutation', function () {
+        return view('asset.mutation');
+    })->name('mutation.index');
+    // Disposal
+    Route::get('disposal', function () {
+        return view('asset.disposal');
+    })->name('disposal.index');
+
     // History
     Route::get('changes-history', function () {
         return view('history.changes');
@@ -51,7 +64,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('scan', ScanController::class);
 
     // Approval
-
+    Route::get('approval', function () {
+        return view('approval.index');
+    })->name('approval.index');
 
     // RFID Menu
     Route::resource('tag', TagController::class);
