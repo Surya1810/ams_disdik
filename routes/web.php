@@ -5,6 +5,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KecamatanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ScanController;
 use App\Http\Controllers\SekolahController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\UserController;
@@ -25,7 +26,6 @@ Route::middleware('auth')->group(function () {
     // Report
     Route::resource('report', ReportController::class);
 
-
     // Profile Section
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile/update/{id}', [ProfileController::class, 'update'])->name('profile.update');
@@ -35,6 +35,23 @@ Route::middleware('auth')->group(function () {
     // =========================================================== Asset ==================================================================
     // Asset
     Route::resource('asset', AssetController::class);
+
+    // History
+    Route::get('changes-history', function () {
+        return view('history.changes');
+    })->name('changes.history');
+    Route::get('mutation-history', function () {
+        return view('history.mutation');
+    })->name('mutation.history');
+    Route::get('location-history', function () {
+        return view('history.location');
+    })->name('location.history');
+
+    // Scan
+    Route::resource('scan', ScanController::class);
+
+    // Approval
+
 
     // RFID Menu
     Route::resource('tag', TagController::class);

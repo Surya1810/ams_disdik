@@ -108,20 +108,22 @@
                     <div class="collapse" id="history">
                         <ul class="nav flex-column">
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="#">Changes History</a>
+                                <a class="nav-link text-dark" href="{{ route('changes.history') }}">Changes History</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="#">Mutation History</a>
+                                <a class="nav-link text-dark" href="{{ route('mutation.history') }}">Mutation
+                                    History</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="#">Location History</a>
+                                <a class="nav-link text-dark" href="{{ route('location.history') }}">Location
+                                    History</a>
                             </li>
                         </ul>
                     </div>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-dark" href="#">
+                    <a class="nav-link text-dark" href="{{ route('scan.index') }}">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <span class="nav-link-text ms-1">Scan</span>
                     </a>
