@@ -6,7 +6,11 @@ use App\Models\Asset;
 use App\Models\Sekolah;
 use App\Models\Tag;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 use Yajra\DataTables\Facades\DataTables;
 
 class AssetController extends Controller
@@ -54,11 +58,38 @@ class AssetController extends Controller
         // } else {
         //     abort(403, 'Unauthorized');
         // }
-        $assets = Asset::all();
         $tags = Tag::where('status', 'available')->where('kecamatan_id', Auth::user()->kecamatan_id)->pluck('rfid_number');
         $places = Sekolah::where('kecamatan_id', Auth::user()->kecamatan_id)->get();
 
-        return view('asset.index', compact('assets', 'tags', 'places'));
+        if ($request->ajax()) {
+            $assets = Asset::with('sekolah'); // eager loading
+
+            return DataTables::of($assets)
+                ->addColumn('kondisi_badge', function ($row) {
+                    $badge = match ($row->kondisi) {
+                        'Baik' => '<span class="badge bg-success">Baik</span>',
+                        'Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang' => '<span class="badge bg-warning">' . $row->kondisi . '</span>',
+                        'Rusak Berat', 'Hilang' => '<span class="badge bg-danger">' . $row->kondisi . '</span>',
+                        default => '<span class="badge bg-secondary">' . $row->kondisi . '</span>',
+                    };
+                    return $badge;
+                })
+                ->addColumn('action', function ($row) {
+                    return '
+                    <a href="javascript:void(0)" class="btn btn-link py-0 px-2" data-bs-toggle="modal" data-bs-target="#showAssetModal" onclick="showAsset({{ $row->id }})">
+                        <i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail"></i>
+                    </a>
+                    &nbsp;
+                    <a href="javascript:void(0)" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#editAssetModal" onclick="editAsset(' . $row->id . ')">
+                        <i class="fa-solid fa-pencil" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
+                    </a>
+                ';
+                })
+                ->rawColumns(['kondisi_badge', 'action'])
+                ->make(true);
+        }
+
+        return view('asset.index', compact('tags', 'places'));
     }
 
     /**
@@ -75,6 +106,7 @@ class AssetController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'image' => 'image|max:2048',
             'tag' => 'required|exists:tags,rfid_number',
             'sekolah_id' => 'required',
 
@@ -114,6 +146,21 @@ class AssetController extends Controller
 
         $old = session()->getOldInput();
 
+        $file = $request->file('image');
+        $filename = Str::uuid() . '.webp';
+        $path = 'assets/' . $filename;
+
+        // Buat instance ImageManager versi 3
+        $manager = new ImageManager(new Driver());
+
+        // Baca gambar dari file, resize, dan encode ke webp
+        $image = $manager->read($file->getPathname())
+            ->scale(width: 800) // otomatis menjaga aspect ratio
+            ->toWebp(quality: 75); // encode ke WebP dengan kompresi
+
+        // Simpan ke storage
+        Storage::disk('public')->put($path, (string) $image);
+
         Asset::create([
             'rfid_number' => $request->input('tag'),
             'sekolah_id' => $request->input('sekolah_id'),
@@ -143,10 +190,11 @@ class AssetController extends Controller
             'lantai' => $request->input('lantai'),
             'ruangan' => $request->input('ruangan'),
             'detail' => $request->input('detail'),
+            'foto_awal' => $filename
         ]);
 
         // Update Tag Status
-        $tag = Tag::where('rfid_number', $request->input('tag'))->get();
+        $tag = Tag::where('rfid_number', $request->input('tag'))->first();
         $tag->status = 'used';
         $tag->save();
 

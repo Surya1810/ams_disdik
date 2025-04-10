@@ -5,6 +5,20 @@
 @endsection
 
 @push('css')
+    <style>
+        #preview {
+            text-align: center;
+        }
+
+        #previewImg {
+            max-height: 200px;
+            max-width: 200px;
+            width: auto;
+            display: block;
+            margin: 0 auto;
+            /* center image */
+        }
+    </style>
 @endpush
 
 @section('navbar')
@@ -48,33 +62,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($assets as $asset)
-                                    <tr>
-                                        <td>{{ $asset->rfid_number }}</td>
-                                        <td>{{ $asset->kode }}</td>
-                                        <td>{{ $asset->name }}</td>
-                                        <td>{{ $asset->merk }}</td>
-                                        <td>{{ $asset->tahun_pembelian }}</td>
-                                        <td>
-                                            @if ($asset->kondisi == 'Baik')
-                                                <span class="badge bg-success">{{ $asset->kondisi }}</span>
-                                            @elseif ($asset->kondisi == 'Perlu Perbaikan')
-                                                <span class="badge bg-warning">{{ $asset->kondisi }}</span>
-                                            @elseif ($asset->kondisi == 'Rusak Ringan')
-                                                <span class="badge bg-warning">{{ $asset->kondisi }}</span>
-                                            @elseif ($asset->kondisi == 'Rusak Sedang')
-                                                <span class="badge bg-warning">{{ $asset->kondisi }}</span>
-                                            @elseif ($asset->kondisi == 'Rusak Berat')
-                                                <span class="badge bg-danger">{{ $asset->kondisi }}</span>
-                                            @else
-                                                <span class="badge bg-danger">{{ $asset->kondisi }}</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ $asset->sekolah->name }}</td>
-                                        <td>
-                                        </td>
-                                    </tr>
-                                @endforeach
+
                             </tbody>
                         </table>
                     </div>
@@ -89,7 +77,8 @@
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">
-                        <form action="{{ route('asset.store') }}" method="POST" autocomplete="off">
+                        <form action="{{ route('asset.store') }}" method="POST" autocomplete="off"
+                            enctype="multipart/form-data">
                             <div class="card-header pb-0 text-left">
                                 <h4 class="text-primary text-gradient">Tambah <strong>Aset</strong></h4>
                             </div>
@@ -100,7 +89,14 @@
                                         <h6>Informasi Barang</h6>
                                     </div>
                                     <div class="col-4">
+                                        <label for="image">Pilih Foto Awal:</label>
+                                        <input type="file" name="image" accept="image/*" class="form-control"
+                                            onchange="previewImage(event)">
 
+                                        <div id="preview" style="margin-top: 15px;">
+                                            <img id="previewImg" src="" alt="Preview" style="display: none;" />
+                                            <p id="fileName" style="margin-top: 5px;"></p>
+                                        </div>
                                     </div>
                                     <div class="col-8">
                                         <div class="row">
@@ -164,8 +160,8 @@
                                             <div class="col-12 col-md-4">
                                                 <label>Merk/Type</label>
                                                 <input type="text"
-                                                    class="form-control @error('merk') is-invalid @enderror" name="merk"
-                                                    value="{{ old('merk') }}" required
+                                                    class="form-control @error('merk') is-invalid @enderror"
+                                                    name="merk" value="{{ old('merk') }}" required
                                                     placeholder="Tulis merk/type barang" aria-label="merk">
                                                 @error('merk')
                                                     <span class="invalid-feedback" role="alert">
@@ -544,10 +540,107 @@
             </div>
         </div>
     </div>
+    <!-- Modal Edit Aset -->
+    <div class="modal fade" id="editAssetModal" aria-labelledby="editAssetModal" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="card card-plain">
+                        <form action="#" method="POST" autocomplete="off" enctype="multipart/form-data">
+                            @csrf
+                            <div class="card-header pb-0 text-left">
+                                <h4 class="text-primary text-gradient">Tambah <strong>Aset</strong></h4>
+                            </div>
+                            <div class="card-body mb-3">
+                            </div>
+                            <div class="card-footer text-center pt-0 px-lg-2 px-1">
+                                <button type="submit" class="btn btn-primary  rounded-partner m-0">Tambah</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Show Aset -->
+    <div class="modal fade" id="showAssetModal" aria-labelledby="showAssetModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="card card-plain">
+                        <div class="card-header pb-0 text-left">
+                            <h4 class="text-primary text-gradient">Detail <strong>Aset</strong></h4>
+                        </div>
+                        <div class="card-body mb-3">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
     <script>
+        $(function() {
+            $('#asetTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: '{{ route('asset.index') }}',
+                columns: [{
+                        data: 'rfid_number',
+                        name: 'rfid_number',
+                        className: "text-start"
+                    },
+                    {
+                        data: 'kode',
+                        name: 'kode',
+                        className: "text-start"
+                    },
+                    {
+                        data: 'name',
+                        name: 'name',
+                        className: "text-start"
+                    },
+                    {
+                        data: 'merk',
+                        name: 'merk',
+                        className: "text-start"
+                    },
+                    {
+                        data: 'tahun_pembelian',
+                        name: 'tahun_pembelian',
+                        className: "text-start"
+                    },
+                    {
+                        data: 'kondisi_badge',
+                        name: 'kondisi',
+                        className: "text-start",
+                    },
+                    {
+                        data: 'sekolah.name',
+                        name: 'sekolah.name'
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
+                drawCallback: function(settings) {
+                    // Inisialisasi tooltip ulang
+                    const tooltipTriggerList = [].slice.call(document.querySelectorAll(
+                        '[data-bs-toggle="tooltip"]'));
+                    tooltipTriggerList.map(function(tooltipTriggerEl) {
+                        return new bootstrap.Tooltip(tooltipTriggerEl);
+                    });
+                }
+            });
+        });
+
         $('.tag').select2({
             placeholder: "Pilih RFID Tag",
             dropdownParent: $("#addAset .modal-content"),
@@ -577,5 +670,37 @@
             removeMaskOnSubmit: true,
             rightAlign: false
         });
+
+        function previewImage(event) {
+            const input = event.target;
+            const preview = document.getElementById('previewImg');
+            const fileName = document.getElementById('fileName');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    fileName.innerText = input.files[0].name;
+                }
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function deleteKecamatan(id) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Data kecamatan akan dihapus permanen!",
+                icon: 'warning',
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Hapus',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + id).submit();
+                }
+            });
+        }
     </script>
 @endpush
