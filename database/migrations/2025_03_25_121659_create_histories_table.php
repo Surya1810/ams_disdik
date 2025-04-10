@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('histories', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('asset_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete(); // siapa yg ubah
+            $table->enum('change_type', ['attribute', 'location', 'mutation']);
+            $table->json('changed_fields');
+            $table->json('old_values')->nullable();
+            $table->json('new_values')->nullable();
             $table->timestamps();
         });
     }

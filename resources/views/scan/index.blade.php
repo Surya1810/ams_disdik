@@ -17,6 +17,12 @@
 @section('content')
     <div class="container-fluid py-2">
         <div class="row">
+            <div class="col-12 mb-3 text-center">
+                <button class="btn btn-primary rounded-partner" id="refreshButton"><i class="fa-solid fa-arrows-rotate"></i>
+                    Refresh Data</button>
+            </div>
+        </div>
+        <div class="row">
             <!-- Tabel Asset -->
             <div class="col-12 col-md-6">
                 <div class="card my-4">
@@ -37,10 +43,18 @@
                         <table id="assetTable" class="table text-sm mt-3">
                             <thead class="font-weight-bolder">
                                 <tr>
-                                    <th class="text-uppercase">Nama Sekolah</th>
-                                    <th class="text-uppercase">Kategori</th>
-                                    <th class="text-uppercase">Kecamatan</th>
-                                    <th class="text-uppercase">Jumlah Aset</th>
+                                    <th class="text-uppercase">Status</th>
+                                    <th class="text-uppercase">RFID</th>
+                                    <th class="text-uppercase">Kode Barang</th>
+                                    <th class="text-uppercase">Nama/Jenis Barang</th>
+                                    <th class="text-uppercase">Merk/Type</th>
+                                    <th class="text-uppercase">Tahun Pembelian</th>
+                                    <th class="text-uppercase">Kondisi</th>
+                                    <th class="text-uppercase">Tempat</th>
+                                    <th class="text-uppercase">Gedung</th>
+                                    <th class="text-uppercase">Lantai</th>
+                                    <th class="text-uppercase">Ruangan</th>
+                                    <th class="text-uppercase">Detail</th>
                                     <th class="text-uppercase">Aksi</th>
                                 </tr>
                             </thead>
@@ -160,13 +174,12 @@
                     let rowNode = assetTable.row.add([
                         asset.is_there ? ' <strong>FOUND</strong>' : '<strong>MISSING</strong>',
                         asset.rfid_number,
-                        asset.cif,
-                        asset.nik_nasabah,
-                        asset.rekening_nasabah,
-                        asset.nama_nasabah,
-                        asset.cabang,
-                        asset.no_dokumen,
-                        asset.segmen,
+                        asset.kode,
+                        asset.name,
+                        asset.merk,
+                        asset.tahun_pembelian,
+                        asset.kondisi,
+                        asset.sekolah,
                         asset.pinjaman,
                         asset.room,
                         asset.row,

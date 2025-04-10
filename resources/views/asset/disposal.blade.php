@@ -25,6 +25,9 @@
                         </div>
                     </div>
                     <div class="card-body table-responsive pb-2">
+                        <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
+                            data-bs-target="#addDisposal"> <i class="fa-solid fa-plus"></i> Buat Pengajuan
+                        </button>
                         <!-- Tabel Disposal -->
                         <table id="disposalTable" class="table text-sm mt-3">
                             <thead class="font-weight-bolder">

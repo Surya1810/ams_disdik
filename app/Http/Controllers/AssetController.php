@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asset;
+use App\Models\Sekolah;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
@@ -53,8 +55,10 @@ class AssetController extends Controller
         //     abort(403, 'Unauthorized');
         // }
         $assets = Asset::all();
+        $tags = Tag::where('status', 'available')->where('kecamatan_id', Auth::user()->kecamatan_id)->pluck('rfid_number');
+        $places = Sekolah::where('kecamatan_id', Auth::user()->kecamatan_id)->get();
 
-        return view('asset.index', compact('assets'));
+        return view('asset.index', compact('assets', 'tags', 'places'));
     }
 
     /**
@@ -80,8 +84,8 @@ class AssetController extends Controller
             'merk' => 'required|string|max:255',
             'ukuran' => 'string|max:255',
             'bahan' => 'required|string|max:255',
-            'tahun_pembelian' => 'required|year',
-            'pabrik' => 'required|string|max:255',
+            'tahun_pembelian' => 'required|integer',
+            'pabrik' => 'string|max:255',
 
             'rangka' => 'string|max:255',
             'mesin' => 'string|max:255',
@@ -93,7 +97,7 @@ class AssetController extends Controller
             'jabatan_pic' => 'required|string|max:255',
             'telp_pic' => 'required|min:10',
 
-            'asal_perolehan' => 'string|max:255',
+            'asal_perolehan' => 'required|string|max:255',
             'nilai_perolehan' => 'required|numeric|min:0',
             'kondisi' => 'required',
             'tanggal_perawatan' => 'required|date',
@@ -111,7 +115,7 @@ class AssetController extends Controller
         $old = session()->getOldInput();
 
         Asset::create([
-            'tag' => $request->input('tag'),
+            'rfid_number' => $request->input('tag'),
             'sekolah_id' => $request->input('sekolah_id'),
             'kode' => $request->input('kode'),
             'name' => $request->input('name'),
@@ -119,7 +123,7 @@ class AssetController extends Controller
             'merk' => $request->input('merk'),
             'ukuran' => $request->input('ukuran'),
             'bahan' => $request->input('bahan'),
-            'tahun_pembelian' => $request->input('tahun_pembelian'),
+            'tahun_pembelian' => 2025,
             'pabrik' => $request->input('pabrik'),
             'rangka' => $request->input('rangka'),
             'mesin' => $request->input('mesin'),
@@ -134,11 +138,17 @@ class AssetController extends Controller
             'kondisi' => $request->input('kondisi'),
             'tanggal_perawatan' => $request->input('tanggal_perawatan'),
             'harga_perawatan' => $request->input('harga_perawatan'),
+            'waktu_perawatan' => $request->input('waktu_perawatan'),
             'gedung' => $request->input('gedung'),
             'lantai' => $request->input('lantai'),
             'ruangan' => $request->input('ruangan'),
             'detail' => $request->input('detail'),
         ]);
+
+        // Update Tag Status
+        $tag = Tag::where('rfid_number', $request->input('tag'))->get();
+        $tag->status = 'used';
+        $tag->save();
 
         return redirect()->route('asset.index')->with(['pesan' => 'Aset berhasil ditambahkan', 'level-alert' => 'alert-success']);
     }

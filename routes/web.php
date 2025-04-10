@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KecamatanController;
@@ -9,13 +10,12 @@ use App\Http\Controllers\ScanController;
 use App\Http\Controllers\SekolahController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\HistoryController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Request;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
-    // return view('welcome');
 });
 
 Auth::routes();
@@ -50,23 +50,20 @@ Route::middleware('auth')->group(function () {
     })->name('disposal.index');
 
     // History
-    Route::get('changes-history', function () {
-        return view('history.changes');
-    })->name('changes.history');
-    Route::get('mutation-history', function () {
-        return view('history.mutation');
-    })->name('mutation.history');
-    Route::get('location-history', function () {
-        return view('history.location');
-    })->name('location.history');
+    Route::get('/histories/changes', [HistoryController::class, 'changesHistory'])->name('histories.changes');
+    Route::get('/histories/mutation', [HistoryController::class, 'mutationHistory'])->name('histories.mutation');
+    Route::get('/histories/location', [HistoryController::class, 'locationHistory'])->name('histories.location');
 
     // Scan
     Route::resource('scan', ScanController::class);
 
     // Approval
-    Route::get('approval', function () {
-        return view('approval.index');
-    })->name('approval.index');
+    Route::resource('approval', ApprovalController::class);
+    Route::post('/approval/approve', [ApprovalController::class, 'approve'])->name('approval.approve');
+    Route::post('/approval/reject', [ApprovalController::class, 'reject'])->name('approval.reject');
+    Route::post('/approval/bulk-approve', [ApprovalController::class, 'bulkApprove'])->name('approval.bulk.approve');
+    Route::post('/approval/bulk-reject', [ApprovalController::class, 'bulkReject'])->name('approval.bulk.reject');
+
 
     // RFID Menu
     Route::resource('tag', TagController::class);
@@ -81,6 +78,4 @@ Route::middleware('auth')->group(function () {
 
     // Kecamatan
     Route::resource('kecamatan', KecamatanController::class);
-
-    // Lokasi
 });

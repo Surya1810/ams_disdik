@@ -25,11 +25,37 @@
                         </div>
                     </div>
                     <div class="card-body table-responsive pb-2">
+                        <div class="mb-3 d-flex gap-2">
+                            <button id="bulk-approve" class="btn btn-success btn-sm">Approve Terpilih</button>
+                            <button id="bulk-reject" class="btn btn-danger btn-sm">Reject Terpilih</button>
+                            <select id="filter-status" class="form-control w-auto">
+                                <option value="">-- Semua Status --</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+
+                            <select id="filter-type" class="form-control w-auto">
+                                <option value="">-- Semua Jenis --</option>
+                                <option value="mutation">Mutation</option>
+                                <option value="disposal">Disposal</option>
+                                <option value="loan">Loan</option>
+                            </select>
+                        </div>
+
                         <!-- Tabel Approval -->
                         <table id="approvalTable" class="table text-sm mt-3">
                             <thead class="font-weight-bolder">
                                 <tr>
-                                    <th class="text-uppercase">Nama Sekolah</th>
+                                    <th><input type="checkbox" id="select-all"></th>
+                                    <th>Nama Barang</th>
+                                    <th>Pengaju</th>
+                                    <th>Jenis</th>
+                                    <th>Alasan</th>
+                                    <th>Keterangan</th>
+                                    <th>Status</th>
+                                    <th>Waktu</th>
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -44,40 +70,170 @@
 @endsection
 
 @push('scripts')
-    <script type='text/javascript'>
-        $(document).ready(function() {
-            $('#approvalTable').DataTable({
+    <script>
+        $(function() {
+            let table = $('#approvalTable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('sekolah.index') }}",
+                ajax: {
+                    url: "{{ route('approval.index') }}",
+                    data: function(d) {
+                        d.status = $('#filter-status').val();
+                        d.type = $('#filter-type').val();
+                    }
+                },
                 columns: [{
-                        data: 'name',
-                        name: 'name',
-                        className: "text-start"
+                        data: 'id',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data) {
+                            return `<input type="checkbox" class="select-item" value="${data}">`;
+                        }
                     },
                     {
-                        data: 'category',
-                        name: 'category',
-                        className: "text-start"
+                        data: 'asset',
+                        name: 'asset.name'
                     },
                     {
-                        data: 'kecamatan',
-                        name: 'kecamatan',
-                        className: "text-start"
+                        data: 'user',
+                        name: 'user.name'
                     },
                     {
-                        data: 'assets_count',
-                        name: 'assets_count',
-                        className: "text-start"
+                        data: 'type',
+                        name: 'type'
                     },
                     {
-                        data: 'action',
-                        name: 'action',
+                        data: 'reason',
+                        name: 'reason'
+                    },
+                    {
+                        data: 'keterangan',
+                        name: 'payload.keterangan'
+                    },
+                    {
+                        data: 'status',
+                        name: 'status'
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at'
+                    },
+                    {
+                        data: 'aksi',
+                        name: 'aksi',
                         orderable: false,
                         searchable: false
-                    }
+                    },
                 ]
             });
+
+            // Trigger reload saat filter diubah
+            $('#filter-status, #filter-type').on('change', function() {
+                table.ajax.reload();
+            });
+
+
+            // Select all
+            $('#select-all').on('click', function() {
+                $('.select-item').prop('checked', this.checked);
+            });
+
+            // Approve single
+            $('#approvalTable').on('click', '.approve', function() {
+                let id = $(this).data('id');
+                Swal.fire({
+                    title: 'Approve?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya',
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        approveRequest([id]);
+                    }
+                });
+            });
+
+            // Reject single
+            $('#approvalTable').on('click', '.reject', function() {
+                let id = $(this).data('id');
+                Swal.fire({
+                    title: 'Tolak Permintaan?',
+                    input: 'text',
+                    inputLabel: 'Alasan penolakan',
+                    showCancelButton: true,
+                    confirmButtonText: 'Tolak'
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        rejectRequest([id], result.value);
+                    }
+                });
+            });
+
+            // Bulk Approve
+            $('#bulk-approve').on('click', function() {
+                let ids = getSelectedIds();
+                if (!ids.length) return Swal.fire('Pilih setidaknya 1 item');
+                Swal.fire({
+                    title: 'Approve semua terpilih?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya'
+                }).then(result => {
+                    if (result.isConfirmed) approveRequest(ids);
+                });
+            });
+
+            // Bulk Reject
+            $('#bulk-reject').on('click', function() {
+                let ids = getSelectedIds();
+                if (!ids.length) return Swal.fire('Pilih setidaknya 1 item');
+                Swal.fire({
+                    title: 'Tolak semua terpilih?',
+                    input: 'text',
+                    inputLabel: 'Alasan penolakan',
+                    showCancelButton: true,
+                    confirmButtonText: 'Tolak'
+                }).then(result => {
+                    if (result.isConfirmed) rejectRequest(ids, result.value);
+                });
+            });
+
+            function getSelectedIds() {
+                return $('.select-item:checked').map(function() {
+                    return $(this).val();
+                }).get();
+            }
+
+            function approveRequest(ids) {
+                $.ajax({
+                    url: '{{ route('approval.bulk.approve') }}',
+                    method: 'POST',
+                    data: {
+                        ids,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: res => {
+                        table.ajax.reload();
+                        Swal.fire('Berhasil', res.message, 'success');
+                    }
+                });
+            }
+
+            function rejectRequest(ids, note) {
+                $.ajax({
+                    url: '{{ route('approval.bulk.reject') }}',
+                    method: 'POST',
+                    data: {
+                        ids,
+                        rejection_note: note,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: res => {
+                        table.ajax.reload();
+                        Swal.fire('Ditolak', res.message, 'success');
+                    }
+                });
+            }
         });
     </script>
 @endpush

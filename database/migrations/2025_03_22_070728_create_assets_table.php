@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('ukuran')->nullable();
             $table->string('bahan');
             $table->year('tahun_pembelian');
-            $table->string('pabrik');
+            $table->string('pabrik')->nullable();
             $table->string('rangka')->nullable();
             $table->string('mesin')->nullable();
             $table->string('polisi')->nullable();
@@ -32,7 +32,7 @@ return new class extends Migration
             $table->string('nip_pic');
             $table->string('nama_pic');
             $table->string('jabatan_pic');
-            $table->integer('telp_pic');
+            $table->string('telp_pic');
 
             $table->string('asal_perolehan');
             $table->decimal('nilai_perolehan', 15, 2);

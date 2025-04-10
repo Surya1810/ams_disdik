@@ -29,7 +29,11 @@
                         <table id="mutationTable" class="table text-sm mt-3">
                             <thead class="font-weight-bolder">
                                 <tr>
-                                    <th class="text-uppercase">Nama Sekolah</th>
+                                    <th class="text-uppercase">Nama Barang</th>
+                                    <th class="text-uppercase">Diubah Oleh</th>
+                                    <th class="text-uppercase">Dari</th>
+                                    <th class="text-uppercase">ke</th>
+                                    <th class="text-uppercase">Waktu</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -45,37 +49,39 @@
 
 @push('scripts')
     <script type='text/javascript'>
-        $(document).ready(function() {
+        $(function() {
             $('#mutationTable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('sekolah.index') }}",
+                ajax: "{{ route('histories.mutation') }}",
                 columns: [{
-                        data: 'name',
-                        name: 'name',
-                        className: "text-start"
+                        data: 'asset',
+                        name: 'asset.name'
                     },
                     {
-                        data: 'category',
-                        name: 'category',
-                        className: "text-start"
+                        data: 'user',
+                        name: 'user.name'
                     },
                     {
-                        data: 'kecamatan',
-                        name: 'kecamatan',
-                        className: "text-start"
-                    },
-                    {
-                        data: 'assets_count',
-                        name: 'assets_count',
-                        className: "text-start"
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
+                        data: 'dari',
+                        name: 'dari',
                         orderable: false,
                         searchable: false
-                    }
+                    },
+                    {
+                        data: 'ke',
+                        name: 'ke',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'status',
+                        name: 'status'
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at'
+                    },
                 ]
             });
         });

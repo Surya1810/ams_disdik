@@ -50,14 +50,29 @@
                             <tbody>
                                 @foreach ($assets as $asset)
                                     <tr>
-                                        <td>{{ $asset->rfid }}</td>
+                                        <td>{{ $asset->rfid_number }}</td>
+                                        <td>{{ $asset->kode }}</td>
                                         <td>{{ $asset->name }}</td>
-                                        <td>{{ $asset->name }}</td>
-                                        <td>{{ $asset->name }}</td>
-                                        <td>{{ $asset->name }}</td>
-                                        <td>{{ $asset->name }}</td>
-                                        <td>{{ $asset->name }}</td>
-                                        <td></td>
+                                        <td>{{ $asset->merk }}</td>
+                                        <td>{{ $asset->tahun_pembelian }}</td>
+                                        <td>
+                                            @if ($asset->kondisi == 'Baik')
+                                                <span class="badge bg-success">{{ $asset->kondisi }}</span>
+                                            @elseif ($asset->kondisi == 'Perlu Perbaikan')
+                                                <span class="badge bg-warning">{{ $asset->kondisi }}</span>
+                                            @elseif ($asset->kondisi == 'Rusak Ringan')
+                                                <span class="badge bg-warning">{{ $asset->kondisi }}</span>
+                                            @elseif ($asset->kondisi == 'Rusak Sedang')
+                                                <span class="badge bg-warning">{{ $asset->kondisi }}</span>
+                                            @elseif ($asset->kondisi == 'Rusak Berat')
+                                                <span class="badge bg-danger">{{ $asset->kondisi }}</span>
+                                            @else
+                                                <span class="badge bg-danger">{{ $asset->kondisi }}</span>
+                                            @endif
+                                        </td>
+                                        <td>{{ $asset->sekolah->name }}</td>
+                                        <td>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -74,7 +89,7 @@
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">
-                        <form action="{{ route('asset.store') }}" method="POST">
+                        <form action="{{ route('asset.store') }}" method="POST" autocomplete="off">
                             <div class="card-header pb-0 text-left">
                                 <h4 class="text-primary text-gradient">Tambah <strong>Aset</strong></h4>
                             </div>
@@ -90,8 +105,16 @@
                                     <div class="col-8">
                                         <div class="row">
                                             <div class="col-12 col-md-6">
-                                                <label>RFID <small class="text-danger">*Wajib</small></label>
-
+                                                <label>Nomor RFID</label>
+                                                <select class="form-control tag" id="tag" name="tag" required>
+                                                    <option></option>
+                                                    @foreach ($tags as $tag)
+                                                        <option value="{{ $tag }}"
+                                                            {{ old('tag') == $tag ? 'selected' : '' }}>
+                                                            {{ $tag }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
                                                 @error('tag')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -100,7 +123,7 @@
                                             </div>
 
                                             <div class="col-12 col-md-6">
-                                                <label>Kode Barang <small class="text-danger">*Wajib</small></label>
+                                                <label>Kode Barang</label>
                                                 <input type="text"
                                                     class="form-control @error('kode') is-invalid @enderror" name="kode"
                                                     value="{{ old('kode') }}" required placeholder="Tulis kode barang"
@@ -113,7 +136,7 @@
                                             </div>
 
                                             <div class="col-12">
-                                                <label>Nama/Jenis Barang <small class="text-danger">*Wajib</small></label>
+                                                <label>Nama/Jenis Barang</label>
                                                 <input type="text"
                                                     class="form-control @error('name') is-invalid @enderror" name="name"
                                                     value="{{ old('name') }}" required
@@ -126,7 +149,7 @@
                                             </div>
 
                                             <div class="col-12 col-md-4">
-                                                <label>Nomor Register <small class="text-danger">*Wajib</small></label>
+                                                <label>Nomor Register</label>
                                                 <input type="text"
                                                     class="form-control @error('register') is-invalid @enderror"
                                                     name="register" value="{{ old('register') }}" required
@@ -139,7 +162,7 @@
                                             </div>
 
                                             <div class="col-12 col-md-4">
-                                                <label>Merk/Type <small class="text-danger">*Wajib</small></label>
+                                                <label>Merk/Type</label>
                                                 <input type="text"
                                                     class="form-control @error('merk') is-invalid @enderror" name="merk"
                                                     value="{{ old('merk') }}" required
@@ -152,7 +175,7 @@
                                             </div>
 
                                             <div class="col-12 col-md-4">
-                                                <label>Ukuran/cc</label>
+                                                <label>Ukuran/cc <small class="text-danger">*optional</small></label>
                                                 <input type="text"
                                                     class="form-control @error('ukuran') is-invalid @enderror"
                                                     name="ukuran" value="{{ old('ukuran') }}"
@@ -169,7 +192,7 @@
                                                 <input type="text"
                                                     class="form-control @error('bahan') is-invalid @enderror"
                                                     name="bahan" value="{{ old('bahan') }}"
-                                                    placeholder="Tulis bahan barang" aria-label="bahan">
+                                                    placeholder="Tulis bahan barang" aria-label="bahan" required>
                                                 @error('bahan')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -178,10 +201,10 @@
                                             </div>
 
                                             <div class="col-6 col-md-4">
-                                                <label>Tahun Pembelian <small class="text-danger">*Wajib</small></label>
-                                                <input type="year"
+                                                <label>Tahun Pembelian</label>
+                                                <input type="number"
                                                     class="form-control @error('tahun_pembelian') is-invalid @enderror"
-                                                    name="number" value="{{ old('tahun_pembelian') }}"
+                                                    name="tahun_pembelian" value="{{ old('tahun_pembelian') }}"
                                                     placeholder="{{ Carbon\Carbon::now()->year }}" min="1900"
                                                     max="2099" step="1" aria-label="tahun_pembelian"
                                                     value="{{ Carbon\Carbon::now()->year }}" required>
@@ -193,7 +216,7 @@
                                             </div>
 
                                             <div class="col-12 col-md-4">
-                                                <label>Pabrik</label>
+                                                <label>Pabrik <small class="text-danger">*optional</small></label>
                                                 <input type="text"
                                                     class="form-control @error('pabrik') is-invalid @enderror"
                                                     name="pabrik" value="{{ old('pabrik') }}"
@@ -214,7 +237,7 @@
                                     </div>
 
                                     <div class="col-12 col-md-3">
-                                        <label>Rangka</label>
+                                        <label>Rangka <small class="text-danger">*optional</small></label>
                                         <input type="text" class="form-control @error('rangka') is-invalid @enderror"
                                             name="rangka" value="{{ old('rangka') }}"
                                             placeholder="Tulis nomor rangka barang" aria-label="rangka">
@@ -226,7 +249,7 @@
                                     </div>
 
                                     <div class="col-12 col-md-3">
-                                        <label>Mesin</label>
+                                        <label>Mesin <small class="text-danger">*optional</small></label>
                                         <input type="text" class="form-control @error('mesin') is-invalid @enderror"
                                             name="mesin" value="{{ old('mesin') }}"
                                             placeholder="Tulis nomor mesin barang" aria-label="mesin">
@@ -238,7 +261,7 @@
                                     </div>
 
                                     <div class="col-12 col-md-3">
-                                        <label>Polisi</label>
+                                        <label>Polisi <small class="text-danger">*optional</small></label>
                                         <input type="text" class="form-control @error('polisi') is-invalid @enderror"
                                             name="polisi" value="{{ old('polisi') }}"
                                             placeholder="Tulis nomor polisi barang" aria-label="polisi">
@@ -250,7 +273,7 @@
                                     </div>
 
                                     <div class="col-12 col-md-3">
-                                        <label>BPKB</label>
+                                        <label>BPKB <small class="text-danger">*optional</small></label>
                                         <input type="text" class="form-control @error('bpkb') is-invalid @enderror"
                                             name="bpkb" value="{{ old('bpkb') }}"
                                             placeholder="Tulis nomor BPKB barang" aria-label="bpkb">
@@ -270,7 +293,7 @@
                                         <label>NIP</label>
                                         <input type="text" class="form-control @error('nip_pic') is-invalid @enderror"
                                             name="nip_pic" value="{{ old('nip_pic') }}"
-                                            placeholder="Tulis NIP PIC barang" aria-label="nip_pic">
+                                            placeholder="Tulis NIP PIC barang" aria-label="nip_pic" required>
                                         @error('nip_pic')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -283,7 +306,7 @@
                                         <input type="text"
                                             class="form-control @error('nama_pic') is-invalid @enderror" name="nama_pic"
                                             value="{{ old('nama_pic') }}" placeholder="Tulis nama PIC barang"
-                                            aria-label="nama_pic">
+                                            aria-label="nama_pic" required>
                                         @error('nama_pic')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -296,7 +319,7 @@
                                         <input type="text"
                                             class="form-control @error('jabatan_pic') is-invalid @enderror"
                                             name="jabatan_pic" value="{{ old('jabatan_pic') }}"
-                                            placeholder="Tulis jabatan PIC barang" aria-label="jabatan_pic">
+                                            placeholder="Tulis jabatan PIC barang" aria-label="jabatan_pic" required>
                                         @error('jabatan_pic')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -306,10 +329,10 @@
 
                                     <div class="col-12 col-md-3">
                                         <label>Telepon</label>
-                                        <input type="text"
+                                        <input type="number"
                                             class="form-control @error('telp_pic') is-invalid @enderror" name="telp_pic"
                                             value="{{ old('telp_pic') }}" placeholder="Tulis nomor telepon PIC barang"
-                                            aria-label="telp_pic">
+                                            aria-label="telp_pic" required>
                                         @error('telp_pic')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -327,7 +350,8 @@
                                         <input type="text"
                                             class="form-control @error('asal_perolehan') is-invalid @enderror"
                                             name="asal_perolehan" value="{{ old('asal_perolehan') }}"
-                                            placeholder="Tulis asal-usul perolehan barang" aria-label="asal_perolehan">
+                                            placeholder="Tulis asal-usul perolehan barang" aria-label="asal_perolehan"
+                                            required>
                                         @error('asal_perolehan')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -336,10 +360,11 @@
                                     </div>
                                     <div class="col-12 col-md-4">
                                         <label>Nilai Perolehan</label>
-                                        <input type="text"
-                                            class="form-control @error('nilai_perolehan') is-invalid @enderror"
-                                            name="nilai_perolehan" value="{{ old('nilai_perolehan') }}"
-                                            placeholder="Tulis nilai perolehan barang" aria-label="nilai_perolehan">
+                                        <input type="text" name="nilai_perolehan"
+                                            class="form-control price @error('nilai_perolehan') is-invalid @enderror"
+                                            placeholder="Tulis harga perawatan barang"
+                                            value="{{ old('nilai_perolehan') }}" min="0" step="0.01"
+                                            aria-label="nilai_perolehan" required>
                                         @error('nilai_perolehan')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -348,6 +373,32 @@
                                     </div>
                                     <div class="col-12 col-md-4">
                                         <label>Kondisi</label>
+                                        <select name="kondisi" id="kondisi"
+                                            class="form-select kondisi @error('kondisi') is-invalid @enderror" required>
+                                            <option></option>
+                                            <option value="Baik" {{ old('kondisi') == 'Baik' ? 'selected' : '' }}>
+                                                Baik
+                                            </option>
+                                            <option value="Perlu Perbaikan"
+                                                {{ old('kondisi') == 'Perlu Perbaikan' ? 'selected' : '' }}>
+                                                Perlu Perbaikan
+                                            </option>
+                                            <option value="Rusak Ringan"
+                                                {{ old('kondisi') == 'Rusak Ringan' ? 'selected' : '' }}>
+                                                Rusak Ringan
+                                            </option>
+                                            <option value="Rusak Sedang"
+                                                {{ old('kondisi') == 'Rusak Sedang' ? 'selected' : '' }}>
+                                                Rusak Sedang
+                                            </option>
+                                            <option value="Rusak Berat"
+                                                {{ old('kondisi') == 'Rusak Berat' ? 'selected' : '' }}>
+                                                Rusak Berat
+                                            </option>
+                                            <option value="Hilang" {{ old('kondisi') == 'Hilang' ? 'selected' : '' }}>
+                                                Hilang
+                                            </option>
+                                        </select>
 
                                         @error('kondisi')
                                             <span class="invalid-feedback" role="alert">
@@ -360,7 +411,7 @@
                                         <input type="date"
                                             class="form-control @error('tanggal_perawatan') is-invalid @enderror"
                                             name="tanggal_perawatan" value="{{ old('tanggal_perawatan') }}"
-                                            aria-label="tanggal_perawatan">
+                                            aria-label="tanggal_perawatan" required>
                                         @error('tanggal_perawatan')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -369,10 +420,11 @@
                                     </div>
                                     <div class="col-12 col-md-4">
                                         <label>Harga Perawatan</label>
-                                        <input type="text"
-                                            class="form-control @error('harga_perawatan') is-invalid @enderror"
-                                            name="harga_perawatan" value="{{ old('harga_perawatan') }}"
-                                            placeholder="Tulis harga perawatan barang" aria-label="harga_perawatan">
+                                        <input type="text" name="harga_perawatan"
+                                            class="form-control price @error('harga_perawatan') is-invalid @enderror"
+                                            placeholder="Tulis harga perawatan barang"
+                                            value="{{ old('harga_perawatan') }}" min="0" step="0.01"
+                                            aria-label="harga_perawatan" required>
                                         @error('harga_perawatan')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -381,8 +433,22 @@
                                     </div>
                                     <div class="col-12 col-md-4">
                                         <label>Jangka Waktu Perawatan</label>
+                                        <select name="waktu_perawatan" id="waktu_perawatan"
+                                            class="form-control waktu_perawatan @error('waktu_perawatan') is-invalid @enderror"
+                                            required>
+                                            <option></option>
+                                            <option value="3" {{ old('waktu_perawatan') == 3 ? 'selected' : '' }}>
+                                                3 Bulan
+                                            </option>
+                                            <option value="6" {{ old('waktu_perawatan') == 6 ? 'selected' : '' }}>
+                                                6 Bulan
+                                            </option>
+                                            <option value="12" {{ old('waktu_perawatan') == 12 ? 'selected' : '' }}>
+                                                12 Bulan
+                                            </option>
+                                        </select>
 
-                                        @error('harga_perawatan')
+                                        @error('waktu_perawatan')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
                                             </span>
@@ -393,10 +459,30 @@
                                     <div class="col-12 text-center">
                                         <h6>Lokasi</h6>
                                     </div>
-                                    <div class="col-12">
-                                        <label>Tempat</label>
+                                    <div class="col-12 col-md-6">
+                                        <label>Kecamatan</label>
+                                        <input type="text" class="form-control"
+                                            value="{{ Auth::user()->kecamatan->name }}" disabled>
 
                                         @error('harga_perawatan')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label>Tempat</label>
+                                        <select name="sekolah_id" id="sekolah_id"
+                                            class="form-control place @error('sekolah_id') is-invalid @enderror" required>
+                                            <option></option>
+                                            @foreach ($places as $place)
+                                                <option value="{{ $place->id }}"
+                                                    {{ old('sekolah_id') == $place->id ? 'selected' : '' }}>
+                                                    {{ $place->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('sekolah_id')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
                                             </span>
@@ -407,7 +493,7 @@
                                         <label>Gedung</label>
                                         <input type="text" class="form-control @error('gedung') is-invalid @enderror"
                                             name="gedung" value="{{ old('gedung') }}" placeholder="Tulis lokasi gedung"
-                                            aria-label="gedung">
+                                            aria-label="gedung" required>
                                         @error('gedung')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -418,7 +504,7 @@
                                         <label>Lantai</label>
                                         <input type="text" class="form-control @error('lantai') is-invalid @enderror"
                                             name="lantai" value="{{ old('lantai') }}" placeholder="Tulis lokasi lantai"
-                                            aria-label="lantai">
+                                            aria-label="lantai" required>
                                         @error('lantai')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -429,7 +515,7 @@
                                         <label>Ruangan</label>
                                         <input type="text" class="form-control @error('ruangan') is-invalid @enderror"
                                             name="ruangan" value="{{ old('ruangan') }}"
-                                            placeholder="Tulis lokasi ruangan" aria-label="ruangan">
+                                            placeholder="Tulis lokasi ruangan" aria-label="ruangan" required>
                                         @error('ruangan')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -440,7 +526,7 @@
                                         <label>Detail</label>
                                         <input type="text" class="form-control @error('detail') is-invalid @enderror"
                                             name="detail" value="{{ old('detail') }}" placeholder="Tulis lokasi detail"
-                                            aria-label="detail">
+                                            aria-label="detail" required>
                                         @error('detail')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -461,4 +547,35 @@
 @endsection
 
 @push('scripts')
+    <script>
+        $('.tag').select2({
+            placeholder: "Pilih RFID Tag",
+            dropdownParent: $("#addAset .modal-content"),
+            width: "100%"
+        })
+        $(".kondisi").select2({
+            placeholder: "Pilih kondisi",
+            dropdownParent: $("#addAset .modal-content"),
+            width: "100%"
+        });
+        $(".waktu_perawatan").select2({
+            placeholder: "Pilih jangka waktu",
+            dropdownParent: $("#addAset .modal-content"),
+            width: "100%"
+        });
+        $(".place").select2({
+            placeholder: "Pilih tempat",
+            dropdownParent: $("#addAset .modal-content"),
+            width: "100%"
+        });
+        $('.price').inputmask({
+            alias: 'numeric',
+            prefix: 'Rp',
+            digits: 0,
+            groupSeparator: '.',
+            autoGroup: true,
+            removeMaskOnSubmit: true,
+            rightAlign: false
+        });
+    </script>
 @endpush

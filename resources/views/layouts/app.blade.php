@@ -11,6 +11,10 @@
 
     <!-- Sweetalert2 -->
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{{ asset('assets/Argon/assets/js/plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet"
+        href="{{ asset('assets/Argon/assets/js/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="{{ asset('assets/FontAwesome/css/all.min.css') }}">
     <!-- Theme Style -->
@@ -43,8 +47,8 @@
 
         <!-- Section Profile -->
         <div class="d-flex align-items-center justify-content-center my-3">
-            <img src="{{ asset('assets/Image/profile/profile.jpg') }}" alt="Avatar" class="rounded-circle shadow me-2"
-                width="45" height="45">
+            <img src="{{ asset('assets/Image/profile/profile.jpg') }}" alt="Avatar"
+                class="rounded-circle shadow me-2" width="45" height="45">
             <div class="d-flex flex-column">
                 <p class="text-dark fw-bold mb-0">{{ Auth::user()->name }}</p>
                 <small class="text-dark">{{ Auth::user()->role->name }}</small>
@@ -93,6 +97,9 @@
                                 <a class="nav-link text-dark" href="{{ route('mutation.index') }}">Mutation</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-dark" href="#">Loan</a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link text-dark" href="{{ route('disposal.index') }}">Disposal</a>
                             </li>
                         </ul>
@@ -108,14 +115,15 @@
                     <div class="collapse" id="history">
                         <ul class="nav flex-column">
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('changes.history') }}">Changes History</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('mutation.history') }}">Mutation
+                                <a class="nav-link text-dark" href="{{ route('histories.changes') }}">Changes
                                     History</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('location.history') }}">Location
+                                <a class="nav-link text-dark" href="{{ route('histories.mutation') }}">Mutation
+                                    History</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" href="{{ route('histories.location') }}">Location
                                     History</a>
                             </li>
                         </ul>
@@ -255,6 +263,10 @@
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <!-- Datatables JS -->
     <script src="https://cdn.datatables.net/2.1.8/js/dataTables.js"></script>
+    <!-- Select2 -->
+    <script src="{{ asset('assets/Argon/assets/js/plugins/select2/js/select2.full.min.js') }}"></script>
+    <!-- InputMask -->
+    <script src="{{ asset('assets/Argon/assets/js/plugins/inputmask/jquery.inputmask.min.js') }}"></script>
 
     @stack('scripts')
 
