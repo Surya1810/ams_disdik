@@ -103,40 +103,38 @@
                             <div class="card-header pb-0 text-left">
                                 <h4 class="text-primary text-gradient">Distribusi <strong>Tag RFID</strong></h4>
                             </div>
-                            <div class="card-body mb-3">
+                            <div class="card-body">
                                 <div class="row">
-                                    <div class="col-12">
+                                    <div class="col-12 mb-3">
                                         <label for="kecamatan_id" class="form-label">Pilih Kecamatan</label>
                                         <select name="kecamatan_id" id="kecamatan_id"
                                             class="form-select kecamatan_id @error('kecamatan_id') is-invalid @enderror"
                                             required>
                                             <option></option>
                                             @foreach ($kecamatan as $k)
-                                                @if ($k->id != 1)
-                                                    <option value="{{ $k->id }}">{{ $k->name }}</option>
-                                                @endif
+                                            @if ($k->id != 1)
+                                            <option value="{{ $k->id }}">{{ $k->name }}</option>
+                                            @endif
                                             @endforeach
                                         </select>
                                         @error('kecamatan_id')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
                                         @enderror
                                     </div>
                                     <div class="col-md-6">
                                         <label>Dari Nomor RFID</label>
-                                        <input type="number" name="from" class="form-control" required
-                                            placeholder="Nomor awal RFID">
+                                        <input type="number" name="from" class="form-control" required placeholder="Nomor awal RFID">
                                     </div>
                                     <div class="col-md-6">
                                         <label>Sampai Nomor RFID</label>
-                                        <input type="number" name="until" class="form-control" required
-                                            placeholder="Nomor akhir RFID">
+                                        <input type="number" name="until" class="form-control" required placeholder="Nomor akhir RFID">
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-footer text-center pt-0 px-lg-2 px-1">
-                                <button type="submit" class="btn btn-primary rounded-partner m-0">Distribusikan</button>
+                            <div class="card-footer text-center pt-0 px-lg-2 px-1 mb-3">
+                                <button type="submit" class="btn btn-primary rounded-partner">Distribusikan</button>
                             </div>
                         </form>
                     </div>
@@ -148,6 +146,16 @@
 
 @push('css')
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .select2-container .select2-selection--single {
+            height: 38px;
+            padding: 5px 10px;
+        }
+    
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 28px;
+        }
+    </style>
 @endpush
 
 @push('scripts')
@@ -188,6 +196,17 @@
                         return new bootstrap.Tooltip(tooltipTriggerEl);
                     });
                 }
+            });
+
+            $('.kecamatan_id').select2({
+            placeholder: 'Pilih Kecamatan',
+            width: '100%'
+            });
+            
+            $('.select-rfid').select2({
+            placeholder: 'Pil',
+            allowClear: true,
+            width: '100%'
             });
 
             $('.kecamatan_id').select2({
