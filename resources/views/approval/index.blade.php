@@ -87,12 +87,12 @@
                         searchable: false,
                     },
                     {
-                        data: 'asset',
-                        name: 'asset.name'
+                        data: 'asset', // data
+                        name: 'assets.name' // name sesuai kolom join
                     },
                     {
                         data: 'requester',
-                        name: 'requester.name'
+                        name: 'u.name' // karena join ke 'users as u'
                     },
                     {
                         data: 'type',
@@ -100,7 +100,7 @@
                     },
                     {
                         data: 'keterangan',
-                        name: 'payload.keterangan',
+                        name: 'payload.keterangan', // tetap non-orderable
                         orderable: false,
                         searchable: false
                     },
@@ -172,7 +172,7 @@
             });
 
             function getSelectedIds() {
-                return $('.select-item:checked').map(function() {
+                return $('.row-checkbox:checked').map(function() {
                     return $(this).val();
                 }).get();
             }

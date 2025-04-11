@@ -21,60 +21,60 @@ class ApprovalController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Approval::with(['asset', 'requester'])->orderBy('approvals.created_at');
+            $data = Approval::with(['asset', 'requester'])->orderBy('approvals.created_at', 'desc');
 
-            if ($request->has('status') && $request->status !== null) {
+            if ($request->filled('status')) {
                 $data->where('status', $request->status);
             }
 
-            if ($request->has('type') && $request->type !== null) {
+            if ($request->filled('type')) {
                 $data->where('type', $request->type);
             }
 
             return DataTables::of($data)
                 ->addColumn('checkbox', function ($row) {
                     if ($row->status === 'pending') {
-                        return '<input type="checkbox" class="row-checkbox" value="' . $row->id . '">';
+                        return '<input type="checkbox" name="ids[]" class="row-checkbox" value="' . $row->id . '">';
                     }
                     return '';
                 })
-                ->rawColumns(['checkbox'])
-                ->addColumn('asset', fn($row) => $row->asset->name)
+                ->addColumn('asset', fn($row) => $row->asset->name ?? '-')
                 ->filterColumn('asset', function ($query, $keyword) {
-                    $query->whereHas('asset', function ($q) use ($keyword) {
-                        $q->where('name', 'like', "%{$keyword}%");
-                    });
+                    $query->whereHas('asset', fn($q) => $q->where('name', 'like', "%{$keyword}%"));
                 })
                 ->orderColumn('asset', function ($query, $order) {
                     $query->join('assets', 'approvals.asset_id', '=', 'assets.id')
-                        ->orderBy('assets.name', $order);
+                        ->orderBy('assets.name', $order)
+                        ->select('approvals.*');
                 })
-                ->addColumn('requester', fn($row) => $row->requester->name)
+                ->addColumn('requester', fn($row) => $row->requester->name ?? '-')
                 ->filterColumn('requester', function ($query, $keyword) {
-                    $query->whereHas('requester', function ($q) use ($keyword) {
-                        $q->where('name', 'like', "%{$keyword}%");
-                    });
+                    $query->whereHas('requester', fn($q) => $q->where('name', 'like', "%{$keyword}%"));
                 })
+
                 ->orderColumn('requester', function ($query, $order) {
                     $query->join('users as u', 'approvals.requester_id', '=', 'u.id')
-                        ->orderBy('u.name', $order);
+                        ->orderBy('u.name', $order)
+                        ->select('approvals.*');
                 })
                 ->addColumn('keterangan', function ($row) {
-                    return $row->payload['keterangan'] ?? '-';
+                    $payload = is_array($row->payload) ? $row->payload : json_decode($row->payload, true);
+                    return $payload['keterangan'] ?? '-';
                 })
                 ->addColumn('status', function ($row) {
                     $color = match ($row->status) {
                         'pending' => 'warning',
                         'approved' => 'success',
                         'rejected' => 'danger',
-                        default => 'secondary'
+                        default => 'secondary',
                     };
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
                 })
-                ->rawColumns(['asset_name', 'requested_by', 'from', 'to', 'status'])
-                ->addColumn('rejection_note', fn($row) => $row->rejection_note)
+                ->addColumn('rejection_note', fn($row) => $row->rejection_note ?? '-')
+                ->rawColumns(['checkbox', 'status']) // Hanya kolom yg berisi HTML
                 ->make(true);
         }
+
 
         return view('approval.index');
     }
@@ -95,24 +95,50 @@ class ApprovalController extends Controller
                     $payload = json_decode($row->payload, true);
                     $old = $payload['old'] ?? [];
 
-                    return '<div>' .
-                        '<strong>Gedung:</strong> ' . ($old['gedung'] ?? '-') . '<br>' .
-                        '<strong>Lantai:</strong> ' . ($old['lantai'] ?? '-') . '<br>' .
-                        '<strong>Ruangan:</strong> ' . ($old['ruangan'] ?? '-') . '<br>' .
-                        '<strong>Detail:</strong> ' . ($old['detail'] ?? '-') .
-                        '</div>';
+                    // Deteksi apakah ini payload lokasi (ada key `gedung`) atau mutasi PIC (ada key `nip`)
+                    if (isset($old['gedung'])) {
+                        return "
+            <strong>Sekolah:</strong> {$old['sekolah']}<br>
+            <strong>Gedung:</strong> {$old['gedung']}<br>
+            <strong>Lantai:</strong> {$old['lantai']}<br>
+            <strong>Ruangan:</strong> {$old['ruangan']}<br>
+            <strong>Detail:</strong> {$old['detail']}
+        ";
+                    } elseif (isset($old['nip'])) {
+                        return "
+            <strong>NIP:</strong> {$old['nip']}<br>
+            <strong>Nama:</strong> {$old['nama']}<br>
+            <strong>Jabatan:</strong> {$old['jabatan']}<br>
+            <strong>Telp:</strong> {$old['telp']}
+        ";
+                    }
+
+                    return '-';
                 })
                 ->addColumn('to', function ($row) {
                     $payload = json_decode($row->payload, true);
                     $new = $payload['new'] ?? [];
 
-                    return '<div>' .
-                        '<strong>Gedung:</strong> ' . ($new['gedung'] ?? '-') . '<br>' .
-                        '<strong>Lantai:</strong> ' . ($new['lantai'] ?? '-') . '<br>' .
-                        '<strong>Ruangan:</strong> ' . ($new['ruangan'] ?? '-') . '<br>' .
-                        '<strong>Detail:</strong> ' . ($new['detail'] ?? '-') .
-                        '</div>';
+                    if (isset($new['gedung'])) {
+                        return "
+            <strong>Sekolah:</strong> {$new['sekolah_id']}<br>
+            <strong>Gedung:</strong> {$new['gedung']}<br>
+            <strong>Lantai:</strong> {$new['lantai']}<br>
+            <strong>Ruangan:</strong> {$new['ruangan']}<br>
+            <strong>Detail:</strong> {$new['detail']}
+        ";
+                    } elseif (isset($new['nip'])) {
+                        return "
+            <strong>NIP:</strong> {$new['nip']}<br>
+            <strong>Nama:</strong> {$new['nama']}<br>
+            <strong>Jabatan:</strong> {$new['jabatan']}<br>
+            <strong>Telp:</strong> {$new['telp']}
+        ";
+                    }
+
+                    return '-';
                 })
+
                 ->addColumn('requested_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
                 ->addColumn('status', function ($row) {
                     $color = match ($row->status) {
