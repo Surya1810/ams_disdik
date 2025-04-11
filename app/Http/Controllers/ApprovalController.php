@@ -21,7 +21,7 @@ class ApprovalController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Approval::with(['asset', 'requester'])->latest();
+            $data = Approval::with(['asset', 'requester'])->orderBy('approvals.created_at');
 
             if ($request->has('status') && $request->status !== null) {
                 $data->where('status', $request->status);
@@ -32,8 +32,33 @@ class ApprovalController extends Controller
             }
 
             return DataTables::of($data)
+                ->addColumn('checkbox', function ($row) {
+                    if ($row->status === 'pending') {
+                        return '<input type="checkbox" class="row-checkbox" value="' . $row->id . '">';
+                    }
+                    return '';
+                })
+                ->rawColumns(['checkbox'])
                 ->addColumn('asset', fn($row) => $row->asset->name)
+                ->filterColumn('asset', function ($query, $keyword) {
+                    $query->whereHas('asset', function ($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%");
+                    });
+                })
+                ->orderColumn('asset', function ($query, $order) {
+                    $query->join('assets', 'approvals.asset_id', '=', 'assets.id')
+                        ->orderBy('assets.name', $order);
+                })
                 ->addColumn('requester', fn($row) => $row->requester->name)
+                ->filterColumn('requester', function ($query, $keyword) {
+                    $query->whereHas('requester', function ($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%");
+                    });
+                })
+                ->orderColumn('requester', function ($query, $order) {
+                    $query->join('users as u', 'approvals.requester_id', '=', 'u.id')
+                        ->orderBy('u.name', $order);
+                })
                 ->addColumn('keterangan', function ($row) {
                     return $row->payload['keterangan'] ?? '-';
                 })
@@ -68,11 +93,25 @@ class ApprovalController extends Controller
                 ->addColumn('requested_by', fn($row) => $row->requester->name ?? '-')
                 ->addColumn('from', function ($row) {
                     $payload = json_decode($row->payload, true);
-                    return $payload['old'] ?? '-';
+                    $old = $payload['old'] ?? [];
+
+                    return '<div>' .
+                        '<strong>Gedung:</strong> ' . ($old['gedung'] ?? '-') . '<br>' .
+                        '<strong>Lantai:</strong> ' . ($old['lantai'] ?? '-') . '<br>' .
+                        '<strong>Ruangan:</strong> ' . ($old['ruangan'] ?? '-') . '<br>' .
+                        '<strong>Detail:</strong> ' . ($old['detail'] ?? '-') .
+                        '</div>';
                 })
                 ->addColumn('to', function ($row) {
                     $payload = json_decode($row->payload, true);
-                    return $payload['new'] ?? '-';
+                    $new = $payload['new'] ?? [];
+
+                    return '<div>' .
+                        '<strong>Gedung:</strong> ' . ($new['gedung'] ?? '-') . '<br>' .
+                        '<strong>Lantai:</strong> ' . ($new['lantai'] ?? '-') . '<br>' .
+                        '<strong>Ruangan:</strong> ' . ($new['ruangan'] ?? '-') . '<br>' .
+                        '<strong>Detail:</strong> ' . ($new['detail'] ?? '-') .
+                        '</div>';
                 })
                 ->addColumn('requested_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
                 ->addColumn('status', function ($row) {
@@ -106,11 +145,30 @@ class ApprovalController extends Controller
                 ->addColumn('requested_by', fn($row) => $row->requester->name ?? '-')
                 ->addColumn('from', function ($row) {
                     $payload = json_decode($row->payload, true);
-                    return $payload['old'] ?? '-';
+                    $old = $payload['old'] ?? [];
+
+                    return '<div>' .
+                        '<strong>Sekolah:</strong> ' . ($old['sekolah'] ?? '-') . '<br>' .
+                        '<strong>Gedung:</strong> ' . ($old['gedung'] ?? '-') . '<br>' .
+                        '<strong>Lantai:</strong> ' . ($old['lantai'] ?? '-') . '<br>' .
+                        '<strong>Ruangan:</strong> ' . ($old['ruangan'] ?? '-') . '<br>' .
+                        '<strong>Detail:</strong> ' . ($old['detail'] ?? '-') .
+                        '</div>';
                 })
                 ->addColumn('to', function ($row) {
                     $payload = json_decode($row->payload, true);
-                    return $payload['new'] ?? '-';
+                    $new = $payload['new'] ?? [];
+
+                    $sekolah = \App\Models\Sekolah::find($new['sekolah_id']);
+                    $sekolahName = $sekolah->name ?? '-';
+
+                    return '<div>' .
+                        '<strong>Sekolah:</strong> ' . $sekolahName . '<br>' .
+                        '<strong>Gedung:</strong> ' . ($new['gedung'] ?? '-') . '<br>' .
+                        '<strong>Lantai:</strong> ' . ($new['lantai'] ?? '-') . '<br>' .
+                        '<strong>Ruangan:</strong> ' . ($new['ruangan'] ?? '-') . '<br>' .
+                        '<strong>Detail:</strong> ' . ($new['detail'] ?? '-') .
+                        '</div>';
                 })
                 ->addColumn('requested_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
                 ->addColumn('status', function ($row) {
@@ -302,26 +360,27 @@ class ApprovalController extends Controller
         ]);
 
         foreach ($request->ids as $id) {
+            $approval = Approval::with('asset')->find($id);
+            if (!$approval || $approval->status !== 'pending') continue;
+
+            $payload = $approval->payload;
+            $userId = Auth::id();
+            $asset = $approval->asset;
+
             try {
-                $approval = Approval::with('asset')->find($id);
-                if (!$approval || $approval->status !== 'pending') continue;
-
-                $payload = $approval->payload;
-                $userId = Auth::id();
-                $asset = $approval->asset;
-
-                if (!$asset) {
-                    Log::error("Asset not found for approval ID: {$approval->id}");
-                    continue;
-                }
-
                 switch ($approval->type) {
                     case 'mutation':
                         $fields = ['nip_pic', 'nama_pic', 'jabatan_pic', 'telp_pic'];
-                        $oldValues = $asset->only($fields);
-                        $newValues = array_intersect_key($payload, array_flip($fields));
 
-                        $asset->update($newValues);
+                        // Convert payload to array kalau masih string
+                        $payloadArray = is_array($payload) ? $payload : json_decode($payload, true);
+
+                        $oldValues = $asset->only($fields);
+                        $newValues = array_intersect_key($payloadArray, array_flip($fields));
+
+                        // Update data asset
+                        $asset->fill($newValues);
+                        $asset->save();
 
                         History::create([
                             'asset_id' => $asset->id,
@@ -335,10 +394,16 @@ class ApprovalController extends Controller
 
                     case 'loan':
                         $fields = ['sekolah_id', 'gedung', 'lantai', 'ruangan', 'detail'];
-                        $oldValues = $asset->only($fields);
-                        $newValues = array_intersect_key($payload, array_flip($fields));
 
-                        $asset->update($newValues);
+                        // Convert payload ke array jika perlu
+                        $payloadArray = is_array($payload) ? $payload : json_decode($payload, true);
+
+                        $oldValues = $asset->only($fields);
+                        $newValues = array_intersect_key($payloadArray, array_flip($fields));
+
+                        // Update data asset
+                        $asset->fill($newValues);
+                        $asset->save();
 
                         History::create([
                             'asset_id' => $asset->id,
@@ -354,60 +419,53 @@ class ApprovalController extends Controller
                         $keterangan = $payload['keterangan'] ?? '-';
                         $jenis = $payload['jenis'] ?? '-';
 
-                        Log::debug('Creating history with data:', [
-                            'asset_id' => $asset->id,
-                            'user_id' => $userId,
-                            'change_type' => 'disposal',
-                            'changed_fields' => json_encode(['jenis', 'keterangan']),
-                            'old_values' => null,
-                            'new_values' => json_encode([
-                                'jenis' => $jenis,
-                                'keterangan' => $keterangan,
-                            ]),
-                        ]);
+                        // Ambil seluruh data sebelum dihapus
+                        $oldValues = $asset->toArray();
+
                         History::create([
                             'asset_id' => $asset->id,
                             'user_id' => $userId,
                             'change_type' => 'disposal',
                             'changed_fields' => json_encode(['jenis', 'keterangan']),
-                            'old_values' => null,
+                            'old_values' => json_encode($oldValues),
                             'new_values' => json_encode([
                                 'jenis' => $jenis,
                                 'keterangan' => $keterangan,
                             ]),
                         ]);
 
+                        // Update tag jika ada
                         if ($asset->tag) {
-                            $tag = Tag::where('rfid_number', $asset->tag)->first();
+                            $tag = Tag::where('rfid_number', $asset->rfid_number)->first();
                             if ($tag) {
                                 $tag->update(['status' => 'available']);
                             }
                         }
 
+                        // Hapus gambar
                         if ($asset->foto_awal) {
                             Storage::disk('public')->delete('assets/' . $asset->foto_awal);
-                            $asset->foto_awal = null;
                         }
 
                         if ($asset->foto_kondisi) {
                             Storage::disk('public')->delete('assets/' . $asset->foto_kondisi);
-                            $asset->foto_kondisi = null;
                         }
 
-                        $asset->save();
+                        // Hapus asset
+                        $asset->delete();
                         break;
                 }
 
+                // Update status approval
                 $approval->update(['status' => 'approved']);
-            } catch (\Throwable $e) {
-                Log::error("Approval failed for ID $id: " . $e->getMessage(), [
-                    'trace' => $e->getTraceAsString()
-                ]);
+            } catch (\Exception $e) {
+                Log::error("Approval failed for ID {$id}: {$e->getMessage()}");
             }
         }
 
         return response()->json(['message' => 'Semua permintaan berhasil disetujui dan dicatat dalam history.']);
     }
+
 
 
     public function reject(Request $request)

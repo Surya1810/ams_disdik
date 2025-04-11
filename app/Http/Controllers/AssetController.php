@@ -106,7 +106,7 @@ class AssetController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'image' => 'image|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'tag' => 'required|exists:tags,rfid_number',
             'sekolah_id' => 'required',
 
@@ -114,15 +114,8 @@ class AssetController extends Controller
             'name' => 'required|string|max:255',
             'register' => 'required|string|max:255',
             'merk' => 'required|string|max:255',
-            'ukuran' => 'string|max:255',
             'bahan' => 'required|string|max:255',
             'tahun_pembelian' => 'required|integer',
-            'pabrik' => 'string|max:255',
-
-            'rangka' => 'string|max:255',
-            'mesin' => 'string|max:255',
-            'polisi' => 'string|max:255',
-            'bpkb' => 'string|max:255',
 
             'nip_pic' => 'required|string|max:255',
             'nama_pic' => 'required|string|max:255',
@@ -145,23 +138,7 @@ class AssetController extends Controller
         ]);
 
         $old = session()->getOldInput();
-
-        $file = $request->file('image');
-        $filename = Str::uuid() . '.webp';
-        $path = 'assets/' . $filename;
-
-        // Buat instance ImageManager versi 3
-        $manager = new ImageManager(new Driver());
-
-        // Baca gambar dari file, resize, dan encode ke webp
-        $image = $manager->read($file->getPathname())
-            ->scale(width: 800) // otomatis menjaga aspect ratio
-            ->toWebp(quality: 75); // encode ke WebP dengan kompresi
-
-        // Simpan ke storage
-        Storage::disk('public')->put($path, (string) $image);
-
-        Asset::create([
+        $data = [
             'rfid_number' => $request->input('tag'),
             'sekolah_id' => $request->input('sekolah_id'),
             'kode' => $request->input('kode'),
@@ -190,8 +167,26 @@ class AssetController extends Controller
             'lantai' => $request->input('lantai'),
             'ruangan' => $request->input('ruangan'),
             'detail' => $request->input('detail'),
-            'foto_awal' => $filename
-        ]);
+        ];
+
+        // Jika ada file gambar yang valid, proses dan tambahkan ke array
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            $filename = Str::uuid() . '.webp';
+            $path = 'assets/' . $filename;
+
+            $manager = new ImageManager(new Driver());
+
+            $image = $manager->read($request->file('image')->getPathname())
+                ->scale(width: 800)
+                ->toWebp(quality: 75);
+
+            Storage::disk('public')->put($path, (string) $image);
+
+            $data['foto_awal'] = $filename;
+        }
+
+        // Simpan data ke database
+        Asset::create($data);
 
         // Update Tag Status
         $tag = Tag::where('rfid_number', $request->input('tag'))->first();

@@ -82,12 +82,9 @@
                     }
                 },
                 columns: [{
-                        data: 'id',
+                        data: 'checkbox',
                         orderable: false,
                         searchable: false,
-                        render: function(data) {
-                            return `<input type="checkbox" class="select-item" value="${data}">`;
-                        }
                     },
                     {
                         data: 'asset',
@@ -103,7 +100,9 @@
                     },
                     {
                         data: 'keterangan',
-                        name: 'payload.keterangan'
+                        name: 'payload.keterangan',
+                        orderable: false,
+                        searchable: false
                     },
                     {
                         data: 'status',
@@ -130,7 +129,8 @@
 
             // Select all
             $('#select-all').on('click', function() {
-                $('.select-item').prop('checked', this.checked);
+                let checked = $(this).is(':checked');
+                $('.row-checkbox').prop('checked', checked);
             });
 
             // Bulk Approve
