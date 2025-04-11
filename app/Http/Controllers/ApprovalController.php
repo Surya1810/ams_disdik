@@ -10,6 +10,7 @@ use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
 
 class ApprovalController extends Controller
@@ -295,102 +296,119 @@ class ApprovalController extends Controller
 
     public function approve(Request $request)
     {
-        // dd($request);
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:approvals,id',
+        ]);
 
-        // $request->validate([
-        //     'ids' => 'required|array',
-        //     'ids.*' => 'exists:approvals,id',
-        // ]);
+        foreach ($request->ids as $id) {
+            try {
+                $approval = Approval::with('asset')->find($id);
+                if (!$approval || $approval->status !== 'pending') continue;
 
-        // foreach ($request->ids as $id) {
-        //     $approval = Approval::with('asset')->find($id);
-        //     if (!$approval || $approval->status !== 'pending') continue;
+                $payload = $approval->payload;
+                $userId = Auth::id();
+                $asset = $approval->asset;
 
-        //     $payload = $approval->payload;
-        //     $userId = Auth::user()->id;
-        //     $asset = $approval->asset;
+                if (!$asset) {
+                    Log::error("Asset not found for approval ID: {$approval->id}");
+                    continue;
+                }
 
-        //     switch ($approval->type) {
-        //         case 'mutation':
-        //             $fields = ['nip_pic', 'nama_pic', 'jabatan_pic', 'telp_pic'];
-        //             $oldValues = $asset->only($fields);
-        //             $newValues = array_intersect_key($payload, array_flip($fields));
+                switch ($approval->type) {
+                    case 'mutation':
+                        $fields = ['nip_pic', 'nama_pic', 'jabatan_pic', 'telp_pic'];
+                        $oldValues = $asset->only($fields);
+                        $newValues = array_intersect_key($payload, array_flip($fields));
 
-        //             $asset->update($newValues);
+                        $asset->update($newValues);
 
-        //             History::create([
-        //                 'asset_id' => $asset->id,
-        //                 'user_id' => $userId,
-        //                 'change_type' => 'mutation',
-        //                 'changed_fields' => json_encode(array_keys($newValues)),
-        //                 'old_values' => json_encode($oldValues),
-        //                 'new_values' => json_encode($newValues),
-        //             ]);
-        //             break;
+                        History::create([
+                            'asset_id' => $asset->id,
+                            'user_id' => $userId,
+                            'change_type' => 'mutation',
+                            'changed_fields' => json_encode(array_keys($newValues)),
+                            'old_values' => json_encode($oldValues),
+                            'new_values' => json_encode($newValues),
+                        ]);
+                        break;
 
-        //         case 'loan':
-        //             $fields = ['sekolah_id', 'gedung', 'lantai', 'ruangan', 'detail'];
-        //             $oldValues = $asset->only($fields);
-        //             $newValues = array_intersect_key($payload, array_flip($fields));
+                    case 'loan':
+                        $fields = ['sekolah_id', 'gedung', 'lantai', 'ruangan', 'detail'];
+                        $oldValues = $asset->only($fields);
+                        $newValues = array_intersect_key($payload, array_flip($fields));
 
-        //             $asset->update($newValues);
+                        $asset->update($newValues);
 
-        //             History::create([
-        //                 'asset_id' => $asset->id,
-        //                 'user_id' => $userId,
-        //                 'change_type' => 'location',
-        //                 'changed_fields' => json_encode(array_keys($newValues)),
-        //                 'old_values' => json_encode($oldValues),
-        //                 'new_values' => json_encode($newValues),
-        //             ]);
-        //             break;
+                        History::create([
+                            'asset_id' => $asset->id,
+                            'user_id' => $userId,
+                            'change_type' => 'location',
+                            'changed_fields' => json_encode(array_keys($newValues)),
+                            'old_values' => json_encode($oldValues),
+                            'new_values' => json_encode($newValues),
+                        ]);
+                        break;
 
-        //         case 'disposal':
-        //             $deskripsi = $payload['deskripsi'] ?? '-';
-        //             $jenis = $payload['jenis'] ?? '-';
+                    case 'disposal':
+                        $keterangan = $payload['keterangan'] ?? '-';
+                        $jenis = $payload['jenis'] ?? '-';
 
-        //             // 1. Buat History
-        //             History::create([
-        //                 'asset_id' => $asset->id,
-        //                 'user_id' => $userId,
-        //                 'change_type' => 'disposal',
-        //                 'changed_fields' => json_encode(['jenis', 'deskripsi']),
-        //                 'old_values' => null,
-        //                 'new_values' => json_encode([
-        //                     'jenis' => $jenis,
-        //                     'deskripsi' => $deskripsi,
-        //                 ]),
-        //             ]);
+                        Log::debug('Creating history with data:', [
+                            'asset_id' => $asset->id,
+                            'user_id' => $userId,
+                            'change_type' => 'disposal',
+                            'changed_fields' => json_encode(['jenis', 'keterangan']),
+                            'old_values' => null,
+                            'new_values' => json_encode([
+                                'jenis' => $jenis,
+                                'keterangan' => $keterangan,
+                            ]),
+                        ]);
+                        History::create([
+                            'asset_id' => $asset->id,
+                            'user_id' => $userId,
+                            'change_type' => 'disposal',
+                            'changed_fields' => json_encode(['jenis', 'keterangan']),
+                            'old_values' => null,
+                            'new_values' => json_encode([
+                                'jenis' => $jenis,
+                                'keterangan' => $keterangan,
+                            ]),
+                        ]);
 
-        //             // 2. Update Tag ke 'available'
-        //             if ($asset->tag) {
-        //                 $tag = Tag::where('rfid_number', $asset->tag)->first();
-        //                 if ($tag) {
-        //                     $tag->status = 'available';
-        //                     $tag->save();
-        //                 }
-        //             }
+                        if ($asset->tag) {
+                            $tag = Tag::where('rfid_number', $asset->tag)->first();
+                            if ($tag) {
+                                $tag->update(['status' => 'available']);
+                            }
+                        }
 
-        //             // 3. Hapus gambar jika ada
-        //             if ($asset->foto_awal) {
-        //                 Storage::disk('public')->delete('assets/' . $asset->foto_awal);
-        //                 $asset->foto_awal = null;
-        //             }
+                        if ($asset->foto_awal) {
+                            Storage::disk('public')->delete('assets/' . $asset->foto_awal);
+                            $asset->foto_awal = null;
+                        }
 
-        //             if ($asset->foto_kondisi) {
-        //                 Storage::disk('public')->delete('assets/' . $asset->foto_kondisi);
-        //                 $asset->foto_kondisi = null;
-        //             }
+                        if ($asset->foto_kondisi) {
+                            Storage::disk('public')->delete('assets/' . $asset->foto_kondisi);
+                            $asset->foto_kondisi = null;
+                        }
 
-        //             $asset->save();
-        //             break;
-        //     }
+                        $asset->save();
+                        break;
+                }
 
-        //     $approval->update(['status' => 'approved']);
-        // }
+                $approval->update(['status' => 'approved']);
+            } catch (\Throwable $e) {
+                Log::error("Approval failed for ID $id: " . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+        }
 
         return response()->json(['message' => 'Semua permintaan berhasil disetujui dan dicatat dalam history.']);
     }
+
 
     public function reject(Request $request)
     {

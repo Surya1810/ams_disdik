@@ -8,10 +8,11 @@ class History extends Model
 {
     protected $fillable = [
         'asset_id',
-        'type',
-        'old_value',
-        'new_value',
-        'created_by'
+        'user_id',
+        'change_type',
+        'changed_fields',
+        'old_values',
+        'new_values',
     ];
 
     protected $casts = [

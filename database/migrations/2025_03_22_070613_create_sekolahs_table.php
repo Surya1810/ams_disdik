@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('kecamatan_id')->constrained()->cascadeOnDelete();
             $table->string('name');
-            $table->enum('category', ['SD', 'SMP', 'SMA', 'SMK', 'MA']);
+            $table->enum('category', ['SD', 'SMP', 'SMA', 'SMK', 'MA', 'Kantor']);
             $table->timestamps();
         });
     }

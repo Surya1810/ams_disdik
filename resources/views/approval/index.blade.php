@@ -178,6 +178,10 @@
             }
 
             function approveRequest(ids) {
+                const formData = new FormData();
+                ids.forEach(id => formData.append('ids[]', id));
+                formData.append('_token', '{{ csrf_token() }}');
+
                 $.ajax({
                     url: '{{ route('approval.approve') }}',
                     method: 'POST',
@@ -188,9 +192,10 @@
                     success: res => {
                         table.ajax.reload();
                         Swal.fire('Berhasil', res.message, 'success');
-                    }
+                    },
                 });
             }
+
 
             function rejectRequest(ids, note) {
                 $.ajax({
