@@ -169,7 +169,7 @@ class ApiController extends Controller
                         'id' => $item->id,
                         'itemName' => $item->name,
                         'rfid' => $item->rfid_number,
-                        'ItemCode' => $item->kode,
+                        'room' => $item->ruangan,
                         'isThere' => (bool) $item->is_there,
                         'condition' => $item->kondisi,
                     ];
@@ -221,6 +221,65 @@ class ApiController extends Controller
                     'information' => $asset->detail,
                 ]
             ]
+        ]);
+    }
+
+    public function mutation(Request $request, $idItem)
+    {
+        $asset = Asset::findOrFail($idItem);
+
+        $asset->nip_pic = $request->personIncharge['nip'];
+        $asset->nama_pic = $request->personIncharge['name'];
+        $asset->jabatan_pic = $request->personIncharge['position'];
+        $asset->telp_pic = (string) $request->personIncharge['numberTelp'];
+
+        $asset->gedung = $request->location['building'];
+        $asset->lantai = $request->location['floor'];
+        $asset->ruangan = $request->location['room'];
+        $asset->detail = $request->location['information'];
+
+        $asset->status = 'Mutated';
+
+        $asset->save();
+
+        return response()->json([
+            'message' => 'Asset berhasil dimutasi'
+        ]);
+    }
+
+    public function inspection(Request $request, $idItem)
+    {
+        $asset = Asset::findOrFail($idItem);
+
+        $asset->kondisi = $request->condition;
+
+        $asset->save();
+
+        return response()->json([
+            'message' => 'Kondisi asset berhasil diperbarui'
+        ]);
+    }
+
+    public function updateSearch(Request $request, $idItem)
+    {
+        $asset = Asset::findOrFail($idItem);
+
+        $asset->nip_pic = $request->personIncharge['nip'];
+        $asset->nama_pic = $request->personIncharge['name'];
+        $asset->jabatan_pic = $request->personIncharge['position'];
+        $asset->telp_pic = (string) $request->personIncharge['numberTelp'];
+
+        $asset->gedung = $request->location['building'];
+        $asset->lantai = $request->location['floor'];
+        $asset->ruangan = $request->location['room'];
+        $asset->detail = $request->location['information'];
+
+        $asset->status = 'Found';
+
+        $asset->save();
+
+        return response()->json([
+            'message' => 'Data asset hasil pencarian berhasil diperbarui'
         ]);
     }
 }
