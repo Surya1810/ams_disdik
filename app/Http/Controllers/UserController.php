@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Kecamatan;
+use App\Models\Asset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -16,63 +18,47 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        if (!Auth::check() || Auth::user()->role_id == 3) {
-            abort(403, 'Unauthorized');
-        } else {
-            if ($request->ajax()) {
-                if (auth()->role_id == 1) {
-                    $users = User::with('kecamatan');
+        if ($request->ajax()) {
+            $users = User::with('kecamatan')->where('id', '!=', 1)->get();
 
-                    return DataTables::of($users)
-                        ->filter(function ($query) use ($request) {
-                            if (!empty($request->search['value'])) {
-                                $search = $request->search['value'];
-                                $query->where('name', 'like', "%{$search}%");
-                            }
-                        })
-                        ->addColumn('action', function ($row) {
-                            return '
-                            <a role="button" class="text-danger px-3 mb-0 border-radius-lg"
-                                onclick="deleteUser(' . $row->id . ')"><i class="fa-solid fa-trash"></i></a>
-                            <form id="delete-form-' . $row->id . '" 
-                                action="' . route('user.destroy', $row->id) . '" 
-                                method="POST" style="display: none;">
-                                ' . csrf_field() . method_field('DELETE') . '
-                            </form>
-                        ';
-                        })
-                        ->rawColumns(['action']) // Izinkan HTML dalam kolom action
-                        ->make(true);
-                }
-                if (auth()->role_id == 2) {
-                    $users = User::with('kecamatan')
-                        ->whereNot('id', 1);
+            return DataTables::of($users)
+                ->addColumn('kecamatan', function ($user) {
+                    return $user->kecamatan ? $user->kecamatan->name : '-';
+                })
+                ->addColumn('sekolahs_count', function ($user) {
+                    return \App\Models\Sekolah::where('kecamatan_id', $user->kecamatan_id)->count();
+                })
+                ->addColumn('assets_count', function ($user) {
+                    return \App\Models\Asset::whereHas('sekolah', function ($query) use ($user) {
+                        $query->where('kecamatan_id', $user->kecamatan_id);
+                    })->count();
+                })
+                ->addColumn('action', function ($row) {
+                    return '
+                <a href="javascript:void(0)" class="text-primary px-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"
+                    onclick="editPengguna(' . $row->id . ', \'' . addslashes($row->name) . '\')">
+                    <i class="fa-solid fa-pencil"></i>
+                </a>
+                <a href="javascript:void(0)" class="text-danger px-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus"
+                    onclick="deletePengguna(' . $row->id . ')">
+                    <i class="fa-solid fa-trash"></i>
+                </a>
+                <form id="delete-form-' . $row->id . '" action="' . route('user.destroy', $row->id) . '" method="POST" style="display: none;">
+                    ' . csrf_field() . method_field('DELETE') . '
+                </form>
+                    ';
+                })
 
-                    return DataTables::of($users)
-                        ->filter(function ($query) use ($request) {
-                            if (!empty($request->search['value'])) {
-                                $search = $request->search['value'];
-                                $query->where('name', 'like', "%{$search}%");
-                            }
-                        })
-                        ->addColumn('action', function ($row) {
-                            return '
-                            <a role="button" class="text-danger px-3 mb-0 border-radius-lg"
-                                onclick="deletePengguna(' . $row->id . ')"><i class="fa-solid fa-trash"></i></a>
-                            <form id="delete-form-' . $row->id . '" 
-                                action="' . route('user.destroy', $row->id) . '" 
-                                method="POST" style="display: none;">
-                                ' . csrf_field() . method_field('DELETE') . '
-                            </form>
-                        ';
-                        })
-                        ->rawColumns(['action']) // Izinkan HTML dalam kolom action
-                        ->make(true);
-                }
-            }
-            return view('user.index');
+                ->rawColumns(['action'])
+                ->make(true);
         }
+
+        $kecamatans = Kecamatan::all();
+        $roles = Role::whereIn('id', [2, 3])->get();
+        return view('user.index', compact('kecamatans', 'roles'));
     }
+
+
 
     /**
      * Show the form for creating a new resource.
@@ -88,20 +74,19 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'bail|required|max:255|unique:users,name',
-            'role' => 'bail|required',
-            'password' => 'required|string|min:8',
+            'name' => 'required|string|unique:users,name',
+            'role_id' => 'required|in:1,2',
+            'kecamatan_id' => 'required|exists:kecamatans,id',
         ]);
 
-        $old = session()->getOldInput();
+        User::create([
+            'name' => $request->name,
+            'password' => bcrypt('default123'),
+            'role_id' => $request->role_id,
+            'kecamatan_id' => $request->kecamatan_id,
+        ]);
 
-        $user = new User();
-        $user->name = $request->name;
-        $user->role_id = $request->role;
-        $user->password = Hash::make($request['password']);
-        $user->save();
-
-        return redirect()->route('user.index')->with(['pesan' => 'User created successfully', 'level-alert' => 'alert-success']);
+        return redirect()->back()->with(['pesan' => 'Pengguna berhasil ditambahkan', 'level-alert' => 'alert-success']);
     }
 
     /**
@@ -117,31 +102,42 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $user = User::findOrFail($id);
+        return response()->json($user);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        $user = User::findorfail($id);
-        $request->validate([
-            'name' => 'bail|required|max:255|unique:users,name,' . $user->id,
-            'role_update' => 'bail|required',
-            'password' => 'required|min:8',
-            'confirm_password' => 'required|same:password',
-        ]);
+        $user = User::findOrFail($id);
 
-        $old = session()->getOldInput();
+        $rules = [
+            'name' => 'required|string|max:255',
+            'role_id' => 'required',
+            'kecamatan_id' => 'required'
+        ];
 
-        $user->name = $request->name;
-        $user->role_id = $request->role_update;
-        $user->password = Hash::make($request['password']);
-        $user->update();
+        if ($request->filled('password')) {
+            $rules['password'] = 'confirmed|min:6';
+        }
 
-        return redirect()->route('user.index')->with(['pesan' => 'User updated successfully', 'level-alert' => 'alert-success']);
+        $validated = $request->validate($rules);
+
+        $user->name = $validated['name'];
+        $user->role_id = $validated['role_id'];
+        $user->kecamatan_id = $validated['kecamatan_id'];
+
+        if ($request->filled('password')) {
+            $user->password = bcrypt($validated['password']);
+        }
+
+        $user->save();
+
+        return redirect()->route('user.index')->with(['pesan' => 'Kecamatan berhasil diperbarui', 'level-alert' => 'alert-warning']);
     }
+
 
     /**
      * Remove the specified resource from storage.
