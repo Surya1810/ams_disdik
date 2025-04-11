@@ -62,7 +62,7 @@ class ApiController extends Controller
             return [
                 'id' => $asset->id,
                 'itemName' => $asset->kode,
-                'rfidNumber' => $asset->rfid_number,
+                'rfid' => $asset->rfid_number,
                 'room' => $asset->ruangan ?? '-',
                 'isThere' => (bool) $asset->is_there,
             ];

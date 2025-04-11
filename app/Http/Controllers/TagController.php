@@ -31,20 +31,26 @@ class TagController extends Controller
                     }
                 })
                 ->addColumn('action', function ($tag) {
+                    if (strtolower($tag->status) !== 'available') {
+                        return ''; // Tidak ada aksi jika status bukan available
+                    }
+
                     return '
-                <a role="button" class="text-danger px-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus"
-                    onclick="deleteTag(\'' . $tag->rfid_number . '\')">
+                    <a role="button" class="text-danger px-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus"
+                        onclick="deleteTag(\'' . $tag->rfid_number . '\')">
                     <i class="fa-solid fa-trash"></i>
-                </a>
+                    </a>
                     ';
                 })
+
 
                 ->rawColumns(['status', 'action'])
                 ->make(true);
         }
 
         $kecamatan = Kecamatan::all();
-        return view('tag.index', compact('kecamatan'));
+        $availableTags = Tag::where('status', 'available')->orderBy('rfid_number')->get();
+        return view('tag.index', compact('kecamatan', 'availableTags'));
     }
 
     /**
@@ -114,24 +120,31 @@ class TagController extends Controller
 
     public function distribute(Request $request)
     {
-        $request->validate([
-            'from' => 'required|numeric',
-            'until' => 'required|numeric',
-            'kecamatan_id' => 'required|exists:kecamatans,id'
-        ]);
+        $from = $request->from;
+        $until = $request->until;
+        $kecamatanId = $request->kecamatan_id;
 
-        $tags = Tag::whereBetween('rfid_number', [$request->from, $request->until])
+        // Ambil semua tag dalam range
+        $tags = Tag::whereBetween('rfid_number', [$from, $until])->get();
+
+        $availableTags = $tags->where('status', 'available');
+        $totalAvailable = $availableTags->count();
+
+        if ($totalAvailable === 0) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Distribusi gagal: Terdapat RFID yang sudah digunakan dalam rentang tersebut.'
+            ], 422);
+        }
+
+        // Update hanya yang available
+        Tag::whereBetween('rfid_number', [$from, $until])
             ->where('status', 'available')
-            ->get();
+            ->update(['kecamatan_id' => $kecamatanId]);
 
-        if ($tags->isEmpty()) {
-            return response()->json(['message' => 'Tidak ada tag yang tersedia di rentang ini.'], 422);
-        }
-
-        foreach ($tags as $tag) {
-            $tag->update(['kecamatan_id' => $request->kecamatan_id]);
-        }
-
-        return response()->json(['message' => 'Distribusi berhasil!']);
+        return response()->json([
+            'status' => 'success',
+            'message' => "Sebanyak {$totalAvailable} tag berhasil didistribusikan."
+        ]);
     }
 }
