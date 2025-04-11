@@ -30,20 +30,21 @@ class SekolahController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     return '
-                    <a role="button" class="text-danger mb-0 border-radius-lg" 
-                        data-bs-toggle="modal" data-bs-target="#editSekolahModal" 
-                        onclick="editSekolah(' . $row->id . ', \'' . $row->name . '\')">
-                        <i class="fa-solid fa-pencil"></i>
-                    </a>
-                    <a role="button" class="text-danger ms-2 mb-0 border-radius-lg" 
-                        onclick="deleteSekolah(' . $row->id . ')">
-                        <i class="fa-solid fa-trash"></i>
-                    </a>
-                    <form id="delete-form-' . $row->id . '" action="' . route('sekolah.destroy', $row->id) . '" method="POST" style="display: none;">
-                        ' . csrf_field() . method_field('DELETE') . '
-                    </form>
-                    ';
+                <a href="javascript:void(0)" class="btn btn-link p-0 px-2"
+                    data-bs-toggle="modal" data-bs-target="#editSekolahModal"
+                    onclick="editSekolah(' . $row->id . ', \'' . e($row->name) . '\', ' . $row->kecamatan_id . ', \'' . $row->category . '\')">
+                    <i class="fa-solid fa-pencil" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
+                </a>
+                <a href="javascript:void(0)" class="btn btn-link text-danger p-0 px-2"
+                    onclick="deleteSekolah(' . $row->id . ')">
+                    <i class="fa-solid fa-trash" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus"></i>
+                </a>
+                <form id="delete-form-' . $row->id . '" action="' . route('sekolah.destroy', $row->id) . '" method="POST" style="display: none;">
+                    ' . csrf_field() . method_field('DELETE') . '
+                </form>
+                ';
                 })
+
                 ->rawColumns(['action'])
                 ->make(true);
         }
@@ -69,7 +70,7 @@ class SekolahController extends Controller
             'kecamatan_id' => $request->kecamatan_id,
         ]);
 
-        return redirect()->route('sekolah.index');
+        return redirect()->route('sekolah.index')->with(['pesan' => 'Sekolah berhasil ditambahkan', 'level-alert' => 'alert-success']);
     }
 
     public function edit($id)

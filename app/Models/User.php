@@ -20,6 +20,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'password',
+        'role_id',
+        'kecamatan_id'
     ];
 
     /**
@@ -57,5 +59,16 @@ class User extends Authenticatable
     public function kecamatan()
     {
         return $this->belongsTo(Kecamatan::class);
+    }
+
+    public function sekolahs()
+    {
+        return $this->hasMany(Sekolah::class);
+    }
+
+
+    public function assets()
+    {
+        return $this->hasMany(Asset::class);
     }
 }

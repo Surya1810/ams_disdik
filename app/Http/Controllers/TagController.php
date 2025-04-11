@@ -17,17 +17,29 @@ class TagController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Tag::with('kecamatan')->select('rfid_number', 'status', 'kecamatan_id');
             return DataTables::of(Tag::with('kecamatan')) // Load relasi kecamatan
                 ->addColumn('kecamatan', function ($tag) {
-                    return $tag->kecamatan ? $tag->kecamatan->name : '-'; // Ambil nama kecamatan
+                    return $tag->kecamatan ? $tag->kecamatan->name : '-';
+                })
+                ->addColumn('status', function ($tag) {
+                    if (strtolower($tag->status) == 'available') {
+                        return '<span class="badge bg-success text-white">Available</span>';
+                    } elseif (strtolower($tag->status) == 'used') {
+                        return '<span class="badge bg-danger text-white">Used</span>';
+                    } else {
+                        return '<span class="badge bg-secondary text-white">' . ucfirst($tag->status) . '</span>';
+                    }
                 })
                 ->addColumn('action', function ($tag) {
-                    return '<button onclick="deleteTag(' . "'" . $tag->rfid_number . "'" . ')" class="btn btn-danger btn-sm">
-                <i class="fa-solid fa-trash"></i>
-            </button>';
+                    return '
+                <a role="button" class="text-danger px-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus"
+                    onclick="deleteTag(\'' . $tag->rfid_number . '\')">
+                    <i class="fa-solid fa-trash"></i>
+                </a>
+                    ';
                 })
-                ->rawColumns(['action'])
+
+                ->rawColumns(['status', 'action'])
                 ->make(true);
         }
 
@@ -98,5 +110,28 @@ class TagController extends Controller
         $fileName = "exportTag-$date.xlsx";
 
         return Excel::download(new TagsExport, $fileName);
+    }
+
+    public function distribute(Request $request)
+    {
+        $request->validate([
+            'from' => 'required|numeric',
+            'until' => 'required|numeric',
+            'kecamatan_id' => 'required|exists:kecamatans,id'
+        ]);
+
+        $tags = Tag::whereBetween('rfid_number', [$request->from, $request->until])
+            ->where('status', 'available')
+            ->get();
+
+        if ($tags->isEmpty()) {
+            return response()->json(['message' => 'Tidak ada tag yang tersedia di rentang ini.'], 422);
+        }
+
+        foreach ($tags as $tag) {
+            $tag->update(['kecamatan_id' => $request->kecamatan_id]);
+        }
+
+        return response()->json(['message' => 'Distribusi berhasil!']);
     }
 }

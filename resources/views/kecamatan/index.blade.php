@@ -83,24 +83,25 @@
             <div class="modal-content">
                 <div class="modal-body py-0">
                     <div class="card card-plain">
-                        <form id="editKecamatanForm" action="{{ route('kecamatan.update', 'kecamatan_id') }}"
-                            method="POST">
+                        <form id="editKecamatanForm" action="{{ route('kecamatan.update', 'kecamatan_id') }}" method="POST">
                             @csrf
                             @method('PUT')
                             <input type="hidden" name="kecamatan_id" id="kecamatan_id">
                             <div class="card-header pb-0 text-left">
-                                <h4 class="text-primary text-gradient">Edit <strong>Kecamatan</strong></h4>
+                                <h4 class="text-primary text-gradient fw-bold mb-2">Edit <strong>Kecamatan</strong></h4>
                             </div>
                             <div class="card-body mb-3">
-                                <label>Nama Kecamatan</label>
-                                <input type="text" class="form-control @error('name') is-invalid @enderror"
-                                    name="name" id="edit_name" value="{{ old('name') }}" required
-                                    placeholder="Nama Kecamatan" autofocus aria-label="Name">
-                                @error('name')
+                                <div class="form-group">
+                                    <label for="edit_name" class="form-label text-sm fw-semibold">Nama Kecamatan</label>
+                                    <input type="text" class="form-control @error('name') is-invalid @enderror" name="name"
+                                        id="edit_name" value="{{ old('name') }}" required placeholder="Nama Kecamatan"
+                                        aria-label="Nama Kecamatan" autocomplete="off">
+                                    @error('name')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
                                     </span>
-                                @enderror
+                                    @enderror
+                                </div>
                             </div>
                             <div class="card-footer text-center pt-0 px-lg-2 px-1">
                                 <button type="submit" class="btn btn-primary rounded-partner m-0">Perbarui</button>
@@ -114,54 +115,62 @@
 @endsection
 
 @push('scripts')
-    <script type="text/javascript">
-        $(document).ready(function() {
-            $('#kecamatanTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: "{{ route('kecamatan.index') }}",
-                columns: [{
-                        data: 'name',
-                        name: 'name',
-                        className: "text-start"
-                    },
-                    {
-                        data: 'sekolahs_count',
-                        name: 'sekolahs_count',
-                        className: "text-start"
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        className: "text-start",
-                        orderable: false,
-                        searchable: false
-                    }
-                ]
-            });
-        });
-
-        function deleteKecamatan(id) {
-            Swal.fire({
-                title: 'Apakah Anda yakin?',
-                text: "Data kecamatan akan dihapus permanen!",
-                icon: 'warning',
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'Hapus',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('delete-form-' + id).submit();
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#kecamatanTable').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: "{{ route('kecamatan.index') }}",
+            columns: [
+                {
+                    data: 'name',
+                    name: 'name',
+                    className: "text-start"
+                },
+                {
+                    data: 'sekolahs_count',
+                    name: 'sekolahs_count',
+                    className: "text-start"
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    className: "text-start",
+                    orderable: false,
+                    searchable: false
                 }
-            });
-        }
+            ],
+            drawCallback: function() {
+                // Inisialisasi ulang tooltip setiap redraw DataTables
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(function(tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            }
+        });
+    });
 
-        function editKecamatan(id, name) {
-            $('#editKecamatanModal').modal('show');
-            $('#kecamatan_id').val(id);
-            $('#edit_name').val(name);
-            var actionUrl = "{{ route('kecamatan.update', ':id') }}";
-            actionUrl = actionUrl.replace(':id', id);
-            $('#editKecamatanForm').attr('action', actionUrl);
-        }
-    </script>
+    function deleteKecamatan(id) {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Data kecamatan akan dihapus permanen!",
+            icon: 'warning',
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Hapus',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('delete-form-' + id).submit();
+            }
+        });
+    }
+
+    function editKecamatan(id, name) {
+        $('#editKecamatanModal').modal('show');
+        $('#kecamatan_id').val(id);
+        $('#edit_name').val(name);
+        var actionUrl = "{{ route('kecamatan.update', ':id') }}";
+        actionUrl = actionUrl.replace(':id', id);
+        $('#editKecamatanForm').attr('action', actionUrl);
+    }
+</script>
 @endpush

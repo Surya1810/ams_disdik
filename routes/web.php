@@ -61,6 +61,8 @@ Route::middleware('auth')->group(function () {
     // RFID Menu
     Route::resource('tag', TagController::class);
     Route::get('/export/tag', [TagController::class, 'export'])->name('tag.export');
+    Route::post('/tag/distribute', [TagController::class, 'distribute'])->name('tag.distribute');
+
 
     // =========================================================== Master Data ==================================================================
     // User
