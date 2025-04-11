@@ -49,6 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/histories/changes', [HistoryController::class, 'changesHistory'])->name('histories.changes');
     Route::get('/histories/mutation', [HistoryController::class, 'mutationHistory'])->name('histories.mutation');
     Route::get('/histories/location', [HistoryController::class, 'locationHistory'])->name('histories.location');
+    Route::get('/histories/disposal', [HistoryController::class, 'disposalHistory'])->name('histories.disposal');
 
     // Scan
     Route::resource('scan', ScanController::class);

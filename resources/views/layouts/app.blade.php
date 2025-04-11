@@ -126,6 +126,10 @@
                                 <a class="nav-link text-dark" href="{{ route('histories.location') }}">Location
                                     History</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" href="{{ route('histories.disposal') }}">Disposal
+                                    History</a>
+                            </li>
                         </ul>
                     </div>
                 </li>
