@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('asset_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete(); // siapa yg ubah
-            $table->enum('change_type', ['attribute', 'location', 'mutation']);
+            $table->enum('change_type', ['attribute', 'location', 'mutation', 'disposal']);
             $table->json('changed_fields');
             $table->json('old_values')->nullable();
             $table->json('new_values')->nullable();

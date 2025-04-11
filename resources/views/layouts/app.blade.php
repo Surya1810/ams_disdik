@@ -94,13 +94,13 @@
                                 <a class="nav-link text-dark" href="{{ route('maintenance.index') }}">Maintenance</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('mutation.index') }}">Mutation</a>
+                                <a class="nav-link text-dark" href="{{ route('asset.mutation') }}">Mutation</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="#">Loan</a>
+                                <a class="nav-link text-dark" href="{{ route('asset.loan') }}">Loan</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('disposal.index') }}">Disposal</a>
+                                <a class="nav-link text-dark" href="{{ route('asset.disposal') }}">Disposal</a>
                             </li>
                         </ul>
                     </div>

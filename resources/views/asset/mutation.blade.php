@@ -26,17 +26,18 @@
                     </div>
                     <div class="card-body table-responsive pb-2">
                         <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
-                            data-bs-target="#addMutation"> <i class="fa-solid fa-plus"></i> Buat Pengajuan
+                            data-bs-target="#addPengajuan"> <i class="fa-solid fa-plus"></i> Buat Pengajuan
                         </button>
                         <!-- Tabel Mutation -->
                         <table id="mutationTable" class="table text-sm mt-3">
                             <thead class="font-weight-bolder">
                                 <tr>
                                     <th class="text-uppercase">Nama Barang</th>
-                                    <th class="text-uppercase">Diubah Oleh</th>
+                                    <th class="text-uppercase">Diajukan Oleh</th>
                                     <th class="text-uppercase">Dari</th>
                                     <th class="text-uppercase">ke</th>
                                     <th class="text-uppercase">Waktu</th>
+                                    <th class="text-uppercase">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -48,42 +49,181 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Add Mutasi -->
+    <div class="modal fade" id="addPengajuan" tabindex="-1" aria-labelledby="addPengajuanLabel" aria-hidden="true">
+        <div class="modal-dialog  modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="card card-plain">
+                        <form id="formMutasi" action="{{ route('approval.store') }}" method="POST" autocomplete="off">
+                            <div class="card-header pb-0 text-left">
+                                <h4 class="text-primary text-gradient">Mutasi <strong>Aset</strong></h4>
+                            </div>
+                            <div class="card-body">
+                                @csrf
+                                <input type="hidden" name="type" value="mutation">
+                                <!-- Pilih Aset -->
+                                <div class="mb-3">
+                                    <label for="asset_id" class="form-label">Pilih Aset</label>
+                                    <select class="form-control asset_id" id="asset_id" name="asset_id" required>
+                                        <option></option>
+                                        @foreach ($assets as $asset)
+                                            <option value="{{ $asset->id }}"
+                                                {{ old('asset_id') == $asset->id ? 'selected' : '' }}
+                                                data-nip="{{ $asset->nip_pic }}" data-nama="{{ $asset->nama_pic }}"
+                                                data-jabatan="{{ $asset->jabatan_pic }}" data-telp="{{ $asset->telp_pic }}">
+                                                {{ $asset->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    @error('asset_id')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+
+                                <!-- PIC Lama -->
+                                <div class="mb-3">
+                                    <label class="form-label">PIC Saat Ini</label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control mb-1" id="old_nip" placeholder="NIP"
+                                                readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control mb-1" id="old_nama"
+                                                placeholder="Nama" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control mb-1" id="old_jabatan"
+                                                placeholder="Jabatan" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control" id="old_telp" placeholder="Telepon"
+                                                readonly>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- PIC Tujuan -->
+                                <div class="mb-3">
+                                    <label class="form-label">PIC Tujuan</label>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-1">
+                                            <input type="text"
+                                                class="form-control @error('nip_pic') is-invalid @enderror" name="nip_pic"
+                                                value="{{ old('nip_pic') }}" placeholder="NIP PIC tujuan"
+                                                aria-label="nip_pic" required>
+                                            @error('nip_pic')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                        <div class="col-md-6 mb-1">
+                                            <input type="text"
+                                                class="form-control @error('nama_pic') is-invalid @enderror"
+                                                name="nama_pic" value="{{ old('nama_pic') }}"
+                                                placeholder="Nama PIC tujuan" aria-label="nama_pic" required>
+                                            @error('nama_pic')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                        <div class="col-md-6 mb-1">
+                                            <input type="text"
+                                                class="form-control @error('jabatan_pic') is-invalid @enderror"
+                                                name="jabatan_pic" value="{{ old('jabatan_pic') }}"
+                                                placeholder="Jabatan PIC tujuan" aria-label="jabatan_pic" required>
+                                            @error('jabatan_pic')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                        <div class="col-md-6 mb-1">
+                                            <input type="number"
+                                                class="form-control @error('telp_pic') is-invalid @enderror"
+                                                name="telp_pic" value="{{ old('telp_pic') }}"
+                                                placeholder="Telepon PIC tujuan" aria-label="telp_pic" min=0 required>
+                                            @error('telp_pic')
+                                                <span class="invalid-feedback" role="alert">
+                                                    <strong>{{ $message }}</strong>
+                                                </span>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Detail Alasan -->
+                                <div class="mb-3">
+                                    <label for="detail" class="form-label">Alasan Mutasi</label>
+                                    <textarea name="detail" id="detail" class="form-control" rows="3" placeholder="Tulis alasan..."></textarea>
+                                </div>
+
+                            </div>
+
+                            <div class="card-footer text-center pt-0 px-lg-2 px-1">
+                                <button type="submit" class="btn btn-primary rounded-partner m-0">Ajukan Mutasi</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')
     <script type='text/javascript'>
+        $('#asset_id').on('change', function() {
+            const selected = $(this).find(':selected');
+            $('#old_nip').val(selected.data('nip') || '');
+            $('#old_nama').val(selected.data('nama') || '');
+            $('#old_jabatan').val(selected.data('jabatan') || '');
+            $('#old_telp').val(selected.data('telp') || '');
+        });
+        $('.asset_id').select2({
+            placeholder: "Pilih Aset",
+            dropdownParent: $("#addPengajuan .modal-content"),
+            width: "100%"
+        })
+
         $(function() {
             $('#mutationTable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('histories.mutation') }}",
+                ajax: '{{ route('asset.mutation') }}',
                 columns: [{
-                        data: 'asset',
+                        data: 'asset_name',
                         name: 'asset.name'
                     },
                     {
-                        data: 'user',
-                        name: 'user.name'
+                        data: 'requested_by',
+                        name: 'requester.name'
                     },
                     {
-                        data: 'dari',
-                        name: 'dari',
+                        data: 'from',
                         orderable: false,
                         searchable: false
                     },
                     {
-                        data: 'ke',
-                        name: 'ke',
+                        data: 'to',
                         orderable: false,
                         searchable: false
+                    },
+                    {
+                        data: 'requested_at',
+                        name: 'approvals.created_at'
                     },
                     {
                         data: 'status',
-                        name: 'status'
-                    },
-                    {
-                        data: 'created_at',
-                        name: 'created_at'
+                        name: 'approvals.status'
                     },
                 ]
             });

@@ -328,7 +328,7 @@
                                         <input type="number"
                                             class="form-control @error('telp_pic') is-invalid @enderror" name="telp_pic"
                                             value="{{ old('telp_pic') }}" placeholder="Tulis nomor telepon PIC barang"
-                                            aria-label="telp_pic" required>
+                                            aria-label="telp_pic" min=0 required>
                                         @error('telp_pic')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -540,6 +540,7 @@
             </div>
         </div>
     </div>
+
     <!-- Modal Edit Aset -->
     <div class="modal fade" id="editAssetModal" aria-labelledby="editAssetModal" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered" role="document">

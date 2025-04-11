@@ -51,11 +51,10 @@
                                     <th>Nama Barang</th>
                                     <th>Pengaju</th>
                                     <th>Jenis</th>
-                                    <th>Alasan</th>
                                     <th>Keterangan</th>
                                     <th>Status</th>
                                     <th>Waktu</th>
-                                    <th>Aksi</th>
+                                    <th>Alasan</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -95,16 +94,12 @@
                         name: 'asset.name'
                     },
                     {
-                        data: 'user',
-                        name: 'user.name'
+                        data: 'requester',
+                        name: 'requester.name'
                     },
                     {
                         data: 'type',
                         name: 'type'
-                    },
-                    {
-                        data: 'reason',
-                        name: 'reason'
                     },
                     {
                         data: 'keterangan',
@@ -119,8 +114,8 @@
                         name: 'created_at'
                     },
                     {
-                        data: 'aksi',
-                        name: 'aksi',
+                        data: 'rejection_note',
+                        name: 'rejection_note',
                         orderable: false,
                         searchable: false
                     },
@@ -138,45 +133,14 @@
                 $('.select-item').prop('checked', this.checked);
             });
 
-            // Approve single
-            $('#approvalTable').on('click', '.approve', function() {
-                let id = $(this).data('id');
-                Swal.fire({
-                    title: 'Approve?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Ya',
-                }).then(result => {
-                    if (result.isConfirmed) {
-                        approveRequest([id]);
-                    }
-                });
-            });
-
-            // Reject single
-            $('#approvalTable').on('click', '.reject', function() {
-                let id = $(this).data('id');
-                Swal.fire({
-                    title: 'Tolak Permintaan?',
-                    input: 'text',
-                    inputLabel: 'Alasan penolakan',
-                    showCancelButton: true,
-                    confirmButtonText: 'Tolak'
-                }).then(result => {
-                    if (result.isConfirmed) {
-                        rejectRequest([id], result.value);
-                    }
-                });
-            });
-
             // Bulk Approve
             $('#bulk-approve').on('click', function() {
                 let ids = getSelectedIds();
-                if (!ids.length) return Swal.fire('Pilih setidaknya 1 item');
+                if (!ids.length) return Swal.fire('Warning', 'Pilih setidaknya 1 item', 'warning');
                 Swal.fire({
                     title: 'Approve semua terpilih?',
                     icon: 'warning',
-                    showCancelButton: true,
+                    confirmButtonColor: '#b6d7a8',
                     confirmButtonText: 'Ya'
                 }).then(result => {
                     if (result.isConfirmed) approveRequest(ids);
@@ -186,13 +150,22 @@
             // Bulk Reject
             $('#bulk-reject').on('click', function() {
                 let ids = getSelectedIds();
-                if (!ids.length) return Swal.fire('Pilih setidaknya 1 item');
+                if (!ids.length) return Swal.fire('Warning', 'Pilih setidaknya 1 item', 'warning');
                 Swal.fire({
-                    title: 'Tolak semua terpilih?',
-                    input: 'text',
-                    inputLabel: 'Alasan penolakan',
-                    showCancelButton: true,
-                    confirmButtonText: 'Tolak'
+                    title: 'Reject semua terpilih?',
+                    text: 'Harap sertakan alasan penolakan',
+                    input: 'textarea',
+                    inputPlaceholder: 'Tulis alasan penolakan...',
+                    inputAttributes: {
+                        'aria-label': 'Rejection reason'
+                    },
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'Anda wajib menyertakan alasan!'
+                        }
+                    },
+                    confirmButtonColor: '#ea9999',
+                    confirmButtonText: 'Reject'
                 }).then(result => {
                     if (result.isConfirmed) rejectRequest(ids, result.value);
                 });
@@ -206,7 +179,7 @@
 
             function approveRequest(ids) {
                 $.ajax({
-                    url: '{{ route('approval.bulk.approve') }}',
+                    url: '{{ route('approval.approve') }}',
                     method: 'POST',
                     data: {
                         ids,
@@ -221,7 +194,7 @@
 
             function rejectRequest(ids, note) {
                 $.ajax({
-                    url: '{{ route('approval.bulk.reject') }}',
+                    url: '{{ route('approval.reject') }}',
                     method: 'POST',
                     data: {
                         ids,

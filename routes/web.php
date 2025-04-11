@@ -35,19 +35,15 @@ Route::middleware('auth')->group(function () {
     // =========================================================== Asset ==================================================================
     // Asset
     Route::resource('asset', AssetController::class);
+    Route::get('mutation', [ApprovalController::class, 'mutation'])->name('asset.mutation');
+    Route::get('loan', [ApprovalController::class, 'loan'])->name('asset.loan');
+    Route::get('disposal', [ApprovalController::class, 'disposal'])->name('asset.disposal');
+
 
     // Maintenance
     Route::get('maintenance', function () {
         return view('asset.maintenance');
     })->name('maintenance.index');
-    // Mutation
-    Route::get('mutation', function () {
-        return view('asset.mutation');
-    })->name('mutation.index');
-    // Disposal
-    Route::get('disposal', function () {
-        return view('asset.disposal');
-    })->name('disposal.index');
 
     // History
     Route::get('/histories/changes', [HistoryController::class, 'changesHistory'])->name('histories.changes');
@@ -59,11 +55,8 @@ Route::middleware('auth')->group(function () {
 
     // Approval
     Route::resource('approval', ApprovalController::class);
-    Route::post('/approval/approve', [ApprovalController::class, 'approve'])->name('approval.approve');
-    Route::post('/approval/reject', [ApprovalController::class, 'reject'])->name('approval.reject');
-    Route::post('/approval/bulk-approve', [ApprovalController::class, 'bulkApprove'])->name('approval.bulk.approve');
-    Route::post('/approval/bulk-reject', [ApprovalController::class, 'bulkReject'])->name('approval.bulk.reject');
-
+    Route::post('/approve', [ApprovalController::class, 'approve'])->name('approval.approve');
+    Route::post('/reject', [ApprovalController::class, 'reject'])->name('approval.reject');
 
     // RFID Menu
     Route::resource('tag', TagController::class);

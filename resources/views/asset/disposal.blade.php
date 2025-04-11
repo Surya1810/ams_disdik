@@ -32,7 +32,12 @@
                         <table id="disposalTable" class="table text-sm mt-3">
                             <thead class="font-weight-bolder">
                                 <tr>
-                                    <th class="text-uppercase">Nama Sekolah</th>
+                                    <th class="text-uppercase">Nama Barang</th>
+                                    <th class="text-uppercase">Diajukan Oleh</th>
+                                    <th class="text-uppercase">Jenis</th>
+                                    <th class="text-uppercase">Keterangan</th>
+                                    <th class="text-uppercase">Waktu</th>
+                                    <th class="text-uppercase">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -44,41 +49,125 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Add Disposal -->
+    <div class="modal fade" id="addDisposal" tabindex="-1" aria-labelledby="addDisposalLabel" aria-hidden="true">
+        <div class="modal-dialog  modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="card card-plain">
+                        <form id="formDisposal" action="{{ route('approval.store') }}" method="POST" autocomplete="off">
+                            <div class="card-header pb-0 text-left">
+                                <h4 class="text-primary text-gradient">Disposal <strong>Aset</strong></h4>
+                            </div>
+                            <div class="card-body">
+                                @csrf
+                                <input type="hidden" name="type" value="disposal">
+                                <!-- Pilih Aset -->
+                                <div class="mb-3">
+                                    <label for="asset_id" class="form-label">Pilih Aset</label>
+                                    <select class="form-control asset_id" id="asset_id" name="asset_id" required>
+                                        <option></option>
+                                        @foreach ($assets as $asset)
+                                            <option value="{{ $asset->id }}"
+                                                {{ old('asset_id') == $asset->id ? 'selected' : '' }}>
+                                                {{ $asset->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    @error('asset_id')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="jenis" class="form-label">Pilih Jenis</label>
+                                    <select class="form-control jenis" id="jenis" name="jenis" required>
+                                        <option></option>
+                                        <option value="Lelang" {{ old('jenis') == 'Lelang' ? 'selected' : '' }}>
+                                            Lelang
+                                        </option>
+                                        <option value="Hilang" {{ old('jenis') == 'Hilang' ? 'selected' : '' }}>
+                                            Hilang
+                                        </option>
+                                    </select>
+
+                                    @error('jenis')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+
+                                <!-- Detail Alasan -->
+                                <div class="mb-3">
+                                    <label for="keterangan" class="form-label">Alasan / Keterangan Disposal</label>
+                                    <textarea name="keterangan" id="keterangan" class="form-control" rows="3" placeholder="Tulis alasan..."></textarea>
+                                </div>
+
+                            </div>
+
+                            <div class="card-footer text-center pt-0 px-lg-2 px-1">
+                                <button type="submit" class="btn btn-primary rounded-partner m-0">Ajukan Disposal</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')
     <script type='text/javascript'>
+        $('.asset_id').select2({
+            placeholder: "Pilih Aset",
+            dropdownParent: $("#addDisposal .modal-content"),
+            width: "100%"
+        })
+        $('.jenis').select2({
+            placeholder: "Pilih Jenis",
+            dropdownParent: $("#addDisposal .modal-content"),
+            width: "100%"
+        })
+
         $(document).ready(function() {
             $('#disposalTable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('sekolah.index') }}",
+                ajax: '{{ route('asset.disposal') }}',
                 columns: [{
-                        data: 'name',
-                        name: 'name',
-                        className: "text-start"
+                        data: 'asset_name',
+                        name: 'asset.name'
                     },
                     {
-                        data: 'category',
-                        name: 'category',
-                        className: "text-start"
+                        data: 'requested_by',
+                        name: 'requestedBy.name'
                     },
                     {
-                        data: 'kecamatan',
-                        name: 'kecamatan',
-                        className: "text-start"
+                        data: 'jenis',
+                        name: 'payload',
                     },
                     {
-                        data: 'assets_count',
-                        name: 'assets_count',
-                        className: "text-start"
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
+                        data: 'keterangan',
+                        name: 'payload',
                         orderable: false,
                         searchable: false
-                    }
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'approvals.created_at'
+                    },
+                    {
+                        data: 'status',
+                        name: 'status',
+                        orderable: false,
+                        searchable: false
+                    },
                 ]
             });
         });
