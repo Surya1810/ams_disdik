@@ -232,25 +232,46 @@ class ApiController extends Controller
 
     public function mutation(Request $request, $idItem)
     {
+        // Cari asset berdasarkan ID, jika tidak ada, akan otomatis memunculkan error 404
         $asset = Asset::findOrFail($idItem);
 
-        $asset->nip_pic = $request->personIncharge['nip'];
-        $asset->nama_pic = $request->personIncharge['name'];
-        $asset->jabatan_pic = $request->personIncharge['position'];
-        $asset->telp_pic = (string) $request->personIncharge['numberTelp'];
+        // Validasi personInCharge
+        $personInCharge = $request->personInCharge;
+        if (empty($personInCharge['nip']) || empty($personInCharge['name']) || empty($personInCharge['position']) || empty($personInCharge['numberTelp'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data personInCharge tidak lengkap'
+            ], 400);  // Bad Request
+        }
 
-        $asset->gedung = $request->location['building'];
-        $asset->lantai = $request->location['floor'];
-        $asset->ruangan = $request->location['room'];
-        $asset->detail = $request->location['information'];
+        // Validasi location
+        $location = $request->location;
+        if (empty($location['building']) || empty($location['floor']) || empty($location['room']) || empty($location['information'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data location tidak lengkap'
+            ], 400);  // Bad Request
+        }
 
-        $asset->status = 'Mutated';
+        // Jika data sudah lengkap, lakukan pembaruan pada asset
+        $asset->nip_pic = $personInCharge['nip'];
+        $asset->nama_pic = $personInCharge['name'];
+        $asset->jabatan_pic = $personInCharge['position'];
+        $asset->telp_pic = (string) $personInCharge['numberTelp'];
 
-        $asset->save();
+        $asset->gedung = $location['building'];
+        $asset->lantai = $location['floor'];
+        $asset->ruangan = $location['room'];
+        $asset->detail = $location['information'];
+
+        $asset->status = 'Mutated';  // Set status menjadi 'Mutated'
+
+        $asset->save();  // Simpan perubahan pada asset
 
         return response()->json([
+            'success' => true,
             'message' => 'Asset berhasil dimutasi'
-        ]);
+        ], 200);  // OK (200)
     }
 
     public function inspection(Request $request, $idItem)
