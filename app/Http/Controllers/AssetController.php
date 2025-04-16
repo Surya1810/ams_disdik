@@ -60,6 +60,7 @@ class AssetController extends Controller
         // }
         $tags = Tag::where('status', 'available')->where('kecamatan_id', Auth::user()->kecamatan_id)->pluck('rfid_number');
         $places = Sekolah::where('kecamatan_id', Auth::user()->kecamatan_id)->get();
+        $asset = Asset::all();
 
         if ($request->ajax()) {
             $assets = Asset::with('sekolah'); // eager loading
@@ -76,20 +77,22 @@ class AssetController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     return '
-                    <a href="javascript:void(0)" class="btn btn-link py-0 px-2" data-bs-toggle="modal" data-bs-target="#showAssetModal" onclick="showAsset({{ $row->id }})">
-                        <i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail"></i>
-                    </a>
-                    &nbsp;
-                    <a href="javascript:void(0)" class="btn btn-link p-0" data-bs-toggle="modal" data-bs-target="#editAssetModal" onclick="editAsset(' . $row->id . ')">
-                        <i class="fa-solid fa-pencil" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
-                    </a>
-                ';
+        <a href="javascript:void(0)" class="btn btn-link p-0 show-asset" data-asset-id="' . $row->id . '">
+            <i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail"></i>
+        </a>
+        &nbsp;
+        <a href="javascript:void(0)" class="btn btn-link p-0 edit-asset" data-asset-id="' . $row->id . '">
+            <i class="fa-solid fa-pencil" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
+        </a>
+    ';
                 })
+
+
                 ->rawColumns(['kondisi_badge', 'action'])
                 ->make(true);
         }
 
-        return view('asset.index', compact('tags', 'places'));
+        return view('asset.index', compact('tags', 'places', 'asset'));
     }
 
     /**
@@ -209,16 +212,100 @@ class AssetController extends Controller
      */
     public function edit(Asset $asset)
     {
-        //
+        $tags = Tag::where('status', 'available')
+            ->orWhere('rfid_number', $asset->rfid_number)
+            ->where('kecamatan_id', Auth::user()->kecamatan_id)
+            ->pluck('rfid_number');
+
+        $places = Sekolah::where('kecamatan_id', Auth::user()->kecamatan_id)->get();
+
+        return response()->json([
+            'asset' => $asset,
+            'tags' => $tags,
+            'places' => $places,
+        ]);
     }
+
 
     /**
      * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Asset  $asset
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function update(Request $request, Asset $asset)
     {
-        return redirect()->route('asset.index')->with(['pesan' => 'Aset berhasil diperbarui', 'level-alert' => 'alert-warning']);
+        $validatedData = $request->validate([
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'tag' => 'required|exists:tags,rfid_number',
+            'sekolah_id' => 'required',
+
+            'kode' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'register' => 'required|string|max:255',
+            'merk' => 'required|string|max:255',
+            'bahan' => 'required|string|max:255',
+            'tahun_pembelian' => 'required|integer',
+
+            'nip_pic' => 'required|string|max:255',
+            'nama_pic' => 'required|string|max:255',
+            'jabatan_pic' => 'required|string|max:255',
+            'telp_pic' => 'required|min:10',
+
+            'asal_perolehan' => 'required|string|max:255',
+            'nilai_perolehan' => 'required|numeric|min:0',
+            'kondisi' => 'required',
+            'tanggal_perawatan' => 'required|date',
+            'harga_perawatan' => 'required|numeric|min:0',
+            'waktu_perawatan' => 'required|numeric|min:0',
+
+            'gedung' => 'required',
+            'lantai' => 'required',
+            'ruangan' => 'required',
+            'detail' => 'required',
+        ]);
+
+        try {
+            // Jika tag berubah, update status tag lama jadi 'available' dan tag baru jadi 'used'
+            if ($request->tag !== $asset->rfid_number) {
+                Tag::where('rfid_number', $asset->rfid_number)->update(['status' => 'available']);
+                Tag::where('rfid_number', $request->tag)->update(['status' => 'used']);
+            }
+
+            $data = $request->except(['image']);
+            $data['rfid_number'] = $request->input('tag');
+
+            // Jika ada file gambar baru
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                $filename = Str::uuid() . '.webp';
+                $path = 'assets/' . $filename;
+
+                $manager = new ImageManager(new Driver());
+
+                $image = $manager->read($request->file('image')->getPathname())
+                    ->scale(width: 800)
+                    ->toWebp(quality: 75);
+
+                Storage::disk('public')->put($path, (string) $image);
+
+                // Hapus gambar lama jika ada
+                if ($asset->foto_awal && Storage::disk('public')->exists('assets/' . $asset->foto_awal)) {
+                    Storage::disk('public')->delete('assets/' . $asset->foto_awal);
+                }
+
+                $data['foto_awal'] = $filename;
+            }
+
+            $asset->update($data);
+
+            return redirect()->route('asset.index')->with(['pesan' => 'Aset berhasil diperbarui', 'level-alert' => 'alert-warning']);
+        } catch (\Exception $e) {
+
+            return redirect()->back()->with(['pesan' => 'Terjadi kesalahan saat memperbarui aset', 'level-alert' => 'alert-danger']);
+        }
     }
+
 
     /**
      * Remove the specified resource from storage.
