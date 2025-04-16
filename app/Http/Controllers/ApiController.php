@@ -56,15 +56,18 @@ class ApiController extends Controller
 
     public function getAssetSekolah($idSchool)
     {
-        $assets = Asset::where('sekolah_id', $idSchool)->get();
+        $assets = Asset::with('sekolah')->where('sekolah_id', $idSchool)->get();
 
         $result = $assets->map(function ($asset) {
             return [
                 'id' => $asset->id,
-                'itemName' => $asset->kode,
+                'itemName' => $asset->name,
+                'school' => $asset->sekolah->name ?? '-',
                 'rfid' => $asset->rfid_number,
                 'room' => $asset->ruangan ?? '-',
                 'isThere' => (bool) $asset->is_there,
+                'purcaseYear' => $asset->tahun_pembelian,
+                'condition' => $asset->kondisi,
             ];
         });
 
@@ -76,23 +79,25 @@ class ApiController extends Controller
         ]);
     }
 
+
     public function postStockOpname(Request $request, $idSchool)
     {
-        $validated = $request->validate([
-            'stockOpname' => 'required|array',
-            'stockOpname.*.id' => 'required|integer|exists:assets,id',
-            'stockOpname.*.isThere' => 'required|boolean',
-            'stockOpname.*.condition' => 'required|string',
-        ]);
 
-        foreach ($validated['stockOpname'] as $item) {
+        // $validated = $request->validate([
+        //     'stockOpname' => 'required|array',
+        //     'stockOpname.*.id' => 'required|integer|exists:assets,id',
+        //     'stockOpname.*.isThere' => 'required|boolean',
+        //     'stockOpname.*.condition' => 'required|string',
+        // ]);
+
+        foreach ($request->stockOpname as $item) {
             $asset = Asset::where('id', $item['id'])
                 ->where('sekolah_id', $idSchool)
                 ->first();
 
             if ($asset) {
                 $asset->is_there = $item['isThere'];
-                $asset->kondisi = $item['condition'];
+                // $asset->kondisi = $item['condition'];
                 $asset->save();
             }
         }
@@ -102,6 +107,7 @@ class ApiController extends Controller
             'message' => 'Stock opname berhasil diperbarui.'
         ]);
     }
+
 
     public function getSearchFilter()
     {
@@ -126,9 +132,8 @@ class ApiController extends Controller
 
     public function getSearch(Request $request)
     {
-        $query = Asset::query();
+        $query = Asset::with('sekolah');
 
-        // Filter opsional
         if ($request->filled('school')) {
             $query->where('sekolah_id', $request->school);
         }
@@ -154,7 +159,6 @@ class ApiController extends Controller
             });
         }
 
-        // Pagination
         $limit = $request->get('limit', 10);
         $page = $request->get('page', 1);
 
@@ -168,9 +172,11 @@ class ApiController extends Controller
                     return [
                         'id' => $item->id,
                         'itemName' => $item->name,
+                        'school' => $item->sekolah->name ?? '-',
                         'rfid' => $item->rfid_number,
                         'room' => $item->ruangan,
                         'isThere' => (bool) $item->is_there,
+                        'purcaseYear' => $item->tahun_pembelian,
                         'condition' => $item->kondisi,
                     ];
                 }),
