@@ -16,6 +16,8 @@ Route::get('/assets', function () {
     );
 });
 
+Route::post('/login', [ApiController::class, 'login']);
+
 Route::post('/scan-asset', [ScanController::class, 'scanAsset']);
 Route::get('/scan-asset', [ScanController::class, 'getLatestScansAsset']);
 
@@ -29,7 +31,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/item/mutation/{id}', [ApiController::class, 'mutation']);
     Route::put('/item/inspection/{id}', [ApiController::class, 'inspection']);
     Route::put('/item/search/{id}', [ApiController::class, 'updateSearch']);
-    Route::post('/login', [ApiController::class, 'login']);
     Route::get('/user-profile', [ApiController::class, 'profile']);
     Route::post('/logout', [ApiController::class, 'logout']);
 });

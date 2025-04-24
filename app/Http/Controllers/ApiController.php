@@ -38,6 +38,7 @@ class ApiController extends Controller
 
     public function login(Request $request)
     {
+        // dd($request);
         $request->validate([
             'name' => 'required',
             'password' => 'required',
