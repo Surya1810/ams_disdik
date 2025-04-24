@@ -8,6 +8,8 @@ use App\Models\Sekolah;
 use App\Models\Asset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class ApiController extends Controller
 {
@@ -33,16 +35,47 @@ class ApiController extends Controller
         ], $statusCode);
     }
 
+
+    public function login(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'password' => 'required',
+        ]);
+
+        $user = User::where('name', $request->name)->first();
+
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
+
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        return response()->json([
+            'access_token' => explode('|', $token)[1],
+            'token_type' => 'Bearer',
+            'user' => $user,
+        ]);
+    }
+
+
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json(['message' => 'Logged out']);
+    }
+
     public function getsekolah()
     {
-        $sekolahs = Sekolah::all(); // atau paginate kalau besar
+        $sekolahs = Sekolah::all();
 
         $result = $sekolahs->map(function ($sekolah) {
             return [
                 'id' => $sekolah->id,
                 'SchoolName' => $sekolah->name,
                 'lastStockOpname' => optional($sekolah->last_stock_opname)->format('d/m/Y') ?? '-',
-                'totalAset' => $sekolah->assets()->count() // pastikan ada relasi assets
+                'totalAset' => $sekolah->assets()->count()
             ];
         });
 
