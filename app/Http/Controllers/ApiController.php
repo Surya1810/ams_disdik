@@ -52,9 +52,17 @@ class ApiController extends Controller
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
-            'access_token' => explode('|', $token)[1],
-            'token_type' => 'Bearer',
-            'user' => $user,
+            'accessToken' => explode('|', $token)[1],
+            'tokenType' => 'Bearer',
+            'user' => [
+                'id' => $user->id,
+                'roleId' => $user->role_id,
+                'kecamatanId' => $user->kecamatan_id,
+                'name' => $user->name,
+                'lastLogin' => $user->last_login,
+                'createdAt' => $user->created_at,
+                'updatedAt' => $user->updated_at
+            ]
         ]);
     }
 
