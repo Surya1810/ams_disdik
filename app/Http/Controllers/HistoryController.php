@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Approval;
 use App\Models\History;
+use App\Models\Asset;
 use Yajra\DataTables\DataTables;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,27 +29,31 @@ class HistoryController extends Controller
                         return "<span class='text-success'>Asset telah ditambahkan</span>";
                     }
 
-                    if ($row->change_type == 'update') {
-                        $fields = $row->changed_fields ?? [];
-                        $old = $row->old_values ?? [];
-                        $new = $row->new_values ?? [];
+                    if (in_array($row->change_type, ['update', 'attribute'])) {
+                        $oldValues = json_decode($row->old_values, true) ?? [];
+                        $newValues = json_decode($row->new_values, true) ?? [];
+                        $changedFields = json_decode($row->changed_fields, true) ?? [];
 
-                        if (empty($fields)) {
+                        if (empty($changedFields)) {
                             return "<span class='text-warning'>Asset diubah, namun tidak ada perubahan terdeteksi</span>";
                         }
 
-                        $result = "<span class='text-primary'>Asset telah diubah:</span><br>";
-                        foreach ($fields as $key) {
-                            $oldVal = $old[$key] ?? '-';
-                            $newVal = $new[$key] ?? '-';
-                            $result .= "<div><strong>" . ucfirst($key) . ":</strong> <span class='text-danger'>$oldVal</span> → <span class='text-success'>$newVal</span></div>";
+                        $result = "<div class='text-primary mb-2'>Asset telah diubah:</div>";
+                        $result .= "<ul style='padding-left: 18px;'>"; // Biar lebih rapi masuk ke dalam
+                        foreach ($changedFields as $field) {
+                            $oldVal = $oldValues[$field] ?? '-';
+                            $newVal = $newValues[$field] ?? '-';
+                            $result .= "<li><strong>" . ucfirst($field) . ":</strong> dari <em>$oldVal</em> ke <em>$newVal</em></li>";
                         }
+                        $result .= "</ul>";
 
                         return $result;
                     }
 
                     return "<span class='text-muted'>Tidak ada perubahan</span>";
                 })
+
+
                 ->editColumn('created_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
                 ->rawColumns(['perubahan'])
                 ->make(true);
@@ -132,42 +137,33 @@ class HistoryController extends Controller
         $user = Auth::user();
 
         if ($request->ajax()) {
-            $data = History::with(['asset', 'user', 'approval'])
+            $data = History::with(['asset', 'user']) // ambil relasi asset dan user
                 ->where('change_type', 'disposal')
-                ->where('user_id', $user->id) // Filter history berdasarkan user yang login
-                ->leftJoin('assets', 'histories.asset_id', '=', 'assets.id')
-                ->orderBy('histories.created_at', 'desc')
-                ->select([
-                    'histories.*',
-                    'assets.name as asset_name'
-                ]);
+                ->where('user_id', $user->id)
+                ->latest();
 
             return DataTables::of($data)
-                ->addColumn('asset', function ($row) {
-                    return $row->asset->name ?? $row->asset_name ?? '-'; // Cek relasi asset, lalu kolom asset_name
-                })
-                ->addColumn('user', function ($row) use ($user) {
-                    return $row->user->name ?? $user->name ?? '-'; // default user login jika tidak ada relasi
-                })
-                ->addColumn('jenis', function ($row) {
-                    $newValues = json_decode($row->new_values, true);
-                    return $newValues['jenis'] ?? '-';
-                })
                 ->addColumn('keterangan', function ($row) {
                     $newValues = json_decode($row->new_values, true);
                     return $newValues['keterangan'] ?? '-';
                 })
+                ->addColumn('user', function ($row) {
+                    return $row->user->name ?? '-';
+                })
+                ->addColumn('jenis', function ($row) {
+                    $newValues = json_decode($row->new_values, true);
+                    $jenis = $newValues['jenis'] ?? '-';
+                    $badge = $jenis === 'lelang' ? 'warning' : ($jenis === 'hilang' ? 'danger' : 'secondary');
+                    return '<span class="badge bg-' . $badge . '">' . ucfirst($jenis) . '</span>';
+                })
                 ->editColumn('created_at', function ($row) {
                     return $row->created_at->format('d-m-Y H:i');
                 })
-                ->addColumn('status', function ($row) {
-                    return $row->approval->status ?? '-';
-                })
-                ->rawColumns(['status']) // Jika ada HTML di kolom status
+                ->rawColumns(['jenis'])
                 ->make(true);
         }
 
-        return view('asset.disposal');
+        return view('history.disposal');
     }
 
     /**

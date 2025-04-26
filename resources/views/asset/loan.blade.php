@@ -232,38 +232,56 @@
 
         $(function() {
     $('#loanTable').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: '{{ route('asset.loan') }}',
-        columns: [{
-                data: 'asset_name',
-                name: 'asset.name'
+    processing: true,
+    serverSide: true,
+    ajax: {
+        url: '{{ route('asset.loan') }}',
+        type: 'GET',
+    },
+    columns: [
+        { data: 'asset_name', name: 'asset_name' },
+        { data: 'requested_by', name: 'requested_by' },
+        {
+            data: function(row) {
+                if (row.from) {
+                    return `<div>
+                        <strong>NIP:</strong> ${row.from.nip_pic}<br>
+                        <strong>Nama:</strong> ${row.from.nama_pic}<br>
+                        <strong>Jabatan:</strong> ${row.from.jabatan_pic}<br>
+                        <strong>Telp:</strong> ${row.from.telp_pic}
+                    </div>`;
+                }
+                return '-';
             },
-            {
-                data: 'requested_by',
-                name: 'requester.name'
+            name: 'from.nip_pic',
+            orderable: false,
+            searchable: false
+        },
+        {
+            data: function(row) {
+                if (row.to) {
+                    return `<div>
+                        <strong>NIP:</strong> ${row.to.nip_pic}<br>
+                        <strong>Nama:</strong> ${row.to.nama_pic}<br>
+                        <strong>Jabatan:</strong> ${row.to.jabatan_pic}<br>
+                        <strong>Telp:</strong> ${row.to.telp_pic}
+                    </div>`;
+                }
+                return '-';
             },
-            {
-                data: 'from',
-                orderable: false,
-                searchable: false
-            },
-            {
-                data: 'to',
-                orderable: false,
-                searchable: false
-            },
-            {
-                data: 'requested_at',
-                name: 'approvals.created_at'
-            },
-            {
-                data: 'status',
-                name: 'status'
-            },
-        ],
-        rawColumns: ['from', 'to', 'status']  
-    });
+            name: 'to.nip_pic',
+            orderable: false,
+            searchable: false
+        },
+        { data: 'requested_at', name: 'requested_at' },
+        {
+            data: 'status', 
+            name: 'status',
+        },
+    ],
+    rawColumns: ['status', 'from', 'to']
+});
+
 });
 
     </script>

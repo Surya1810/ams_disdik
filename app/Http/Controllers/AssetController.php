@@ -22,50 +22,25 @@ class AssetController extends Controller
      */
     public function index(Request $request)
     {
-        // $user = Auth::user();
+        $tags = Tag::where('status', 'available')
+            ->where('kecamatan_id', Auth::user()->kecamatan_id)
+            ->pluck('rfid_number');
 
-        // if (!Auth::check() || Auth::user()->role_id == 1) {
-        //     if ($request->ajax()) {
-        //         $assets = Asset::whereHas('sekolah', function ($query) use ($user) {
-        //             $query->where('kecamatan_id', $user->kecamatan_id);
-        //         })->with(['asset.kecamatan'])
-        //             ->get();
-
-        //         return DataTables::of($assets)
-        //             ->filter(function ($query) use ($request) {
-        //                 if (!empty($request->search['value'])) {
-        //                     $search = $request->search['value'];
-        //                     $query->where('name', 'like', "%{$search}%");
-        //                 }
-        //             })
-        //             ->addColumn('action', function ($row) {
-        //                 return '
-        //                     <a role="button" class="text-danger px-3 mb-0 border-radius-lg"
-        //                         onclick="deleteUser(' . $row->id . ')"><i class="fa-solid fa-trash"></i></a>
-        //                     <form id="delete-form-' . $row->id . '" 
-        //                         action="' . route('user.destroy', $row->id) . '" 
-        //                         method="POST" style="display: none;">
-        //                         ' . csrf_field() . method_field('DELETE') . '
-        //                     </form>
-        //                 ';
-        //             })
-        //             ->rawColumns(['action']) // Izinkan HTML dalam kolom action
-        //             ->make(true);
-        //     }
-        //     return view('asset.index');
-        // } elseif (!Auth::check() || Auth::user()->role_id == 2) {
-        //     return view('asset.index');
-        // } elseif (!Auth::check() || Auth::user()->role_id == 3) {
-        //     return view('asset.index');
-        // } else {
-        //     abort(403, 'Unauthorized');
-        // }
-        $tags = Tag::where('status', 'available')->where('kecamatan_id', Auth::user()->kecamatan_id)->pluck('rfid_number');
         $places = Sekolah::where('kecamatan_id', Auth::user()->kecamatan_id)->get();
-        $asset = Asset::all();
+
+        if (Auth::user()->role_id == 1) {
+            $asset = Asset::all();
+        } else {
+            $asset = Asset::where('kecamatan_id', Auth::user()->kecamatan_id)->get();
+        }
 
         if ($request->ajax()) {
-            $assets = Asset::with('sekolah'); // eager loading
+            if (Auth::user()->role_id == 1) {
+                $assets = Asset::with('sekolah');
+            } else {
+                $assets = Asset::with('sekolah')
+                    ->where('kecamatan_id', Auth::user()->kecamatan_id);
+            }
 
             return DataTables::of($assets)
                 ->addColumn('kondisi_badge', function ($row) {
@@ -79,23 +54,22 @@ class AssetController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     return '
-        <a href="javascript:void(0)" class="btn btn-link p-0 show-asset" data-asset-id="' . $row->id . '">
-            <i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail"></i>
-        </a>
-        &nbsp;
-        <a href="javascript:void(0)" class="btn btn-link p-0 edit-asset" data-asset-id="' . $row->id . '">
-            <i class="fa-solid fa-pencil" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
-        </a>
-    ';
+                    <a href="javascript:void(0)" class="btn btn-link p-0 show-asset" data-asset-id="' . $row->id . '">
+                        <i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail"></i>
+                    </a>
+                    &nbsp;
+                    <a href="javascript:void(0)" class="btn btn-link p-0 edit-asset" data-asset-id="' . $row->id . '">
+                        <i class="fa-solid fa-pencil" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
+                    </a>
+                ';
                 })
-
-
                 ->rawColumns(['kondisi_badge', 'action'])
                 ->make(true);
         }
 
         return view('asset.index', compact('tags', 'places', 'asset'));
     }
+
 
     /**
      * Show the form for creating a new resource.

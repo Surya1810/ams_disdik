@@ -186,7 +186,7 @@ class ApprovalController extends Controller
                     };
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
                 })
-                ->rawColumns(['from', 'to', 'status'])
+                ->rawColumns(['status'])  // Beri rawColumns untuk status karena berupa HTML
                 ->make(true);
         }
 
@@ -202,6 +202,7 @@ class ApprovalController extends Controller
 
     public function disposal(Request $request)
     {
+        $user = Auth::user();
         if ($request->ajax()) {
             $data = Approval::with(['asset', 'requester'])
                 ->where('type', 'disposal')
@@ -211,11 +212,10 @@ class ApprovalController extends Controller
                 ->latest();
 
             return DataTables::of($data)
-                ->addColumn('asset_name', function ($row) {
-                    return $row->asset->name ?? '-';
-                })
-                ->addColumn('requested_by', function ($row) {
-                    return $row->requester->name ?? '-';
+                ->addIndexColumn() // <-- supaya ada nomor urut otomatis (No)
+                ->addColumn('keterangan', function ($row) {
+                    $payload = json_decode($row->payload, true);
+                    return $payload['keterangan'] ?? '-';
                 })
                 ->addColumn('jenis', function ($row) {
                     $payload = json_decode($row->payload, true);
@@ -223,12 +223,8 @@ class ApprovalController extends Controller
                     $badge = $jenis === 'lelang' ? 'warning' : ($jenis === 'hilang' ? 'danger' : 'secondary');
                     return '<span class="badge bg-' . $badge . '">' . ucfirst($jenis) . '</span>';
                 })
-                ->addColumn('keterangan', function ($row) {
-                    $payload = json_decode($row->payload, true);
-                    return $payload['keterangan'] ?? '-';
-                })
-                ->editColumn('created_at', function ($row) {
-                    return $row->created_at->format('d-m-Y H:i');
+                ->addColumn('user', function ($row) {
+                    return $row->requester->name ?? '-';
                 })
                 ->addColumn('status', function ($row) {
                     $color = match ($row->status) {
@@ -239,14 +235,20 @@ class ApprovalController extends Controller
                     };
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
                 })
-                ->rawColumns(['jenis', 'status']) // biar badge HTML muncul
+                ->editColumn('created_at', function ($row) {
+                    return $row->created_at->format('d-m-Y H:i');
+                })
+                ->rawColumns(['jenis', 'status']) // badge HTML biar muncul
                 ->make(true);
         }
 
-        $assets = Asset::all();
+        $assets = Asset::whereHas('sekolah', function ($query) use ($user) {
+            $query->where('kecamatan_id', $user->kecamatan_id);
+        })->get();
 
         return view('asset.disposal', compact('assets'));
     }
+
 
 
     /**
@@ -267,38 +269,34 @@ class ApprovalController extends Controller
             'asset_id' => 'required|exists:assets,id',
         ];
 
-        if ($request->type === 'disposal') {
-            $rules['jenis'] = 'required|in:lelang,hilang,musnah';
-            $rules['keterangan'] = 'nullable';
-        } else {
-            $rules['keterangan'] = 'nullable';
+        if ($request->type === 'disposal' && $request->has('jenis')) {
+            $request->merge([
+                'jenis' => strtolower($request->jenis),
+            ]);
         }
 
-        // Validasi bersyarat untuk pengajuan loan
-        if ($request->type === 'loan') {
+        if ($request->type === 'disposal') {
+            $rules['jenis'] = 'required|in:lelang,hilang'; // <- perbaiki disini
+            $rules['keterangan'] = 'nullable';
+        } elseif ($request->type === 'loan') {
             $rules['sekolah_id'] = 'required|exists:sekolahs,id';
             $rules['gedung'] = 'required';
             $rules['lantai'] = 'required';
             $rules['ruangan'] = 'required';
             $rules['detail'] = 'required';
-            $rules['keterangan'] = 'nullable'; // Keterangan tidak wajib untuk loan
-        } elseif ($request->type === 'disposal') {
-            $rules['jenis'] = 'required|in:lelang,hilang,musnah';
-            $rules['keterangan'] = 'nullable'; // Keterangan tidak wajib untuk disposal
-        } else {
-            $rules['keterangan'] = 'nullable'; // Keterangan tidak wajib untuk mutation
+            $rules['keterangan'] = 'nullable'; // Tidak wajib
+        } else { // mutation
+            $rules['keterangan'] = 'nullable';
         }
 
         $request->validate($rules);
 
-        $asset = Asset::find($request->asset_id);
+        $asset = Asset::findOrFail($request->asset_id);
         $user = Auth::user();
 
-        // Validasi role
-        if ($user->role_id != 1) {
-            if ($asset->sekolah->kecamatan_id != $user->kecamatan_id) {
-                return back()->withErrors(['asset_id' => 'Anda tidak memiliki izin untuk mengajukan peminjaman aset ini.']);
-            }
+        // Validasi role user (jika bukan admin)
+        if ($user->role_id != 1 && $asset->sekolah->kecamatan_id != $user->kecamatan_id) {
+            return back()->withErrors(['asset_id' => 'Anda tidak memiliki izin untuk mengajukan aset ini.']);
         }
 
         $type = $request->type;
@@ -319,22 +317,17 @@ class ApprovalController extends Controller
                     'telp_pic' => $request->new_telp,
                 ],
                 'detail' => $request->detail,
-                'keterangan' => $request->input('keterangan', null), // Keterangan tidak wajib
+                'keterangan' => $request->input('keterangan', null),
             ];
-        }
-
-        if ($type === 'loan') {
-            // Ambil data lokasi lama dari asset
-            $oldValues = [
-                'sekolah_id' => $asset->sekolah_id,
-                'gedung' => $asset->gedung,
-                'lantai' => $asset->lantai,
-                'ruangan' => $asset->ruangan,
-                'detail' => $asset->detail,
-            ];
-
+        } elseif ($type === 'loan') {
             $payload = [
-                'old_values' => $oldValues,
+                'old_values' => [
+                    'sekolah_id' => $asset->sekolah_id,
+                    'gedung' => $asset->gedung,
+                    'lantai' => $asset->lantai,
+                    'ruangan' => $asset->ruangan,
+                    'detail' => $asset->detail,
+                ],
                 'new_values' => [
                     'sekolah_id' => $request->sekolah_id,
                     'gedung' => $request->gedung,
@@ -342,14 +335,12 @@ class ApprovalController extends Controller
                     'ruangan' => $request->ruangan,
                     'detail' => $request->detail,
                 ],
-                'keterangan' => $request->input('keterangan', null), // Keterangan tidak wajib
+                'keterangan' => $request->input('keterangan', null),
             ];
-        }
-
-        if ($type === 'disposal') {
+        } elseif ($type === 'disposal') {
             $payload = [
                 'jenis' => $request->jenis,
-                'keterangan' => $request->input('keterangan', null), // Keterangan tidak wajib
+                'keterangan' => $request->input('keterangan', null),
             ];
         }
 
@@ -358,9 +349,10 @@ class ApprovalController extends Controller
             'type' => $type,
             'payload' => json_encode($payload),
             'status' => 'pending',
-            'requested_by' => Auth::id(),
+            'requested_by' => $user->id,
         ]);
 
+        // Redirect sesuai type
         if ($type === 'disposal') {
             return redirect()->route('asset.disposal')->with([
                 'pesan' => 'Pengajuan disposal berhasil',
@@ -378,6 +370,7 @@ class ApprovalController extends Controller
             ]);
         }
     }
+
 
 
 

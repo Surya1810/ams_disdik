@@ -12,23 +12,25 @@
     </ol>
     <h6 class="nav-breadcrumb font-weight-bolder text-white mb-0">Maintenance</h6>
 </nav>
-@endsection
+@endsection 
 
 @section('content')
 <div class="container-fluid py-2">
     <div class="row">
         <div class="col-12">
             <div class="card my-4">
-                <div
-                    class="card-header bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3 d-flex justify-content-between align-items-center">
-                    <h6 class="text-white text-capitalize ps-3 mb-0">Data Maintenance Aset</h6>
-                    <div>
-                        <select id="filterWaktu" class="form-select form-select-sm">
-                            <option value="">Semua Waktu</option>
-                            <option value="3">3 Bulan Terakhir</option>
-                            <option value="6">6 Bulan Terakhir</option>
-                            <option value="12">1 Tahun Terakhir</option>
-                        </select>
+                <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                    <div
+                        class="bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3 d-flex justify-content-between align-items-center">
+                        <h6 class="text-white text-capitalize ps-3 mb-0">Data Maintenance Aset</h6>
+                        <div class="pe-3">
+                            <select id="filterWaktu" class="form-select form-select-sm">
+                                <option value="">Semua Waktu</option>
+                                <option value="3">3 Bulan Terakhir</option>
+                                <option value="6">6 Bulan Terakhir</option>
+                                <option value="12">1 Tahun Terakhir</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body table-responsive">
