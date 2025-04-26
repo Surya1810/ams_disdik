@@ -3,48 +3,47 @@
 @section('title', 'Loan')
 
 @section('navbar')
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-            <li class="breadcrumb-item text-sm">
-                <a class="text-white opacity-5" href="javascript:;">Halaman</a>
-            </li>
-            <li class="breadcrumb-item text-sm text-white active" aria-current="page">Loan</li>
-        </ol>
-        <h6 class="nav-breadcrumb font-weight-bolder text-white mb-0">Loan</h6>
-    </nav>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+        <li class="breadcrumb-item text-sm">
+            <a class="text-white opacity-5" href="javascript:;">Halaman</a>
+        </li>
+        <li class="breadcrumb-item text-sm text-white active" aria-current="page">Loan</li>
+    </ol>
+    <h6 class="nav-breadcrumb font-weight-bolder text-white mb-0">Loan</h6>
+</nav>
 @endsection
 
 @section('content')
-    <div class="container-fluid py-2">
-        <div class="row">
-            <div class="col-12">
-                <div class="card my-4">
-                    <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
-                        <div class="bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3">
-                            <h6 class="text-white text-capitalize ps-3">Loan</h6>
-                        </div>
+<div class="container-fluid py-2">
+    <div class="row">
+        <div class="col-12">
+            <div class="card my-4">
+                <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                    <div class="bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3">
+                        <h6 class="text-white text-capitalize ps-3">Loan</h6>
                     </div>
-                    <div class="card-body table-responsive pb-2">
-                        <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
-                            data-bs-target="#addLoan"> <i class="fa-solid fa-plus"></i> Buat Pengajuan
-                        </button>
-                        <!-- Tabel Loan -->
-                        <table id="loanTable" class="table text-sm mt-3">
-                            <thead class="font-weight-bolder">
-                                <tr>
-                                    <th class="text-uppercase">Nama Barang</th>
-                                    <th class="text-uppercase">Diajukan Oleh</th>
-                                    <th class="text-uppercase">Dari</th>
-                                    <th class="text-uppercase">ke</th>
-                                    <th class="text-uppercase">Waktu</th>
-                                    <th class="text-uppercase">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Data -->
-                            </tbody>
-                        </table>
-                    </div>
+                </div>
+                <div class="card-body table-responsive pb-2">
+                    <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
+                        data-bs-target="#addLoan"> <i class="fa-solid fa-plus"></i> Buat Pengajuan
+                    </button>
+                    <!-- Tabel Loan -->
+                    <table id="loanTable" class="table text-sm mt-3">
+                        <thead class="font-weight-bolder">
+                            <tr>
+                                <th class="text-uppercase">Nama Barang</th>
+                                <th class="text-uppercase">Diajukan Oleh</th>
+                                <th class="text-uppercase">Dari</th>
+                                <th class="text-uppercase">Ke</th>
+                                <th class="text-uppercase">Waktu</th>
+                                <th class="text-uppercase">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -67,23 +66,24 @@
                                 <div class="mb-3">
                                     <label for="loan_asset_id" class="form-label">Pilih Aset</label>
                                     <select class="form-control asset_id" id="loan_asset_id" name="asset_id" required>
-                                        <option></option>
+                                        <option value="">Pilih Aset</option>
                                         @foreach ($assets as $asset)
-                                            <option value="{{ $asset->id }}"
-                                                {{ old('asset_id') == $asset->id ? 'selected' : '' }}
-                                                data-sekolah="{{ $asset->sekolah->name }}"
-                                                data-kecamatan="{{ $asset->sekolah->kecamatan->name }}"
-                                                data-gedung="{{ $asset->gedung }}" data-lantai="{{ $asset->lantai }}"
-                                                data-ruangan="{{ $asset->ruangan }}" data-detail="{{ $asset->detail }}">
-                                                {{ $asset->name }}
-                                            </option>
+                                        <option value="{{ $asset->id }}" {{ old('asset_id')==$asset->id ? 'selected' :
+                                            '' }}
+                                            data-sekolah="{{ $asset->sekolah->name }}"
+                                            data-sekolah_id="{{ $asset->sekolah_id }}"
+                                            data-kecamatan="{{ $asset->sekolah->kecamatan->name }}"
+                                            data-gedung="{{ $asset->gedung }}" data-lantai="{{ $asset->lantai }}"
+                                            data-ruangan="{{ $asset->ruangan }}" data-detail="{{ $asset->detail }}">
+                                            {{ $asset->name }}
+                                        </option>
                                         @endforeach
                                     </select>
 
                                     @error('asset_id')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
                                     @enderror
                                 </div>
 
@@ -96,8 +96,8 @@
                                                 placeholder="Kecamatan" readonly>
                                         </div>
                                         <div class="col-md-6 mb-1">
-                                            <input type="text" class="form-control" id="old_sekolah" placeholder="Tempat"
-                                                readonly>
+                                            <input type="text" class="form-control" id="old_sekolah"
+                                                placeholder="Tempat" readonly>
                                         </div>
                                         <div class="col-md-6 mb-1">
                                             <input type="text" class="form-control w-100" id="old_gedung"
@@ -125,19 +125,19 @@
                                             <label for="sekolah_id" class="form-label">Lokasi Tujuan</label>
                                             <select class="form-control sekolah_id" id="sekolah_id" name="sekolah_id"
                                                 required>
-                                                <option></option>
+                                                <option value="">Pilih Sekolah</option>
                                                 @foreach ($schools as $school)
-                                                    <option value="{{ $school->id }}"
-                                                        {{ old('sekolah_id') == $asset->id ? 'selected' : '' }}>
-                                                        {{ $school->kecamatan->name }} - {{ $school->name }}
-                                                    </option>
+                                                <option value="{{ $school->id }}" {{ old('sekolah_id')==$asset->id ?
+                                                    'selected' : '' }}>
+                                                    {{ $school->kecamatan->name }} - {{ $school->name }}
+                                                </option>
                                                 @endforeach
                                             </select>
 
                                             @error('sekolah_id')
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $message }}</strong>
-                                                </span>
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
                                             @enderror
                                         </div>
                                         <div class="col-md-6 mb-1">
@@ -146,9 +146,9 @@
                                                 name="gedung" value="{{ old('gedung') }}" placeholder="Gedung Tujuan"
                                                 aria-label="gedung" required>
                                             @error('gedung')
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $message }}</strong>
-                                                </span>
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
                                             @enderror
                                         </div>
                                         <div class="col-md-6 mb-1">
@@ -157,9 +157,9 @@
                                                 name="lantai" value="{{ old('lantai') }}" placeholder="Lantai Tujuan"
                                                 aria-label="lantai" required>
                                             @error('lantai')
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $message }}</strong>
-                                                </span>
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
                                             @enderror
                                         </div>
                                         <div class="col-md-6 mb-1">
@@ -168,9 +168,9 @@
                                                 name="ruangan" value="{{ old('ruangan') }}" placeholder="Ruangan Tujuan"
                                                 aria-label="ruangan" required>
                                             @error('ruangan')
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $message }}</strong>
-                                                </span>
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
                                             @enderror
                                         </div>
                                         <div class="col-md-6 mb-1">
@@ -179,9 +179,9 @@
                                                 name="detail" value="{{ old('detail') }}" placeholder="Detail"
                                                 aria-label="detail" required>
                                             @error('detail')
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $message }}</strong>
-                                                </span>
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
                                             @enderror
                                         </div>
                                     </div>
@@ -204,9 +204,9 @@
             </div>
         </div>
     </div>
-@endsection
+    @endsection
 
-@push('scripts')
+    @push('scripts')
     <script type='text/javascript'>
         $('#loan_asset_id').on('change', function() {
             const selected = $(this).find(':selected');
@@ -222,46 +222,49 @@
             placeholder: "Pilih Aset",
             dropdownParent: $("#addLoan .modal-content"),
             width: "100%"
-        })
+        });
+
         $('.sekolah_id').select2({
             placeholder: "Pilih Sekolah",
             dropdownParent: $("#addLoan .modal-content"),
             width: "100%"
-        })
+        });
 
         $(function() {
-            $('#loanTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: '{{ route('asset.loan') }}',
-                columns: [{
-                        data: 'asset_name',
-                        name: 'asset.name'
-                    },
-                    {
-                        data: 'requested_by',
-                        name: 'requester.name'
-                    },
-                    {
-                        data: 'from',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'to',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'requested_at',
-                        name: 'approvals.created_at'
-                    },
-                    {
-                        data: 'status',
-                        name: 'approvals.status'
-                    },
-                ]
-            });
-        });
+    $('#loanTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: '{{ route('asset.loan') }}',
+        columns: [{
+                data: 'asset_name',
+                name: 'asset.name'
+            },
+            {
+                data: 'requested_by',
+                name: 'requester.name'
+            },
+            {
+                data: 'from',
+                orderable: false,
+                searchable: false
+            },
+            {
+                data: 'to',
+                orderable: false,
+                searchable: false
+            },
+            {
+                data: 'requested_at',
+                name: 'approvals.created_at'
+            },
+            {
+                data: 'status',
+                name: 'status'
+            },
+        ],
+        rawColumns: ['from', 'to', 'status']  
+    });
+});
+
     </script>
-@endpush
+    @endpush

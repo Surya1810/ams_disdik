@@ -51,15 +51,15 @@ class ApprovalController extends Controller
                 ->filterColumn('requester', function ($query, $keyword) {
                     $query->whereHas('requester', fn($q) => $q->where('name', 'like', "%{$keyword}%"));
                 })
-
                 ->orderColumn('requester', function ($query, $order) {
                     $query->join('users as u', 'approvals.requester_id', '=', 'u.id')
                         ->orderBy('u.name', $order)
                         ->select('approvals.*');
                 })
                 ->addColumn('keterangan', function ($row) {
-                    $payload = is_array($row->payload) ? $row->payload : json_decode($row->payload, true);
-                    return $payload['keterangan'] ?? '-';
+                    // Pastikan payload didecode dengan benar
+                    $payload = json_decode($row->payload, true); // Dekode string JSON ke array
+                    return $payload['keterangan'] ?? '-'; // Ambil 'keterangan' atau tampilkan '-'
                 })
                 ->addColumn('status', function ($row) {
                     $color = match ($row->status) {
@@ -71,10 +71,9 @@ class ApprovalController extends Controller
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
                 })
                 ->addColumn('rejection_note', fn($row) => $row->rejection_note ?? '-')
-                ->rawColumns(['checkbox', 'status']) // Hanya kolom yg berisi HTML
+                ->rawColumns(['checkbox', 'status']) // Hanya kolom yang mengandung HTML
                 ->make(true);
         }
-
 
         return view('approval.index');
     }
@@ -84,8 +83,7 @@ class ApprovalController extends Controller
         if ($request->ajax()) {
             $approvals = Approval::with(['asset', 'requester'])
                 ->where('type', 'mutation')
-                ->select('approvals.*')
-                ->where('requested_by', Auth::user()->id)
+                ->where('requested_by', Auth::id())
                 ->latest();
 
             return DataTables::of($approvals)
@@ -93,52 +91,30 @@ class ApprovalController extends Controller
                 ->addColumn('requested_by', fn($row) => $row->requester->name ?? '-')
                 ->addColumn('from', function ($row) {
                     $payload = json_decode($row->payload, true);
-                    $old = $payload['old'] ?? [];
-
-                    // Deteksi apakah ini payload lokasi (ada key `gedung`) atau mutasi PIC (ada key `nip`)
-                    if (isset($old['gedung'])) {
-                        return "
-            <strong>Sekolah:</strong> {$old['sekolah']}<br>
-            <strong>Gedung:</strong> {$old['gedung']}<br>
-            <strong>Lantai:</strong> {$old['lantai']}<br>
-            <strong>Ruangan:</strong> {$old['ruangan']}<br>
-            <strong>Detail:</strong> {$old['detail']}
-        ";
-                    } elseif (isset($old['nip'])) {
-                        return "
-            <strong>NIP:</strong> {$old['nip']}<br>
-            <strong>Nama:</strong> {$old['nama']}<br>
-            <strong>Jabatan:</strong> {$old['jabatan']}<br>
-            <strong>Telp:</strong> {$old['telp']}
-        ";
+                    $from = $payload['from'] ?? null;
+                    if ($from) {
+                        return [
+                            'nip_pic' => $from['nip_pic'] ?? '-',
+                            'nama_pic' => $from['nama_pic'] ?? '-',
+                            'jabatan_pic' => $from['jabatan_pic'] ?? '-',
+                            'telp_pic' => $from['telp_pic'] ?? '-',
+                        ];
                     }
-
-                    return '-';
+                    return null;
                 })
                 ->addColumn('to', function ($row) {
                     $payload = json_decode($row->payload, true);
-                    $new = $payload['new'] ?? [];
-
-                    if (isset($new['gedung'])) {
-                        return "
-            <strong>Sekolah:</strong> {$new['sekolah_id']}<br>
-            <strong>Gedung:</strong> {$new['gedung']}<br>
-            <strong>Lantai:</strong> {$new['lantai']}<br>
-            <strong>Ruangan:</strong> {$new['ruangan']}<br>
-            <strong>Detail:</strong> {$new['detail']}
-        ";
-                    } elseif (isset($new['nip'])) {
-                        return "
-            <strong>NIP:</strong> {$new['nip']}<br>
-            <strong>Nama:</strong> {$new['nama']}<br>
-            <strong>Jabatan:</strong> {$new['jabatan']}<br>
-            <strong>Telp:</strong> {$new['telp']}
-        ";
+                    $to = $payload['to'] ?? null;
+                    if ($to) {
+                        return [
+                            'nip_pic' => $to['nip_pic'] ?? '-',
+                            'nama_pic' => $to['nama_pic'] ?? '-',
+                            'jabatan_pic' => $to['jabatan_pic'] ?? '-',
+                            'telp_pic' => $to['telp_pic'] ?? '-',
+                        ];
                     }
-
-                    return '-';
+                    return null;
                 })
-
                 ->addColumn('requested_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
                 ->addColumn('status', function ($row) {
                     $color = match ($row->status) {
@@ -149,32 +125,36 @@ class ApprovalController extends Controller
                     };
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
                 })
-                ->rawColumns(['asset_name', 'requested_by', 'from', 'to', 'status'])
+                ->rawColumns(['status']) // 'from' dan 'to' bukan HTML di server, jadi tidak perlu rawColumns di sini
                 ->make(true);
         }
 
         $assets = Asset::all();
-
         return view('asset.mutation', compact('assets'));
     }
+
+
     public function loan(Request $request)
     {
+        $user = Auth::user();
+
         if ($request->ajax()) {
             $approvals = Approval::with(['asset', 'requester'])
                 ->where('type', 'loan')
-                ->select('approvals.*')
-                ->where('requested_by', Auth::user()->id)
-                ->latest();
+                ->where('requested_by', Auth::id());
 
             return DataTables::of($approvals)
                 ->addColumn('asset_name', fn($row) => $row->asset->name ?? '-')
                 ->addColumn('requested_by', fn($row) => $row->requester->name ?? '-')
                 ->addColumn('from', function ($row) {
                     $payload = json_decode($row->payload, true);
-                    $old = $payload['old'] ?? [];
+                    $old = $payload['old_values'] ?? [];
+
+                    $sekolah = \App\Models\Sekolah::find($old['sekolah_id'] ?? null);
+                    $sekolahName = $sekolah->name ?? '-';
 
                     return '<div>' .
-                        '<strong>Sekolah:</strong> ' . ($old['sekolah'] ?? '-') . '<br>' .
+                        '<strong>Sekolah:</strong> ' . $sekolahName . '<br>' .
                         '<strong>Gedung:</strong> ' . ($old['gedung'] ?? '-') . '<br>' .
                         '<strong>Lantai:</strong> ' . ($old['lantai'] ?? '-') . '<br>' .
                         '<strong>Ruangan:</strong> ' . ($old['ruangan'] ?? '-') . '<br>' .
@@ -183,9 +163,9 @@ class ApprovalController extends Controller
                 })
                 ->addColumn('to', function ($row) {
                     $payload = json_decode($row->payload, true);
-                    $new = $payload['new'] ?? [];
+                    $new = $payload['new_values'] ?? [];
 
-                    $sekolah = \App\Models\Sekolah::find($new['sekolah_id']);
+                    $sekolah = \App\Models\Sekolah::find($new['sekolah_id'] ?? null);
                     $sekolahName = $sekolah->name ?? '-';
 
                     return '<div>' .
@@ -206,15 +186,20 @@ class ApprovalController extends Controller
                     };
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
                 })
-                ->rawColumns(['asset_name', 'requested_by', 'from', 'to', 'status'])
+                ->rawColumns(['from', 'to', 'status'])
                 ->make(true);
         }
 
-        $assets = Asset::all();
-        $schools = Sekolah::all();
+        $assets = Asset::whereHas('sekolah', function ($query) use ($user) {
+            $query->where('kecamatan_id', $user->kecamatan_id);
+        })->get();
+
+        $schools = Sekolah::where('kecamatan_id', $user->kecamatan_id)->get();
 
         return view('asset.loan', compact('assets', 'schools'));
     }
+
+
     public function disposal(Request $request)
     {
         if ($request->ajax()) {
@@ -277,60 +262,97 @@ class ApprovalController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $rules = [
             'type' => 'required|in:mutation,loan,disposal',
             'asset_id' => 'required|exists:assets,id',
-        ]);
+        ];
+
+        if ($request->type === 'disposal') {
+            $rules['jenis'] = 'required|in:lelang,hilang,musnah';
+            $rules['keterangan'] = 'nullable';
+        } else {
+            $rules['keterangan'] = 'nullable';
+        }
+
+        // Validasi bersyarat untuk pengajuan loan
+        if ($request->type === 'loan') {
+            $rules['sekolah_id'] = 'required|exists:sekolahs,id';
+            $rules['gedung'] = 'required';
+            $rules['lantai'] = 'required';
+            $rules['ruangan'] = 'required';
+            $rules['detail'] = 'required';
+            $rules['keterangan'] = 'nullable'; // Keterangan tidak wajib untuk loan
+        } elseif ($request->type === 'disposal') {
+            $rules['jenis'] = 'required|in:lelang,hilang,musnah';
+            $rules['keterangan'] = 'nullable'; // Keterangan tidak wajib untuk disposal
+        } else {
+            $rules['keterangan'] = 'nullable'; // Keterangan tidak wajib untuk mutation
+        }
+
+        $request->validate($rules);
+
+        $asset = Asset::find($request->asset_id);
+        $user = Auth::user();
+
+        // Validasi role
+        if ($user->role_id != 1) {
+            if ($asset->sekolah->kecamatan_id != $user->kecamatan_id) {
+                return back()->withErrors(['asset_id' => 'Anda tidak memiliki izin untuk mengajukan peminjaman aset ini.']);
+            }
+        }
 
         $type = $request->type;
         $payload = [];
 
         if ($type === 'mutation') {
             $payload = [
-                'old' => [
-                    'nip' => $request->old_nip,
-                    'nama' => $request->old_nama,
-                    'jabatan' => $request->old_jabatan,
-                    'telp' => $request->old_telp,
+                'from' => [
+                    'nip_pic' => $request->old_nip,
+                    'nama_pic' => $request->old_nama,
+                    'jabatan_pic' => $request->old_jabatan,
+                    'telp_pic' => $request->old_telp,
                 ],
-                'new' => [
-                    'nip' => $request->new_nip,
-                    'nama' => $request->new_nama,
-                    'jabatan' => $request->new_jabatan,
-                    'telp' => $request->new_telp,
+                'to' => [
+                    'nip_pic' => $request->new_nip,
+                    'nama_pic' => $request->new_nama,
+                    'jabatan_pic' => $request->new_jabatan,
+                    'telp_pic' => $request->new_telp,
                 ],
                 'detail' => $request->detail,
+                'keterangan' => $request->input('keterangan', null), // Keterangan tidak wajib
             ];
         }
 
         if ($type === 'loan') {
+            // Ambil data lokasi lama dari asset
+            $oldValues = [
+                'sekolah_id' => $asset->sekolah_id,
+                'gedung' => $asset->gedung,
+                'lantai' => $asset->lantai,
+                'ruangan' => $asset->ruangan,
+                'detail' => $asset->detail,
+            ];
+
             $payload = [
-                'old' => [
-                    'sekolah' => $request->old_sekolah,
-                    'gedung' => $request->old_gedung,
-                    'lantai' => $request->old_lantai,
-                    'ruangan' => $request->old_ruangan,
-                    'detail' => $request->old_detail,
-                ],
-                'new' => [
+                'old_values' => $oldValues,
+                'new_values' => [
                     'sekolah_id' => $request->sekolah_id,
                     'gedung' => $request->gedung,
                     'lantai' => $request->lantai,
                     'ruangan' => $request->ruangan,
                     'detail' => $request->detail,
                 ],
-                'keterangan' => $request->keterangan,
+                'keterangan' => $request->input('keterangan', null), // Keterangan tidak wajib
             ];
         }
 
         if ($type === 'disposal') {
             $payload = [
                 'jenis' => $request->jenis,
-                'keterangan' => $request->keterangan,
+                'keterangan' => $request->input('keterangan', null), // Keterangan tidak wajib
             ];
         }
 
-        // Simpan ke database
         Approval::create([
             'asset_id' => $request->asset_id,
             'type' => $type,
@@ -338,13 +360,26 @@ class ApprovalController extends Controller
             'status' => 'pending',
             'requested_by' => Auth::id(),
         ]);
+
         if ($type === 'disposal') {
-            return redirect()->route('asset.disposal')->with(['pesan' => 'Pengajuan disposal berhasil', 'level-alert' => 'alert-success']);
+            return redirect()->route('asset.disposal')->with([
+                'pesan' => 'Pengajuan disposal berhasil',
+                'level-alert' => 'alert-success',
+            ]);
         } elseif ($type === 'loan') {
-            return redirect()->route('asset.loan')->with(['pesan' => 'Pengajuan peminjaman berhasil', 'level-alert' => 'alert-success']);
-        } elseif ($type === 'mutation')
-            return redirect()->route('asset.mutation')->with(['pesan' => 'Pengajuan mutasi berhasil', 'level-alert' => 'alert-success']);
+            return redirect()->route('asset.loan')->with([
+                'pesan' => 'Pengajuan peminjaman berhasil',
+                'level-alert' => 'alert-success',
+            ]);
+        } elseif ($type === 'mutation') {
+            return redirect()->route('asset.mutation')->with([
+                'pesan' => 'Pengajuan mutasi berhasil',
+                'level-alert' => 'alert-success',
+            ]);
+        }
     }
+
+
 
     /**
      * Display the specified resource.
@@ -389,7 +424,7 @@ class ApprovalController extends Controller
             $approval = Approval::with('asset')->find($id);
             if (!$approval || $approval->status !== 'pending') continue;
 
-            $payload = $approval->payload;
+            $payload = json_decode($approval->payload, true);
             $userId = Auth::id();
             $asset = $approval->asset;
 
@@ -398,11 +433,9 @@ class ApprovalController extends Controller
                     case 'mutation':
                         $fields = ['nip_pic', 'nama_pic', 'jabatan_pic', 'telp_pic'];
 
-                        // Convert payload to array kalau masih string
-                        $payloadArray = is_array($payload) ? $payload : json_decode($payload, true);
-
+                        // Convert payload ke array jika perlu
                         $oldValues = $asset->only($fields);
-                        $newValues = array_intersect_key($payloadArray, array_flip($fields));
+                        $newValues = array_intersect_key($payload['to'], array_flip($fields)); // Ambil nilai dari 'to'
 
                         // Update data asset
                         $asset->fill($newValues);
@@ -421,13 +454,9 @@ class ApprovalController extends Controller
                     case 'loan':
                         $fields = ['sekolah_id', 'gedung', 'lantai', 'ruangan', 'detail'];
 
-                        // Convert payload ke array jika perlu
-                        $payloadArray = is_array($payload) ? $payload : json_decode($payload, true);
-
                         $oldValues = $asset->only($fields);
-                        $newValues = array_intersect_key($payloadArray, array_flip($fields));
+                        $newValues = array_intersect_key($payload['new_values'], array_flip($fields));
 
-                        // Update data asset
                         $asset->fill($newValues);
                         $asset->save();
 
@@ -445,14 +474,14 @@ class ApprovalController extends Controller
                         $keterangan = $payload['keterangan'] ?? '-';
                         $jenis = $payload['jenis'] ?? '-';
 
-                        // Ambil seluruh data sebelum dihapus
                         $oldValues = $asset->toArray();
+                        $changedFields = array_keys($oldValues); // Ambil semua key sebagai field yang berubah
 
                         History::create([
-                            'asset_id' => $asset->id,
+                            'asset_id' => null, // Tidak menampilkan asset_id
                             'user_id' => $userId,
                             'change_type' => 'disposal',
-                            'changed_fields' => json_encode(['jenis', 'keterangan']),
+                            'changed_fields' => json_encode($changedFields), // Semua data aset dimasukkan ke changed_fields
                             'old_values' => json_encode($oldValues),
                             'new_values' => json_encode([
                                 'jenis' => $jenis,
@@ -460,7 +489,6 @@ class ApprovalController extends Controller
                             ]),
                         ]);
 
-                        // Update tag jika ada
                         if ($asset->tag) {
                             $tag = Tag::where('rfid_number', $asset->rfid_number)->first();
                             if ($tag) {
@@ -468,7 +496,6 @@ class ApprovalController extends Controller
                             }
                         }
 
-                        // Hapus gambar
                         if ($asset->foto_awal) {
                             Storage::disk('public')->delete('assets/' . $asset->foto_awal);
                         }
@@ -477,12 +504,10 @@ class ApprovalController extends Controller
                             Storage::disk('public')->delete('assets/' . $asset->foto_kondisi);
                         }
 
-                        // Hapus asset
                         $asset->delete();
                         break;
                 }
 
-                // Update status approval
                 $approval->update(['status' => 'approved']);
             } catch (\Exception $e) {
                 Log::error("Approval failed for ID {$id}: {$e->getMessage()}");
@@ -491,7 +516,6 @@ class ApprovalController extends Controller
 
         return response()->json(['message' => 'Semua permintaan berhasil disetujui dan dicatat dalam history.']);
     }
-
 
 
     public function reject(Request $request)

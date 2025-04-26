@@ -91,7 +91,7 @@
                                 <a class="nav-link text-dark" href="{{ route('asset.index') }}">Asset List</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('maintenance.index') }}">Maintenance</a>
+                                <a class="nav-link text-dark" href="{{ route('asset.maintenance') }}">Maintenance</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" href="{{ route('asset.mutation') }}">Mutation</a>

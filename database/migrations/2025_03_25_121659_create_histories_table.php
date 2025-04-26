@@ -6,26 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('histories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('asset_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete(); // siapa yg ubah
-            $table->enum('change_type', ['attribute', 'location', 'mutation', 'disposal']);
+
+            $table->foreignId('asset_id')->nullable()->constrained('assets')->nullOnDelete();
+
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+
+            $table->enum('change_type', ['attribute', 'location', 'mutation', 'loan', 'disposal']);
+
             $table->json('changed_fields');
+
             $table->json('old_values')->nullable();
+
             $table->json('new_values')->nullable();
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('histories');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Asset;
 use App\Models\Sekolah;
 use App\Models\Tag;
+use App\Models\History;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Carbon;
 
 class AssetController extends Controller
 {
@@ -108,96 +110,170 @@ class AssetController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'tag' => 'required|exists:tags,rfid_number',
             'sekolah_id' => 'required',
-
             'kode' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'register' => 'required|string|max:255',
             'merk' => 'required|string|max:255',
             'bahan' => 'required|string|max:255',
             'tahun_pembelian' => 'required|integer',
-
             'nip_pic' => 'required|string|max:255',
             'nama_pic' => 'required|string|max:255',
             'jabatan_pic' => 'required|string|max:255',
             'telp_pic' => 'required|min:10',
-
             'asal_perolehan' => 'required|string|max:255',
             'nilai_perolehan' => 'required|numeric|min:0',
             'kondisi' => 'required',
             'tanggal_perawatan' => 'required|date',
             'harga_perawatan' => 'required|numeric|min:0',
             'waktu_perawatan' => 'required|numeric|min:0',
-
             'gedung' => 'required',
             'lantai' => 'required',
             'ruangan' => 'required',
             'detail' => 'required',
-
-            // validasi gambar dan fungsi gambar belum
         ]);
 
-        $old = session()->getOldInput();
-        $data = [
-            'rfid_number' => $request->input('tag'),
-            'sekolah_id' => $request->input('sekolah_id'),
-            'kode' => $request->input('kode'),
-            'name' => $request->input('name'),
-            'register' => $request->input('register'),
-            'merk' => $request->input('merk'),
-            'ukuran' => $request->input('ukuran'),
-            'bahan' => $request->input('bahan'),
-            'tahun_pembelian' => 2025,
-            'pabrik' => $request->input('pabrik'),
-            'rangka' => $request->input('rangka'),
-            'mesin' => $request->input('mesin'),
-            'polisi' => $request->input('polisi'),
-            'bpkb' => $request->input('bpkb'),
-            'nip_pic' => $request->input('nip_pic'),
-            'nama_pic' => $request->input('nama_pic'),
-            'jabatan_pic' => $request->input('jabatan_pic'),
-            'telp_pic' => $request->input('telp_pic'),
-            'asal_perolehan' => $request->input('asal_perolehan'),
-            'nilai_perolehan' => $request->input('nilai_perolehan'),
-            'kondisi' => $request->input('kondisi'),
-            'tanggal_perawatan' => $request->input('tanggal_perawatan'),
-            'harga_perawatan' => $request->input('harga_perawatan'),
-            'waktu_perawatan' => $request->input('waktu_perawatan'),
-            'gedung' => $request->input('gedung'),
-            'lantai' => $request->input('lantai'),
-            'ruangan' => $request->input('ruangan'),
-            'detail' => $request->input('detail'),
-        ];
+        try {
+            $validated['rfid_number'] = $validated['tag'];
+            unset($validated['tag']);
 
-        // Jika ada file gambar yang valid, proses dan tambahkan ke array
-        if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $filename = Str::uuid() . '.webp';
-            $path = 'assets/' . $filename;
+            // Upload gambar
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                $filename = Str::uuid() . '.webp';
+                $path = 'assets/' . $filename;
 
-            $manager = new ImageManager(new Driver());
+                $manager = new ImageManager(new Driver());
+                $image = $manager->read($request->file('image')->getPathname())
+                    ->scale(width: 800)
+                    ->toWebp(quality: 75);
 
-            $image = $manager->read($request->file('image')->getPathname())
-                ->scale(width: 800)
-                ->toWebp(quality: 75);
+                Storage::disk('public')->put($path, (string) $image);
+                $validated['foto_awal'] = $filename;
+            }
 
-            Storage::disk('public')->put($path, (string) $image);
+            // Simpan asset
+            $asset = Asset::create($validated);
 
-            $data['foto_awal'] = $filename;
+            // Update status tag jadi used
+            Tag::where('rfid_number', $asset->rfid_number)->update(['status' => 'used']);
+
+            // Simpan ke history
+            History::create([
+                'asset_id' => $asset->id,
+                'user_id' => Auth::id(),
+                'change_type' => 'create',
+                'old_values' => null,
+                'new_values' => json_encode($asset->getAttributes()),
+                'changed_fields' => json_encode(array_keys($validated)),
+            ]);
+
+            return redirect()->route('asset.index')->with(['pesan' => 'Aset berhasil ditambahkan', 'level-alert' => 'alert-success']);
+        } catch (\Exception $e) {
+            return redirect()->back()->with([
+                'pesan' => 'Terjadi kesalahan saat menambahkan aset: ' . $e->getMessage(),
+                'level-alert' => 'alert-danger',
+            ]);
         }
-
-        // Simpan data ke database
-        Asset::create($data);
-
-        // Update Tag Status
-        $tag = Tag::where('rfid_number', $request->input('tag'))->first();
-        $tag->status = 'used';
-        $tag->save();
-
-        return redirect()->route('asset.index')->with(['pesan' => 'Aset berhasil ditambahkan', 'level-alert' => 'alert-success']);
     }
+
+
+    public function update(Request $request, Asset $asset)
+    {
+        $validated = $request->validate([
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'tag' => 'required|exists:tags,rfid_number',
+            'sekolah_id' => 'required',
+            'kode' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'register' => 'required|string|max:255',
+            'merk' => 'required|string|max:255',
+            'bahan' => 'required|string|max:255',
+            'tahun_pembelian' => 'required|integer',
+            'nip_pic' => 'required|string|max:255',
+            'nama_pic' => 'required|string|max:255',
+            'jabatan_pic' => 'required|string|max:255',
+            'telp_pic' => 'required|min:10',
+            'asal_perolehan' => 'required|string|max:255',
+            'nilai_perolehan' => 'required|numeric|min:0',
+            'kondisi' => 'required',
+            'tanggal_perawatan' => 'required|date',
+            'harga_perawatan' => 'required|numeric|min:0',
+            'waktu_perawatan' => 'required|numeric|min:0',
+            'gedung' => 'required',
+            'lantai' => 'required',
+            'ruangan' => 'required',
+            'detail' => 'required',
+        ]);
+
+        try {
+            $oldValues = $asset->toArray(); // ambil semua data lama
+
+            // Update tag status jika berubah
+            if ($validated['tag'] !== $asset->rfid_number) {
+                Tag::where('rfid_number', $asset->rfid_number)->update(['status' => 'available']);
+                Tag::where('rfid_number', $validated['tag'])->update(['status' => 'used']);
+            }
+
+            $validated['rfid_number'] = $validated['tag'];
+            unset($validated['tag']);
+
+            if ($request->hasFile('image') && $request->file('image')->isValid()) {
+                $filename = Str::uuid() . '.webp';
+                $path = 'assets/' . $filename;
+
+                $manager = new ImageManager(new Driver());
+                $image = $manager->read($request->file('image')->getPathname())
+                    ->scale(width: 800)
+                    ->toWebp(quality: 75);
+
+                Storage::disk('public')->put($path, (string) $image);
+
+                if ($asset->foto_awal && Storage::disk('public')->exists('assets/' . $asset->foto_awal)) {
+                    Storage::disk('public')->delete('assets/' . $asset->foto_awal);
+                }
+
+                $validated['foto_awal'] = $filename;
+            }
+
+            $asset->update($validated);
+
+            $newValues = $asset->fresh()->toArray(); // ambil data terbaru
+            $changedFields = [];
+
+            foreach ($newValues as $key => $new) {
+                $old = $oldValues[$key] ?? null;
+
+                if (is_array($old) || is_array($new)) {
+                    if (json_encode($old) !== json_encode($new)) {
+                        $changedFields[] = $key;
+                    }
+                } elseif ((string) $old !== (string) $new) {
+                    $changedFields[] = $key;
+                }
+            }
+
+            History::create([
+                'asset_id' => $asset->id,
+                'user_id' => Auth::id(),
+                'change_type' => 'attribute',
+                'old_values' => json_encode($oldValues),
+                'new_values' => json_encode($newValues),
+                'changed_fields' => json_encode($changedFields),
+            ]);
+
+            return redirect()->route('asset.index')->with(['pesan' => 'Aset berhasil diperbarui', 'level-alert' => 'alert-warning']);
+        } catch (\Exception $e) {
+            return redirect()->back()->with([
+                'pesan' => 'Terjadi kesalahan saat memperbarui aset: ' . $e->getMessage(),
+                'level-alert' => 'alert-danger',
+            ]);
+        }
+    }
+
+
 
     /**
      * Display the specified resource.
@@ -226,92 +302,31 @@ class AssetController extends Controller
         ]);
     }
 
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Asset  $asset
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(Request $request, Asset $asset)
-    {
-        $validatedData = $request->validate([
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'tag' => 'required|exists:tags,rfid_number',
-            'sekolah_id' => 'required',
-
-            'kode' => 'required|string|max:255',
-            'name' => 'required|string|max:255',
-            'register' => 'required|string|max:255',
-            'merk' => 'required|string|max:255',
-            'bahan' => 'required|string|max:255',
-            'tahun_pembelian' => 'required|integer',
-
-            'nip_pic' => 'required|string|max:255',
-            'nama_pic' => 'required|string|max:255',
-            'jabatan_pic' => 'required|string|max:255',
-            'telp_pic' => 'required|min:10',
-
-            'asal_perolehan' => 'required|string|max:255',
-            'nilai_perolehan' => 'required|numeric|min:0',
-            'kondisi' => 'required',
-            'tanggal_perawatan' => 'required|date',
-            'harga_perawatan' => 'required|numeric|min:0',
-            'waktu_perawatan' => 'required|numeric|min:0',
-
-            'gedung' => 'required',
-            'lantai' => 'required',
-            'ruangan' => 'required',
-            'detail' => 'required',
-        ]);
-
-        try {
-            // Jika tag berubah, update status tag lama jadi 'available' dan tag baru jadi 'used'
-            if ($request->tag !== $asset->rfid_number) {
-                Tag::where('rfid_number', $asset->rfid_number)->update(['status' => 'available']);
-                Tag::where('rfid_number', $request->tag)->update(['status' => 'used']);
-            }
-
-            $data = $request->except(['image']);
-            $data['rfid_number'] = $request->input('tag');
-
-            // Jika ada file gambar baru
-            if ($request->hasFile('image') && $request->file('image')->isValid()) {
-                $filename = Str::uuid() . '.webp';
-                $path = 'assets/' . $filename;
-
-                $manager = new ImageManager(new Driver());
-
-                $image = $manager->read($request->file('image')->getPathname())
-                    ->scale(width: 800)
-                    ->toWebp(quality: 75);
-
-                Storage::disk('public')->put($path, (string) $image);
-
-                // Hapus gambar lama jika ada
-                if ($asset->foto_awal && Storage::disk('public')->exists('assets/' . $asset->foto_awal)) {
-                    Storage::disk('public')->delete('assets/' . $asset->foto_awal);
-                }
-
-                $data['foto_awal'] = $filename;
-            }
-
-            $asset->update($data);
-
-            return redirect()->route('asset.index')->with(['pesan' => 'Aset berhasil diperbarui', 'level-alert' => 'alert-warning']);
-        } catch (\Exception $e) {
-
-            return redirect()->back()->with(['pesan' => 'Terjadi kesalahan saat memperbarui aset', 'level-alert' => 'alert-danger']);
-        }
-    }
-
-
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(Asset $asset)
     {
         // 
+    }
+
+    public function maintenance(Request $request)
+    {
+        if ($request->ajax()) {
+            $data = Asset::query()
+                ->whereIn('kondisi', ['Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat'])
+                ->select(['id', 'name', 'kondisi', 'tanggal_perawatan', 'harga_perawatan', 'waktu_perawatan']);
+
+            // Filter berdasarkan waktu perawatan (dalam bulan)
+            if ($request->filled('waktu')) {
+                $months = (int) $request->waktu;
+                $cutoff = Carbon::now()->subMonths($months);
+                $data->whereDate('tanggal_perawatan', '>=', $cutoff);
+            }
+
+            return DataTables::of($data)->make(true);
+        }
+
+        return view('asset.maintenance');
     }
 }

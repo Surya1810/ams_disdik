@@ -16,8 +16,9 @@ class History extends Model
     ];
 
     protected $casts = [
-        'old_value' => 'array',
-        'new_value' => 'array'
+        'old_values' => 'array',
+        'new_values' => 'array',
+        'changed_fields' => 'array',
     ];
 
     public function asset()
@@ -29,6 +30,12 @@ class History extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
 
     public function approval()
     {

@@ -41,9 +41,8 @@ Route::middleware('auth')->group(function () {
 
 
     // Maintenance
-    Route::get('maintenance', function () {
-        return view('asset.maintenance');
-    })->name('maintenance.index');
+    Route::get('/maintenance', [AssetController::class, 'maintenance'])->name('asset.maintenance');
+
 
     // History
     Route::get('/histories/changes', [HistoryController::class, 'changesHistory'])->name('histories.changes');
