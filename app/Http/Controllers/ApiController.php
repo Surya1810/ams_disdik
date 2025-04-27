@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use App\Models\Sekolah;
 use App\Models\Asset;
+use App\Models\Approval;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
@@ -75,30 +77,56 @@ class ApiController extends Controller
         return response()->json(['message' => 'Logged out']);
     }
 
+    private function filterAssetByRole($query)
+    {
+        $user = Auth::user();
+
+        if ($user->role_id == 1) {
+            return $query;
+        }
+
+        return $query->whereHas('sekolah', function ($q) use ($user) {
+            $q->where('kecamatan_id', $user->kecamatan_id);
+        });
+    }
+
+    private function filterSekolahByRole($query)
+    {
+        $user = Auth::user();
+
+        if ($user->role_id == 1) {
+            return $query;
+        }
+
+        return $query->where('kecamatan_id', $user->kecamatan_id);
+    }
+
+
     public function getsekolah()
     {
-        $sekolahs = Sekolah::all();
+        $sekolahs = $this->filterSekolahByRole(Sekolah::query())->get();
 
         $result = $sekolahs->map(function ($sekolah) {
             return [
                 'id' => $sekolah->id,
                 'SchoolName' => $sekolah->name,
                 'lastStockOpname' => optional($sekolah->last_stock_opname)->format('d/m/Y') ?? '-',
-                'totalAset' => $sekolah->assets()->count()
+                'totalAset' => $sekolah->assets()->count(),
             ];
         });
 
         return response()->json([
             'status' => 'success',
             'data' => [
-                'listSchool' => $result
+                'listSchool' => $result,
             ]
         ]);
     }
 
     public function getAssetSekolah($idSchool)
     {
-        $assets = Asset::with('sekolah')->where('sekolah_id', $idSchool)->get();
+        $query = Asset::with('sekolah')->where('sekolah_id', $idSchool);
+        $assets = $this->filterAssetByRole($query)->get();
 
         $result = $assets->map(function ($asset) {
             return [
@@ -116,65 +144,15 @@ class ApiController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => [
-                'listAssets' => $result
+                'listAssets' => $result,
             ]
         ]);
     }
-
-
-    public function postStockOpname(Request $request, $idSchool)
-    {
-
-        // $validated = $request->validate([
-        //     'stockOpname' => 'required|array',
-        //     'stockOpname.*.id' => 'required|integer|exists:assets,id',
-        //     'stockOpname.*.isThere' => 'required|boolean',
-        //     'stockOpname.*.condition' => 'required|string',
-        // ]);
-
-        foreach ($request->stockOpname as $item) {
-            $asset = Asset::where('id', $item['id'])
-                ->where('sekolah_id', $idSchool)
-                ->first();
-
-            if ($asset) {
-                $asset->is_there = $item['isThere'];
-                // $asset->kondisi = $item['condition'];
-                $asset->save();
-            }
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Stock opname berhasil diperbarui.'
-        ]);
-    }
-
-
-    public function getSearchFilter()
-    {
-        // Ambil semua sekolah
-        $schools = Sekolah::select('id', 'name as schoolName')->get();
-
-        // Ambil semua tahun pembelian unik dari tabel assets
-        $years = Asset::select('tahun_pembelian')
-            ->distinct()
-            ->orderBy('tahun_pembelian', 'asc')
-            ->pluck('tahun_pembelian');
-
-        return response()->json([
-            'status' => 'success',
-            'data' => [
-                'school' => $schools,
-                'purcaseYear' => $years
-            ]
-        ]);
-    }
-
 
     public function getSearch(Request $request)
     {
         $query = Asset::with('sekolah');
+        $query = $this->filterAssetByRole($query);
 
         if ($request->filled('school')) {
             $query->where('sekolah_id', $request->school);
@@ -232,123 +210,105 @@ class ApiController extends Controller
         ]);
     }
 
-
     public function getItemDetail($id)
     {
-        $asset = Asset::with('sekolah')->find($id);
-
-        if (!$asset) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Item tidak ditemukan',
-            ], 404);
-        }
+        $query = Asset::with('sekolah')->where('id', $id);
+        $asset = $this->filterAssetByRole($query)->firstOrFail();
 
         return response()->json([
             'status' => 'success',
             'data' => [
-                'informationItem' => [
-                    'ItemName' => $asset->name,
-                    'rfidNumber' => $asset->rfid_number,
-                    'itemCode' => $asset->kode,
-                    'purcaseYear' => $asset->tahun_pembelian,
-                    'lastMaintenance' => optional($asset->tanggal_perawatan)->format('d/m/Y'),
-                    'merk' => $asset->merk,
-                    'condition' => $asset->kondisi,
-                ],
-                'personInCharge' => [
-                    'nip' => $asset->nip_pic,
-                    'name' => $asset->nama_pic,
-                    'position' => $asset->jabatan_pic,
-                    'numberTelp' => $asset->telp_pic,
-                ],
-                'location' => [
-                    'building' => $asset->gedung,
-                    'floor' => (int) $asset->lantai,
-                    'room' => $asset->ruangan,
-                    'information' => $asset->detail,
-                ]
+                'id' => $asset->id,
+                'itemName' => $asset->name,
+                'school' => $asset->sekolah->name ?? '-',
+                'rfid' => $asset->rfid_number,
+                'room' => $asset->ruangan,
+                'isThere' => (bool) $asset->is_there,
+                'purcaseYear' => $asset->tahun_pembelian,
+                'condition' => $asset->kondisi,
+                'purchasePrice' => $asset->harga_perolehan,
             ]
         ]);
     }
 
     public function mutation(Request $request, $idItem)
     {
-        // Cari asset berdasarkan ID, jika tidak ada, akan otomatis memunculkan error 404
         $asset = Asset::findOrFail($idItem);
 
-        // Validasi personInCharge
         $personInCharge = $request->personInCharge;
         if (empty($personInCharge['nip']) || empty($personInCharge['name']) || empty($personInCharge['position']) || empty($personInCharge['numberTelp'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Data personInCharge tidak lengkap'
-            ], 400);  // Bad Request
+            ], 400);
         }
 
-        // Validasi location
         $location = $request->location;
         if (empty($location['building']) || empty($location['floor']) || empty($location['room']) || empty($location['information'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Data location tidak lengkap'
-            ], 400);  // Bad Request
+            ], 400);
         }
 
-        // Jika data sudah lengkap, lakukan pembaruan pada asset
-        $asset->nip_pic = $personInCharge['nip'];
-        $asset->nama_pic = $personInCharge['name'];
-        $asset->jabatan_pic = $personInCharge['position'];
-        $asset->telp_pic = (string) $personInCharge['numberTelp'];
-
-        $asset->gedung = $location['building'];
-        $asset->lantai = $location['floor'];
-        $asset->ruangan = $location['room'];
-        $asset->detail = $location['information'];
-
-        $asset->status = 'Mutated';  // Set status menjadi 'Mutated'
-
-        $asset->save();  // Simpan perubahan pada asset
+        $approval = Approval::create([
+            'type' => 'mutation',
+            'asset_id' => $asset->id,
+            'status' => 'pending',
+            'payload' => json_encode([
+                'personInCharge' => $personInCharge,
+                'location' => $location
+            ]),
+            'requested_by' => Auth::id(),
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Asset berhasil dimutasi'
-        ], 200);  // OK (200)
+            'message' => 'Mutasi aset berhasil diajukan untuk approval.',
+            'approval_id' => $approval->id
+        ], 200);
     }
 
-    public function inspection(Request $request, $idItem)
+    public function inspection(Request $request)
     {
-        $asset = Asset::findOrFail($idItem);
+        $id = $request->input('id');
 
-        $asset->kondisi = $request->condition;
+        $query = Asset::where('id', $id);
+        $asset = $this->filterAssetByRole($query)->firstOrFail();
 
-        $asset->save();
+        Approval::create([
+            'type' => 'inspection',
+            'asset_id' => $asset->id,
+            'status' => 'pending',
+            'payload' => json_encode([
+                'condition' => $request->input('condition'),
+            ]),
+            'requested_by' => Auth::id(),
+        ]);
 
         return response()->json([
-            'message' => 'Kondisi asset berhasil diperbarui'
+            'status' => 'success',
+            'message' => 'Inspeksi aset berhasil diajukan untuk approval.',
         ]);
     }
 
-    public function updateSearch(Request $request, $idItem)
+    public function updateSearch(Request $request, $id)
     {
-        $asset = Asset::findOrFail($idItem);
+        $query = Asset::where('id', $id);
+        $asset = $this->filterAssetByRole($query)->firstOrFail();
 
-        $asset->nip_pic = $request->personIncharge['nip'];
-        $asset->nama_pic = $request->personIncharge['name'];
-        $asset->jabatan_pic = $request->personIncharge['position'];
-        $asset->telp_pic = (string) $request->personIncharge['numberTelp'];
-
-        $asset->gedung = $request->location['building'];
-        $asset->lantai = $request->location['floor'];
-        $asset->ruangan = $request->location['room'];
-        $asset->detail = $request->location['information'];
-
-        $asset->status = 'Found';
-
-        $asset->save();
+        $asset->update($request->only([
+            'name',
+            'rfid_number',
+            'ruangan',
+            'tahun_pembelian',
+            'kondisi',
+            'harga_perolehan'
+        ]));
 
         return response()->json([
-            'message' => 'Data asset hasil pencarian berhasil diperbarui'
+            'status' => 'success',
+            'message' => 'Data aset berhasil diperbarui',
         ]);
     }
 }

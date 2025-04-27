@@ -22,27 +22,40 @@ class AssetController extends Controller
      */
     public function index(Request $request)
     {
+        // Ambil kecamatan_id dari user yang sedang login
+        $kecamatanId = Auth::user()->kecamatan_id;
+        $roleId = Auth::user()->role_id;
+
+        // Ambil tag yang statusnya 'available' dan sesuai dengan kecamatan user
         $tags = Tag::where('status', 'available')
-            ->where('kecamatan_id', Auth::user()->kecamatan_id)
+            ->where('kecamatan_id', $kecamatanId)
             ->pluck('rfid_number');
 
-        $places = Sekolah::where('kecamatan_id', Auth::user()->kecamatan_id)->get();
+        // Ambil data sekolah yang sesuai dengan kecamatan user
+        $places = Sekolah::where('kecamatan_id', $kecamatanId)->get();
 
-        if (Auth::user()->role_id == 1) {
+        // Untuk role 1, bisa melihat semua aset
+        if ($roleId == 1) {
             $asset = Asset::all();
         } else {
-            $asset = Asset::where('kecamatan_id', Auth::user()->kecamatan_id)->get();
+            // Untuk role 2 dan 3, hanya dapat melihat aset di kecamatan dan sekolah mereka
+            $asset = Asset::whereHas('sekolah', function ($query) use ($kecamatanId) {
+                $query->where('kecamatan_id', $kecamatanId);
+            })->get();
         }
 
         if ($request->ajax()) {
-            if (Auth::user()->role_id == 1) {
-                $assets = Asset::with('sekolah');
-            } else {
-                $assets = Asset::with('sekolah')
-                    ->where('kecamatan_id', Auth::user()->kecamatan_id);
+            // Query untuk DataTables
+            $assetsQuery = Asset::with('sekolah');
+
+            // Filter berdasarkan kecamatan untuk role 2 dan 3
+            if ($roleId != 1) {
+                $assetsQuery->whereHas('sekolah', function ($query) use ($kecamatanId) {
+                    $query->where('kecamatan_id', $kecamatanId);
+                });
             }
 
-            return DataTables::of($assets)
+            return DataTables::of($assetsQuery)
                 ->addColumn('kondisi_badge', function ($row) {
                     $badge = match ($row->kondisi) {
                         'Baik' => '<span class="badge bg-success">Baik</span>',
@@ -54,14 +67,14 @@ class AssetController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     return '
-                    <a href="javascript:void(0)" class="btn btn-link p-0 show-asset" data-asset-id="' . $row->id . '">
-                        <i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail"></i>
-                    </a>
-                    &nbsp;
-                    <a href="javascript:void(0)" class="btn btn-link p-0 edit-asset" data-asset-id="' . $row->id . '">
-                        <i class="fa-solid fa-pencil" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
-                    </a>
-                ';
+                <a href="javascript:void(0)" class="btn btn-link p-0 show-asset" data-asset-id="' . $row->id . '">
+                    <i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail"></i>
+                </a>
+                &nbsp;
+                <a href="javascript:void(0)" class="btn btn-link p-0 edit-asset" data-asset-id="' . $row->id . '">
+                    <i class="fa-solid fa-pencil" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
+                </a>
+            ';
                 })
                 ->rawColumns(['kondisi_badge', 'action'])
                 ->make(true);
