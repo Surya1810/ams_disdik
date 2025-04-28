@@ -149,6 +149,61 @@ class ApiController extends Controller
         ]);
     }
 
+    public function PostStockOpname(Request $request, $idSchool)
+    {
+        // $validated = $request->validate([
+        //     'stockOpname' => 'required|array',
+        //     'stockOpname.*.id' => 'required|integer|exists:assets,id',
+        //     'stockOpname.*.isThere' => 'required|boolean',
+        //     'stockOpname.*.condition' => 'required|string',
+        // ]);
+        $query = Asset::with('sekolah')->where('sekolah_id', $idSchool);
+        $assets = $this->filterAssetByRole($query)->get();
+
+        foreach ($request->stockOpname as $item) {
+            $asset = Asset::where('id', $item['id'])
+                ->where('sekolah_id', $idSchool)
+                ->first();
+
+            if ($asset) {
+                $asset->is_there = $item['isThere'];
+                // $asset->kondisi = $item['condition'];
+                $asset->save();
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Stock opname berhasil diperbarui.'
+        ]);
+    }
+
+    public function getSearchFilter(Request $request)
+    {
+        $sekolahs = $this->filterSekolahByRole(Sekolah::query())->get();
+
+        $query = Asset::with('sekolah');
+        $assets = $this->filterAssetByRole($query)->get();
+
+        // << Ini diperbaiki: filter juga sekolah sesuai role
+        $schools = $this->filterSekolahByRole(Sekolah::select('id', 'name as schoolName'))->get();
+
+        // Ambil semua tahun pembelian unik dari tabel assets
+        $years = Asset::select('tahun_pembelian')
+            ->distinct()
+            ->orderBy('tahun_pembelian', 'asc')
+            ->pluck('tahun_pembelian');
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'school' => $schools,
+                'purcaseYear' => $years
+            ]
+        ]);
+    }
+
+
     public function getSearch(Request $request)
     {
         $query = Asset::with('sekolah');
@@ -218,15 +273,27 @@ class ApiController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => [
-                'id' => $asset->id,
-                'itemName' => $asset->name,
-                'school' => $asset->sekolah->name ?? '-',
-                'rfid' => $asset->rfid_number,
-                'room' => $asset->ruangan,
-                'isThere' => (bool) $asset->is_there,
-                'purcaseYear' => $asset->tahun_pembelian,
-                'condition' => $asset->kondisi,
-                'purchasePrice' => $asset->harga_perolehan,
+                'informationItem' => [
+                    'ItemName' => $asset->name,
+                    'rfidNumber' => $asset->rfid_number,
+                    'itemCode' => $asset->kode,
+                    'purcaseYear' => $asset->tahun_pembelian,
+                    'lastMaintenance' => optional($asset->tanggal_perawatan)->format('d/m/Y'),
+                    'merk' => $asset->merk,
+                    'condition' => $asset->kondisi,
+                ],
+                'personInCharge' => [
+                    'nip' => $asset->nip_pic,
+                    'name' => $asset->nama_pic,
+                    'position' => $asset->jabatan_pic,
+                    'numberTelp' => $asset->telp_pic,
+                ],
+                'location' => [
+                    'building' => $asset->gedung,
+                    'floor' => (int) $asset->lantai,
+                    'room' => $asset->ruangan,
+                    'information' => $asset->detail,
+                ]
             ]
         ]);
     }
@@ -250,7 +317,7 @@ class ApiController extends Controller
                 'message' => 'Data location tidak lengkap'
             ], 400);
         }
-
+        $rejectionNote = $request->input('rejection_note', null);
         $approval = Approval::create([
             'type' => 'mutation',
             'asset_id' => $asset->id,
@@ -259,6 +326,7 @@ class ApiController extends Controller
                 'personInCharge' => $personInCharge,
                 'location' => $location
             ]),
+            'rejection_note' => $rejectionNote,
             'requested_by' => Auth::id(),
         ]);
 
@@ -277,7 +345,7 @@ class ApiController extends Controller
         $asset = $this->filterAssetByRole($query)->firstOrFail();
 
         Approval::create([
-            'type' => 'inspection',
+            'type' => 'mutation',
             'asset_id' => $asset->id,
             'status' => 'pending',
             'payload' => json_encode([
@@ -292,23 +360,26 @@ class ApiController extends Controller
         ]);
     }
 
-    public function updateSearch(Request $request, $id)
+    public function updateSearch(Request $request, $idItem)
     {
-        $query = Asset::where('id', $id);
-        $asset = $this->filterAssetByRole($query)->firstOrFail();
+        $asset = Asset::findOrFail($idItem);
 
-        $asset->update($request->only([
-            'name',
-            'rfid_number',
-            'ruangan',
-            'tahun_pembelian',
-            'kondisi',
-            'harga_perolehan'
-        ]));
+        $asset->nip_pic = $request->personIncharge['nip'];
+        $asset->nama_pic = $request->personIncharge['name'];
+        $asset->jabatan_pic = $request->personIncharge['position'];
+        $asset->telp_pic = (string) $request->personIncharge['numberTelp'];
+
+        $asset->gedung = $request->location['building'];
+        $asset->lantai = $request->location['floor'];
+        $asset->ruangan = $request->location['room'];
+        $asset->detail = $request->location['information'];
+
+        $asset->status = 'Found';
+
+        $asset->save();
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'Data aset berhasil diperbarui',
+            'message' => 'Data asset hasil pencarian berhasil diperbarui'
         ]);
     }
 }
