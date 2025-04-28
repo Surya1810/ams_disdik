@@ -39,6 +39,12 @@ Route::middleware('auth')->group(function () {
     Route::get('loan', [ApprovalController::class, 'loan'])->name('asset.loan');
     Route::get('disposal', [ApprovalController::class, 'disposal'])->name('asset.disposal');
 
+    /**
+     * Date: 28-04-2025
+     * Export and Import Asset List
+     */
+    Route::get('/export/asset', [AssetController::class, 'export'])->name('asset.export');
+
 
     // Maintenance
     Route::get('/maintenance', [AssetController::class, 'maintenance'])->name('asset.maintenance');

@@ -45,9 +45,16 @@
                         </div>
                     </div>
                     <div class="card-body table-responsive pb-2">
-                        <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
-                            data-bs-target="#addAset"> <i class="fa-solid fa-plus"></i> Tambah
-                        </button>
+                        <div class="d-flex" id="buttonWrapper">
+                            <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
+                                data-bs-target="#addAset"> <i class="fa-solid fa-plus"></i> Tambah
+                            </button>
+                            <div id="buttonExportImportWrapper" class="ms-auto">
+                                <button type="button" class="btn bg-gradient-success rounded-partner" id="buttonExport">
+                                    <i class="fa-solid fa-file"></i> Export
+                                </button>
+                            </div>
+                        </div>
                         <table id="asetTable" class="table text-sm">
                             <thead class="font-weight-bolder">
                                 <tr>
@@ -792,7 +799,7 @@
                                 <div class="col-12 text-center">
                                     <h6>Perawatan Barang</h6>
                                 </div>
-                                
+
                                 <div class="col-12 col-md-4">
                                     <label>Asal-usul Perolehan</label>
                                     <input type="text" class="form-control @error('asal_perolehan') is-invalid @enderror" name="asal_perolehan"
@@ -803,7 +810,7 @@
                                     </span>
                                     @enderror
                                 </div>
-                                
+
                                 <div class="col-12 col-md-4">
                                     <label>Nilai Perolehan</label>
                                     <input type="text" name="nilai_perolehan" id="nilai_perolehan"
@@ -815,7 +822,7 @@
                                     </span>
                                     @enderror
                                 </div>
-                                
+
                                 <div class="col-12 col-md-4">
                                     <label>Kondisi</label>
                                     <select name="kondisi" id="kondisi" class="form-select kondisi @error('kondisi') is-invalid @enderror" required>
@@ -839,7 +846,7 @@
                                             Hilang
                                         </option>
                                     </select>
-                                
+
                                     @error('kondisi')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -857,7 +864,7 @@
                                     </span>
                                     @enderror
                                 </div>
-                                
+
                                 <div class="col-12 col-md-4">
                                     <label>Harga Perawatan</label>
                                     <input type="text" name="harga_perawatan" id="harga_perawatan"
@@ -869,7 +876,7 @@
                                     </span>
                                     @enderror
                                 </div>
-                                
+
                                 <div class="col-12 col-md-4">
                                     <label>Jangka Waktu Perawatan</label>
                                     <select name="waktu_perawatan" id="waktu_perawatan_edit"
@@ -885,7 +892,7 @@
                                     </span>
                                     @enderror
                                 </div>
-                                
+
                                 <hr class="horizontal dark my-3">
                                 <div class="col-12 text-center">
                                     <h6>Lokasi</h6>
@@ -894,14 +901,14 @@
                                 <div class="col-12 col-md-6">
                                     <label>Kecamatan</label>
                                     <input type="text" class="form-control" value="{{ Auth::user()->kecamatan->name }}" disabled>
-                                
+
                                     @error('harga_perawatan')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
                                     </span>
                                     @enderror
                                 </div>
-                                
+
                                 <div class="col-12 col-md-6">
                                     <label>Tempat</label>
                                     <select name="sekolah_id" id="sekolah_id" class="form-control place @error('sekolah_id') is-invalid @enderror"
@@ -917,7 +924,7 @@
                                     </span>
                                     @enderror
                                 </div>
-                                
+
                                 <div class="col-12 col-md-3">
                                     <label>Gedung</label>
                                     <input type="text" class="form-control @error('gedung') is-invalid @enderror" name="gedung" id="gedung"
@@ -928,7 +935,7 @@
                                     </span>
                                     @enderror
                                 </div>
-                                
+
                                 <div class="col-12 col-md-3">
                                     <label>Lantai</label>
                                     <input type="text" class="form-control @error('lantai') is-invalid @enderror" name="lantai" id="lantai"
@@ -939,7 +946,7 @@
                                     </span>
                                     @enderror
                                 </div>
-                                
+
                                 <div class="col-12 col-md-3">
                                     <label>Ruangan</label>
                                     <input type="text" class="form-control @error('ruangan') is-invalid @enderror" name="ruangan" id="ruangan"
@@ -950,7 +957,7 @@
                                     </span>
                                     @enderror
                                 </div>
-                                
+
                                 <div class="col-12 col-md-3">
                                     <label>Detail</label>
                                     <input type="text" class="form-control @error('detail') is-invalid @enderror" name="detail" id="detail"
@@ -1000,7 +1007,7 @@
                             <!-- Informasi -->
                             <div class="col-8">
                                 <div class="row">
-                                    
+
                                     <div class="col-12 col-md-6">
                                         <label>Nomor RFID</label>
                                         <input type="text" class="form-control" id="tag_show" readonly>
@@ -1050,7 +1057,7 @@
                                 <label>Rangka</label>
                                 <input type="text" class="form-control" id="rangka" readonly>
                             </div>
-                            
+
                             <div class="col-12 col-md-3">
                                 <label>Mesin</label>
                                 <input type="text" class="form-control" id="mesin" readonly>
@@ -1140,7 +1147,7 @@
                             <div class="col-12 col-md-6">
                                 <label>Kecamatan</label>
                                 <input type="text" class="form-control" value="{{ Auth::user()->kecamatan->name }}" disabled>
-                            
+
                                 @error('harga_perawatan')
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $message }}</strong>
@@ -1363,6 +1370,11 @@
             }).fail(function () {
                 console.error("Gagal mengambil data untuk lihat.");
             });
+        });
+
+        // Event klik tombol export
+        $('#buttonExport').on('click', function () {
+            window.location.href = '/export/asset';
         });
     });
 </script>

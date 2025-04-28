@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\AssetsExport;
 use App\Models\Asset;
 use App\Models\Sekolah;
 use App\Models\Tag;
@@ -14,6 +15,7 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AssetController extends Controller
 {
@@ -294,7 +296,7 @@ class AssetController extends Controller
      */
     public function destroy(Asset $asset)
     {
-        // 
+        //
     }
 
     public function maintenance(Request $request)
@@ -315,5 +317,16 @@ class AssetController extends Controller
         }
 
         return view('asset.maintenance');
+    }
+
+    /**
+     * Date: 28-04-2025
+     * Export List Asset to Excel
+     */
+    public function export() {
+        $date = date('Y-m-d');
+        $fileName = "Asset List - $date.xlsx";
+
+        return Excel::download(new AssetsExport, $fileName);
     }
 }
