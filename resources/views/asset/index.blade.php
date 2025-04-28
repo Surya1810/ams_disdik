@@ -1479,7 +1479,8 @@
              * Date: 28-04-2025
              */
             // Event klik tombol export
-            $('#buttonExport').on('click', function() {
+            $('#buttonExport').on('click', function(e) {
+                e.preventDefault();
                 window.location.href = '/export/asset';
             });
 

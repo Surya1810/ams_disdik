@@ -23,6 +23,7 @@
                         </div>
                     </div>
                     <div class="card-body table-responsive pb-2">
+                        <div class="d-flex" id="buttonWrapper">
                         @if (Auth::user()->role_id == 1)
                             <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
                                 data-bs-target="#addTagModal">
@@ -34,6 +35,12 @@
                                 <i class="fa-solid fa-share-nodes"></i> Distribusi
                             </button>
                         @endif
+                            <div id="buttonExportWrapper" class="ms-auto">
+                                <button type="button" class="btn bg-gradient-success rounded-partner" id="buttonExport">
+                                    <i class="fa-solid fa-download"></i> Export
+                                </button>
+                            </div>
+                        </div>
 
                         <table id="tagTable" class="table text-sm mt-3">
                             <thead class="font-weight-bolder">
@@ -151,7 +158,7 @@
             height: 38px;
             padding: 5px 10px;
         }
-    
+
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             line-height: 28px;
         }
@@ -202,7 +209,7 @@
             placeholder: 'Pilih Kecamatan',
             width: '100%'
             });
-            
+
             $('.select-rfid').select2({
             placeholder: 'Pil',
             allowClear: true,
@@ -274,5 +281,14 @@
                 }
             });
         }
+
+        /**
+         * Date: 28-04-2025
+         * Event listener for export button
+         **/
+        $('#buttonExport').on('click', function (e) {
+            e.preventDefault();
+            window.location.href = '/export/tag';
+        });
     </script>
 @endpush
