@@ -43,7 +43,7 @@ class AssetController extends Controller
             // Untuk role 2 dan 3, hanya dapat melihat aset di kecamatan dan sekolah mereka
             $asset = Asset::whereHas('sekolah', function ($query) use ($kecamatanId) {
                 $query->where('kecamatan_id', $kecamatanId);
-            })->get();
+            })->with('sekolah')->get();
         }
 
         if ($request->ajax()) {
@@ -325,7 +325,7 @@ class AssetController extends Controller
      */
     public function export() {
         $date = date('Y-m-d');
-        $fileName = "Asset List - $date.xlsx";
+        $fileName = "Laporan Data Aset - $date.xlsx";
 
         return Excel::download(new AssetsExport, $fileName);
     }
