@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
      * Export and Import Asset List
      */
     Route::get('/export/asset', [AssetController::class, 'export'])->name('asset.export');
+    Route::post('/import/asset', [AssetController::class, 'import'])->name('asset.import');
 
 
     // Maintenance

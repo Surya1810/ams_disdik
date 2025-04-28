@@ -51,7 +51,10 @@
                             </button>
                             <div id="buttonExportImportWrapper" class="ms-auto">
                                 <button type="button" class="btn bg-gradient-success rounded-partner" id="buttonExport">
-                                    <i class="fa-solid fa-file"></i> Export
+                                    <i class="fa-solid fa-download"></i> Export
+                                </button>
+                                <button type="button" class="btn bg-gradient-warning rounded-partner" id="buttonShowImportModal"> <i class="fa-solid fa-upload"></i>
+                                    Import
                                 </button>
                             </div>
                         </div>
@@ -548,199 +551,560 @@
         </div>
     </div>
 
-   <!-- Modal Edit Aset -->
-<div class="modal fade" id="editAset" aria-labelledby="editAsetLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-body p-0">
-                <div class="card card-plain">
-                    <form id="form-edit-asset" method="POST" autocomplete="off" enctype="multipart/form-data">
-                        @csrf
-                        @method('PUT')
+    <!-- Modal Edit Aset -->
+    <div class="modal fade" id="editAset" aria-labelledby="editAsetLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="card card-plain">
+                        <form id="form-edit-asset" method="POST" autocomplete="off" enctype="multipart/form-data">
+                            @csrf
+                            @method('PUT')
+                            <div class="card-header pb-0 text-left">
+                                <h4 class="text-primary text-gradient">Edit <strong>Aset</strong></h4>
+                            </div>
+                            <div class="card-body mb-3">
+                                <div class="row">
+                                    <div class="col-12 text-center">
+                                        <h6>Informasi Barang</h6>
+                                    </div>
+                                    <div class="col-4">
+                                        <label for="image">Pilih Foto Awal:</label>
+                                        <input type="file" name="image" accept="image/*" class="form-control"
+                                            onchange="previewImage(event)">
+
+                                        <div id="preview" style="margin-top: 15px;">
+                                            <img id="previewImg" src="" alt="Preview"
+                                                style="display: none; max-width: 100%; height: auto;" />
+                                            <p id="fileName" style="margin-top: 5px;"></p>
+                                        </div>
+                                    </div>
+                                    <div class="col-8">
+                                        <div class="row">
+                                            <div class="col-12 col-md-6">
+                                                <label>Nomor RFID</label>
+                                                <input type="text"
+                                                    class="form-control @error('tag') is-invalid @enderror"
+                                                    name="tag" id="tag_edit" readonly placeholder=""
+                                                    aria-label="tag">
+                                                @error('tag')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-12 col-md-6">
+                                                <label>Kode Barang</label>
+                                                <input type="text"
+                                                    class="form-control @error('kode') is-invalid @enderror"
+                                                    name="kode" id="kode" required
+                                                    placeholder="Tulis kode barang" aria-label="kode">
+                                                @error('kode')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-12">
+                                                <label>Nama/Jenis Barang</label>
+                                                <input type="text"
+                                                    class="form-control @error('name') is-invalid @enderror"
+                                                    name="name" id="name" required
+                                                    placeholder="Tulis nama/jenis barang" aria-label="name">
+                                                @error('name')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-12 col-md-4">
+                                                <label>Nomor Register</label>
+                                                <input type="text"
+                                                    class="form-control @error('register') is-invalid @enderror"
+                                                    name="register" id="register" required
+                                                    placeholder="Tulis nomor register barang" aria-label="register">
+                                                @error('register')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-12 col-md-4">
+                                                <label>Merk/Type</label>
+                                                <input type="text"
+                                                    class="form-control @error('merk') is-invalid @enderror"
+                                                    name="merk" id="merk" required
+                                                    placeholder="Tulis merk/type barang" aria-label="merk">
+                                                @error('merk')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-12 col-md-4">
+                                                <label>Ukuran/cc <small class="text-danger">*optional</small></label>
+                                                <input type="text"
+                                                    class="form-control @error('ukuran') is-invalid @enderror"
+                                                    name="ukuran" id="ukuran" placeholder="Tulis ukuran/cc barang"
+                                                    aria-label="ukuran">
+                                                @error('ukuran')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-12 col-md-4">
+                                                <label>Bahan</label>
+                                                <input type="text"
+                                                    class="form-control @error('bahan') is-invalid @enderror"
+                                                    name="bahan" id="bahan" required
+                                                    placeholder="Tulis bahan barang" aria-label="bahan">
+                                                @error('bahan')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-6 col-md-4">
+                                                <label>Tahun Pembelian</label>
+                                                <input type="number"
+                                                    class="form-control @error('tahun_pembelian') is-invalid @enderror"
+                                                    name="tahun_pembelian" id="tahun_pembelian" required
+                                                    placeholder="Tulis tahun pembelian" aria-label="tahun_pembelian">
+                                                @error('tahun_pembelian')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+
+                                            <div class="col-12 col-md-4">
+                                                <label>Pabrik <small class="text-danger">*optional</small></label>
+                                                <input type="text"
+                                                    class="form-control @error('pabrik') is-invalid @enderror"
+                                                    name="pabrik" id="pabrik" placeholder="Tulis pabrik barang"
+                                                    aria-label="pabrik">
+                                                @error('pabrik')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <hr class="horizontal dark my-3">
+                                    <div class="col-12 text-center">
+                                        <h6>Nomor Barang</h6>
+                                    </div>
+
+                                    <div class="col-12 col-md-3">
+                                        <label>Rangka <small class="text-danger">*optional</small></label>
+                                        <input type="text" class="form-control @error('rangka') is-invalid @enderror"
+                                            name="rangka" id="rangka" placeholder="Tulis nomor rangka barang"
+                                            aria-label="rangka">
+                                        @error('rangka')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-3">
+                                        <label>Mesin <small class="text-danger">*optional</small></label>
+                                        <input type="text" class="form-control @error('mesin') is-invalid @enderror"
+                                            name="mesin" id="mesin" placeholder="Tulis nomor mesin barang"
+                                            aria-label="mesin">
+                                        @error('mesin')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-3">
+                                        <label>Polisi <small class="text-danger">*optional</small></label>
+                                        <input type="text" class="form-control @error('polisi') is-invalid @enderror"
+                                            name="polisi" id="polisi" placeholder="Tulis nomor polisi barang"
+                                            aria-label="polisi">
+                                        @error('polisi')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-3">
+                                        <label>BPKB <small class="text-danger">*optional</small></label>
+                                        <input type="text" class="form-control @error('bpkb') is-invalid @enderror"
+                                            name="bpkb" id="bpkb" placeholder="Tulis nomor BPKB barang"
+                                            aria-label="bpkb">
+                                        @error('bpkb')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+                                </div>
+
+                                <hr class="horizontal dark my-3">
+                                <div class="row">
+                                    <div class="col-12 text-center">
+                                        <h6>PIC</h6>
+                                    </div>
+
+                                    <div class="col-12 col-md-3">
+                                        <label>NIP</label>
+                                        <input type="text" class="form-control @error('nip_pic') is-invalid @enderror"
+                                            name="nip_pic" id="nip_pic" readonly placeholder="Tulis NIP PIC Barang"
+                                            aria-label="nip_pic">
+                                        @error('nip_pic')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-3">
+                                        <label>Nama</label>
+                                        <input type="text"
+                                            class="form-control @error('nama_pic') is-invalid @enderror" name="nama_pic"
+                                            id="nama_pic" readonly placeholder="Tulis Nama PIC Barang"
+                                            aria-label="nama_pic">
+                                        @error('nama_pic')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-3">
+                                        <label>Jabatan</label>
+                                        <input type="text"
+                                            class="form-control @error('jabatan_pic') is-invalid @enderror"
+                                            name="jabatan_pic" id="jabatan_pic" readonly
+                                            placeholder="Tulis Jabatan PIC Barang" aria-label="jabatan_pic">
+                                        @error('jabatan_pic')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-3">
+                                        <label>No. Telepon</label>
+                                        <input type="text"
+                                            class="form-control @error('telp_pic') is-invalid @enderror" name="telp_pic"
+                                            id="telp_pic" readonly placeholder="Tulis nomor telepon PIC Barang"
+                                            aria-label="nip_pic">
+                                        @error('telp_pic')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <hr class="horizontal dark my-3">
+                                    <div class="col-12 text-center">
+                                        <h6>Perawatan Barang</h6>
+                                    </div>
+
+                                    <div class="col-12 col-md-4">
+                                        <label>Asal-usul Perolehan</label>
+                                        <input type="text"
+                                            class="form-control @error('asal_perolehan') is-invalid @enderror"
+                                            name="asal_perolehan" id="asal_perolehan"
+                                            placeholder="Tulis asal-usul perolehan barang" aria-label="asal_perolehan"
+                                            required>
+                                        @error('asal_perolehan')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-4">
+                                        <label>Nilai Perolehan</label>
+                                        <input type="text" name="nilai_perolehan" id="nilai_perolehan"
+                                            class="form-control price @error('nilai_perolehan') is-invalid @enderror"
+                                            placeholder="Tulis nilai perolehan barang" aria-label="nilai_perolehan"
+                                            required>
+                                        @error('nilai_perolehan')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-4">
+                                        <label>Kondisi</label>
+                                        <select name="kondisi" id="kondisi"
+                                            class="form-select kondisi @error('kondisi') is-invalid @enderror" required>
+                                            <option></option>
+                                            <option value="Baik" {{ old('kondisi') == 'Baik' ? 'selected' : '' }}>
+                                                Baik
+                                            </option>
+                                            <option value="Perlu Perbaikan"
+                                                {{ old('kondisi') == 'Perlu Perbaikan' ? 'selected' : '' }}>
+                                                Perlu Perbaikan
+                                            </option>
+                                            <option value="Rusak Ringan"
+                                                {{ old('kondisi') == 'Rusak Ringan' ? 'selected' : '' }}>
+                                                Rusak Ringan
+                                            </option>
+                                            <option value="Rusak Sedang"
+                                                {{ old('kondisi') == 'Rusak Sedang' ? 'selected' : '' }}>
+                                                Rusak Sedang
+                                            </option>
+                                            <option value="Rusak Berat"
+                                                {{ old('kondisi') == 'Rusak Berat' ? 'selected' : '' }}>
+                                                Rusak Berat
+                                            </option>
+                                            <option value="Hilang" {{ old('kondisi') == 'Hilang' ? 'selected' : '' }}>
+                                                Hilang
+                                            </option>
+                                        </select>
+
+                                        @error('kondisi')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-4">
+                                        <label>Tanggal Perawatan</label>
+                                        <input type="date"
+                                            class="form-control @error('tanggal_perawatan') is-invalid @enderror"
+                                            name="tanggal_perawatan" id="tanggal_perawatan_edit"
+                                            aria-label="tanggal_perawatan" required>
+                                        @error('tanggal_perawatan')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-4">
+                                        <label>Harga Perawatan</label>
+                                        <input type="text" name="harga_perawatan" id="harga_perawatan"
+                                            class="form-control price @error('harga_perawatan') is-invalid @enderror"
+                                            placeholder="Tulis harga perawatan barang" aria-label="harga_perawatan"
+                                            required>
+                                        @error('harga_perawatan')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-4">
+                                        <label>Jangka Waktu Perawatan</label>
+                                        <select name="waktu_perawatan" id="waktu_perawatan_edit"
+                                            class="form-control waktu_perawatan @error('waktu_perawatan') is-invalid @enderror"
+                                            required>
+                                            <option value=""></option>
+                                            <option value="3">3 Bulan</option>
+                                            <option value="6">6 Bulan</option>
+                                            <option value="12">12 Bulan</option>
+                                        </select>
+                                        @error('waktu_perawatan')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <hr class="horizontal dark my-3">
+                                    <div class="col-12 text-center">
+                                        <h6>Lokasi</h6>
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label>Kecamatan</label>
+                                        <input type="text" class="form-control"
+                                            value="{{ Auth::user()->kecamatan->name }}" disabled>
+
+                                        @error('harga_perawatan')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-6">
+                                        <label>Tempat</label>
+                                        <select name="sekolah_id" id="sekolah_id"
+                                            class="form-control place @error('sekolah_id') is-invalid @enderror" readonly>
+                                            <option value=""></option>
+                                            @foreach ($places as $place)
+                                                <option value="{{ $place->id }}">{{ $place->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('sekolah_id')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-3">
+                                        <label>Gedung</label>
+                                        <input type="text" class="form-control @error('gedung') is-invalid @enderror"
+                                            name="gedung" id="gedung" placeholder="Tulis lokasi gedung"
+                                            aria-label="gedung" readonly>
+                                        @error('gedung')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-3">
+                                        <label>Lantai</label>
+                                        <input type="text" class="form-control @error('lantai') is-invalid @enderror"
+                                            name="lantai" id="lantai" placeholder="Tulis lokasi lantai"
+                                            aria-label="lantai" readonly>
+                                        @error('lantai')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-3">
+                                        <label>Ruangan</label>
+                                        <input type="text" class="form-control @error('ruangan') is-invalid @enderror"
+                                            name="ruangan" id="ruangan" placeholder="Tulis lokasi ruangan"
+                                            aria-label="ruangan" readonly>
+                                        @error('ruangan')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12 col-md-3">
+                                        <label>Detail</label>
+                                        <input type="text" class="form-control @error('detail') is-invalid @enderror"
+                                            name="detail" id="detail" placeholder="Tulis lokasi detail"
+                                            aria-label="detail" readonly>
+                                        @error('detail')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer text-center pt-0 px-lg-2 px-2">
+                                <button type="submit" class="btn btn-primary rounded-partner m-0">Ubah</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Show Aset -->
+    <div class="modal fade" id="showAset" aria-labelledby="showAsetLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="card card-plain">
                         <div class="card-header pb-0 text-left">
-                            <h4 class="text-primary text-gradient">Edit <strong>Aset</strong></h4>
+                            <h4 class="text-primary text-gradient">Show <strong>Aset</strong></h4>
                         </div>
                         <div class="card-body mb-3">
                             <div class="row">
                                 <div class="col-12 text-center">
                                     <h6>Informasi Barang</h6>
                                 </div>
-                                <div class="col-4">
-                                    <label for="image">Pilih Foto Awal:</label>
-                                    <input type="file" name="image" accept="image/*" class="form-control"
-                                        onchange="previewImage(event)">
 
+                                <!-- Gambar -->
+                                <div class="col-4">
+                                    <label>Foto Awal:</label>
                                     <div id="preview" style="margin-top: 15px;">
                                         <img id="previewImg" src="" alt="Preview"
                                             style="display: none; max-width: 100%; height: auto;" />
-                                        <p id="fileName" style="margin-top: 5px;"></p>
                                     </div>
                                 </div>
+
+                                <!-- Informasi -->
                                 <div class="col-8">
                                     <div class="row">
+
                                         <div class="col-12 col-md-6">
                                             <label>Nomor RFID</label>
-                                            <input type="text" class="form-control @error('tag') is-invalid @enderror" name="tag" id="tag_edit" readonly
-                                                placeholder="" aria-label="tag">
-                                            @error('tag')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                            @enderror
+                                            <input type="text" class="form-control" id="tag_show" readonly>
                                         </div>
-
                                         <div class="col-12 col-md-6">
                                             <label>Kode Barang</label>
-                                            <input type="text" class="form-control @error('kode') is-invalid @enderror"
-                                                name="kode" id="kode" required placeholder="Tulis kode barang"
-                                                aria-label="kode">
-                                            @error('kode')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                            @enderror
+                                            <input type="text" class="form-control" id="kode" readonly>
                                         </div>
-
                                         <div class="col-12">
                                             <label>Nama/Jenis Barang</label>
-                                            <input type="text" class="form-control @error('name') is-invalid @enderror"
-                                                name="name" id="name" required placeholder="Tulis nama/jenis barang"
-                                                aria-label="name">
-                                            @error('name')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                            @enderror
+                                            <input type="text" class="form-control" id="name" readonly>
                                         </div>
-
                                         <div class="col-12 col-md-4">
                                             <label>Nomor Register</label>
-                                            <input type="text"
-                                                class="form-control @error('register') is-invalid @enderror"
-                                                name="register" id="register" required
-                                                placeholder="Tulis nomor register barang" aria-label="register">
-                                            @error('register')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                            @enderror
+                                            <input type="text" class="form-control" id="register" readonly>
                                         </div>
-
                                         <div class="col-12 col-md-4">
-                                            <label>Merk/Type</label>
-                                            <input type="text" class="form-control @error('merk') is-invalid @enderror"
-                                                name="merk" id="merk" required placeholder="Tulis merk/type barang"
-                                                aria-label="merk">
-                                            @error('merk')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                            @enderror
+                                            <label>Merk</label>
+                                            <input type="text" class="form-control" id="merk" readonly>
                                         </div>
-
                                         <div class="col-12 col-md-4">
-                                            <label>Ukuran/cc <small class="text-danger">*optional</small></label>
-                                            <input type="text"
-                                                class="form-control @error('ukuran') is-invalid @enderror" name="ukuran"
-                                                id="ukuran" placeholder="Tulis ukuran/cc barang" aria-label="ukuran">
-                                            @error('ukuran')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                            @enderror
+                                            <label>Ukuran</label>
+                                            <input type="text" class="form-control" id="ukuran" readonly>
                                         </div>
-
                                         <div class="col-12 col-md-4">
                                             <label>Bahan</label>
-                                            <input type="text" class="form-control @error('bahan') is-invalid @enderror"
-                                                name="bahan" id="bahan" required placeholder="Tulis bahan barang"
-                                                aria-label="bahan">
-                                            @error('bahan')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                            @enderror
+                                            <input type="text" class="form-control" id="bahan" readonly>
                                         </div>
-
-                                        <div class="col-6 col-md-4">
-                                            <label>Tahun Pembelian</label>
-                                            <input type="number"
-                                                class="form-control @error('tahun_pembelian') is-invalid @enderror"
-                                                name="tahun_pembelian" id="tahun_pembelian" required
-                                                placeholder="Tulis tahun pembelian" aria-label="tahun_pembelian">
-                                            @error('tahun_pembelian')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                            @enderror
-                                        </div>
-
                                         <div class="col-12 col-md-4">
-                                            <label>Pabrik <small class="text-danger">*optional</small></label>
-                                            <input type="text"
-                                                class="form-control @error('pabrik') is-invalid @enderror" name="pabrik"
-                                                id="pabrik" placeholder="Tulis pabrik barang" aria-label="pabrik">
-                                            @error('pabrik')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                            @enderror
+                                            <label>Tahun Pembelian</label>
+                                            <input type="text" class="form-control" id="tahun_pembelian" readonly>
+                                        </div>
+                                        <div class="col-12 col-md-4">
+                                            <label>Pabrik</label>
+                                            <input type="text" class="form-control" id="pabrik" readonly>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
+                            <hr class="horizontal dark my-3">
                             <div class="row">
-                                <hr class="horizontal dark my-3">
                                 <div class="col-12 text-center">
                                     <h6>Nomor Barang</h6>
                                 </div>
-
                                 <div class="col-12 col-md-3">
-                                    <label>Rangka <small class="text-danger">*optional</small></label>
-                                    <input type="text" class="form-control @error('rangka') is-invalid @enderror"
-                                        name="rangka" id="rangka" placeholder="Tulis nomor rangka barang"
-                                        aria-label="rangka">
-                                    @error('rangka')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <label>Rangka</label>
+                                    <input type="text" class="form-control" id="rangka" readonly>
                                 </div>
 
                                 <div class="col-12 col-md-3">
-                                    <label>Mesin <small class="text-danger">*optional</small></label>
-                                    <input type="text" class="form-control @error('mesin') is-invalid @enderror"
-                                        name="mesin" id="mesin" placeholder="Tulis nomor mesin barang"
-                                        aria-label="mesin">
-                                    @error('mesin')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <label>Mesin</label>
+                                    <input type="text" class="form-control" id="mesin" readonly>
                                 </div>
-
                                 <div class="col-12 col-md-3">
-                                    <label>Polisi <small class="text-danger">*optional</small></label>
-                                    <input type="text" class="form-control @error('polisi') is-invalid @enderror"
-                                        name="polisi" id="polisi" placeholder="Tulis nomor polisi barang"
-                                        aria-label="polisi">
-                                    @error('polisi')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <label>Polisi</label>
+                                    <input type="text" class="form-control" id="polisi" readonly>
                                 </div>
-
                                 <div class="col-12 col-md-3">
-                                    <label>BPKB <small class="text-danger">*optional</small></label>
-                                    <input type="text" class="form-control @error('bpkb') is-invalid @enderror"
-                                        name="bpkb" id="bpkb" placeholder="Tulis nomor BPKB barang" aria-label="bpkb">
-                                    @error('bpkb')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <label>BPKB</label>
+                                    <input type="text" class="form-control" id="bpkb" readonly>
                                 </div>
                             </div>
 
@@ -749,633 +1113,380 @@
                                 <div class="col-12 text-center">
                                     <h6>PIC</h6>
                                 </div>
-
                                 <div class="col-12 col-md-3">
                                     <label>NIP</label>
-                                    <input type="text" class="form-control @error('nip_pic') is-invalid @enderror"
-                                        name="nip_pic" id="nip_pic" readonly placeholder="Tulis NIP PIC Barang"
-                                        aria-label="nip_pic">
-                                    @error('nip_pic')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <input type="text" class="form-control" id="nip_pic" readonly>
                                 </div>
-
                                 <div class="col-12 col-md-3">
                                     <label>Nama</label>
-                                    <input type="text" class="form-control @error('nama_pic') is-invalid @enderror" name="nama_pic" id="nama_pic" readonly
-                                        placeholder="Tulis Nama PIC Barang" aria-label="nama_pic">
-                                    @error('nama_pic')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <input type="text" class="form-control" id="nama_pic" readonly>
                                 </div>
-
                                 <div class="col-12 col-md-3">
                                     <label>Jabatan</label>
-                                    <input type="text" class="form-control @error('jabatan_pic') is-invalid @enderror" name="jabatan_pic" id="jabatan_pic" readonly
-                                        placeholder="Tulis Jabatan PIC Barang" aria-label="jabatan_pic">
-                                    @error('jabatan_pic')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <input type="text" class="form-control" id="jabatan_pic" readonly>
                                 </div>
-
                                 <div class="col-12 col-md-3">
                                     <label>No. Telepon</label>
-                                    <input type="text" class="form-control @error('telp_pic') is-invalid @enderror" name="telp_pic"
-                                        id="telp_pic" readonly placeholder="Tulis nomor telepon PIC Barang" aria-label="nip_pic">
-                                    @error('telp_pic')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <input type="text" class="form-control" id="telp_pic" readonly>
                                 </div>
+                            </div>
 
-                                <hr class="horizontal dark my-3">
+                            <hr class="horizontal dark my-3">
+                            <div class="row">
                                 <div class="col-12 text-center">
                                     <h6>Perawatan Barang</h6>
                                 </div>
-
                                 <div class="col-12 col-md-4">
                                     <label>Asal-usul Perolehan</label>
-                                    <input type="text" class="form-control @error('asal_perolehan') is-invalid @enderror" name="asal_perolehan"
-                                        id="asal_perolehan" placeholder="Tulis asal-usul perolehan barang" aria-label="asal_perolehan" required>
-                                    @error('asal_perolehan')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <input type="text" class="form-control" id="asal_perolehan" readonly>
                                 </div>
-
                                 <div class="col-12 col-md-4">
                                     <label>Nilai Perolehan</label>
-                                    <input type="text" name="nilai_perolehan" id="nilai_perolehan"
-                                        class="form-control price @error('nilai_perolehan') is-invalid @enderror"
-                                        placeholder="Tulis nilai perolehan barang" aria-label="nilai_perolehan" required>
-                                    @error('nilai_perolehan')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <input type="text" class="form-control price" id="nilai_perolehan" readonly>
                                 </div>
-
                                 <div class="col-12 col-md-4">
                                     <label>Kondisi</label>
-                                    <select name="kondisi" id="kondisi" class="form-select kondisi @error('kondisi') is-invalid @enderror" required>
-                                        <option></option>
-                                        <option value="Baik" {{ old('kondisi')=='Baik' ? 'selected' : '' }}>
-                                            Baik
-                                        </option>
-                                        <option value="Perlu Perbaikan" {{ old('kondisi')=='Perlu Perbaikan' ? 'selected' : '' }}>
-                                            Perlu Perbaikan
-                                        </option>
-                                        <option value="Rusak Ringan" {{ old('kondisi')=='Rusak Ringan' ? 'selected' : '' }}>
-                                            Rusak Ringan
-                                        </option>
-                                        <option value="Rusak Sedang" {{ old('kondisi')=='Rusak Sedang' ? 'selected' : '' }}>
-                                            Rusak Sedang
-                                        </option>
-                                        <option value="Rusak Berat" {{ old('kondisi')=='Rusak Berat' ? 'selected' : '' }}>
-                                            Rusak Berat
-                                        </option>
-                                        <option value="Hilang" {{ old('kondisi')=='Hilang' ? 'selected' : '' }}>
-                                            Hilang
-                                        </option>
+                                    <select id="kondisi" class="form-select kondisi" readonly>
+                                        <option value="">Pilih Kondisi</option>
+                                        <option value="Baik">Baik</option>
+                                        <option value="Perlu Perbaikan">Perlu Perbaikan</option>
+                                        <option value="Rusak Ringan">Rusak Ringan</option>
+                                        <option value="Rusak Sedang">Rusak Sedang</option>
+                                        <option value="Rusak Berat">Rusak Berat</option>
+                                        <option value="Hilang">Hilang</option>
                                     </select>
-
-                                    @error('kondisi')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
                                 </div>
-
-                               <div class="col-12 col-md-4">
+                                <div class="col-12 col-md-4">
                                     <label>Tanggal Perawatan</label>
-                                    <input type="date" class="form-control @error('tanggal_perawatan') is-invalid @enderror" name="tanggal_perawatan"
-                                        id="tanggal_perawatan_edit" aria-label="tanggal_perawatan" required>
-                                    @error('tanggal_perawatan')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <input type="date" class="form-control" id="tanggal_perawatan_show" readonly>
                                 </div>
-
                                 <div class="col-12 col-md-4">
                                     <label>Harga Perawatan</label>
-                                    <input type="text" name="harga_perawatan" id="harga_perawatan"
-                                        class="form-control price @error('harga_perawatan') is-invalid @enderror"
-                                        placeholder="Tulis harga perawatan barang" aria-label="harga_perawatan" required>
-                                    @error('harga_perawatan')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <input type="text" class="form-control price" id="harga_perawatan" readonly>
                                 </div>
-
                                 <div class="col-12 col-md-4">
                                     <label>Jangka Waktu Perawatan</label>
-                                    <select name="waktu_perawatan" id="waktu_perawatan_edit"
-                                        class="form-control waktu_perawatan @error('waktu_perawatan') is-invalid @enderror" required>
-                                        <option value=""></option>
+                                    <select id="waktu_perawatan_show" class="form-control waktu_perawatan" readonly>
+                                        <option value="">Pilih Jangka Waktu</option>
                                         <option value="3">3 Bulan</option>
                                         <option value="6">6 Bulan</option>
                                         <option value="12">12 Bulan</option>
                                     </select>
-                                    @error('waktu_perawatan')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
                                 </div>
+                            </div>
 
-                                <hr class="horizontal dark my-3">
+                            <hr class="horizontal dark my-3">
+                            <div class="row">
                                 <div class="col-12 text-center">
                                     <h6>Lokasi</h6>
                                 </div>
-
                                 <div class="col-12 col-md-6">
                                     <label>Kecamatan</label>
-                                    <input type="text" class="form-control" value="{{ Auth::user()->kecamatan->name }}" disabled>
+                                    <input type="text" class="form-control"
+                                        value="{{ Auth::user()->kecamatan->name }}" disabled>
 
                                     @error('harga_perawatan')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
                                     @enderror
                                 </div>
-
                                 <div class="col-12 col-md-6">
                                     <label>Tempat</label>
-                                    <select name="sekolah_id" id="sekolah_id" class="form-control place @error('sekolah_id') is-invalid @enderror"
-                                        readonly>
+                                    <select id="sekolah_id" class="form-control place" readonly>
                                         <option value=""></option>
                                         @foreach ($places as $place)
-                                        <option value="{{ $place->id }}">{{ $place->name }}</option>
+                                            <option value="{{ $place->id }}">{{ $place->name }}</option>
                                         @endforeach
                                     </select>
-                                    @error('sekolah_id')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
                                 </div>
-
                                 <div class="col-12 col-md-3">
                                     <label>Gedung</label>
-                                    <input type="text" class="form-control @error('gedung') is-invalid @enderror" name="gedung" id="gedung"
-                                        placeholder="Tulis lokasi gedung" aria-label="gedung" readonly>
-                                    @error('gedung')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <input type="text" class="form-control" id="gedung" readonly>
                                 </div>
-
                                 <div class="col-12 col-md-3">
                                     <label>Lantai</label>
-                                    <input type="text" class="form-control @error('lantai') is-invalid @enderror" name="lantai" id="lantai"
-                                        placeholder="Tulis lokasi lantai" aria-label="lantai" readonly>
-                                    @error('lantai')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <input type="text" class="form-control" id="lantai" readonly>
                                 </div>
-
                                 <div class="col-12 col-md-3">
                                     <label>Ruangan</label>
-                                    <input type="text" class="form-control @error('ruangan') is-invalid @enderror" name="ruangan" id="ruangan"
-                                        placeholder="Tulis lokasi ruangan" aria-label="ruangan" readonly>
-                                    @error('ruangan')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
+                                    <input type="text" class="form-control" id="ruangan" readonly>
                                 </div>
-
                                 <div class="col-12 col-md-3">
                                     <label>Detail</label>
-                                    <input type="text" class="form-control @error('detail') is-invalid @enderror" name="detail" id="detail"
-                                        placeholder="Tulis lokasi detail" aria-label="detail" readonly>
-                                    @error('detail')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-footer text-center pt-0 px-lg-2 px-2">
-                            <button type="submit" class="btn btn-primary rounded-partner m-0">Ubah</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Show Aset -->
-<div class="modal fade" id="showAset" aria-labelledby="showAsetLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-body p-0">
-                <div class="card card-plain">
-                    <div class="card-header pb-0 text-left">
-                        <h4 class="text-primary text-gradient">Show <strong>Aset</strong></h4>
-                    </div>
-                    <div class="card-body mb-3">
-                        <div class="row">
-                            <div class="col-12 text-center">
-                                <h6>Informasi Barang</h6>
-                            </div>
-
-                            <!-- Gambar -->
-                            <div class="col-4">
-                                <label>Foto Awal:</label>
-                                <div id="preview" style="margin-top: 15px;">
-                                    <img id="previewImg" src="" alt="Preview"
-                                        style="display: none; max-width: 100%; height: auto;" />
-                                </div>
-                            </div>
-
-                            <!-- Informasi -->
-                            <div class="col-8">
-                                <div class="row">
-
-                                    <div class="col-12 col-md-6">
-                                        <label>Nomor RFID</label>
-                                        <input type="text" class="form-control" id="tag_show" readonly>
-                                    </div>
-                                    <div class="col-12 col-md-6">
-                                        <label>Kode Barang</label>
-                                        <input type="text" class="form-control" id="kode" readonly>
-                                    </div>
-                                    <div class="col-12">
-                                        <label>Nama/Jenis Barang</label>
-                                        <input type="text" class="form-control" id="name" readonly>
-                                    </div>
-                                    <div class="col-12 col-md-4">
-                                        <label>Nomor Register</label>
-                                        <input type="text" class="form-control" id="register" readonly>
-                                    </div>
-                                    <div class="col-12 col-md-4">
-                                        <label>Merk</label>
-                                        <input type="text" class="form-control" id="merk" readonly>
-                                    </div>
-                                    <div class="col-12 col-md-4">
-                                        <label>Ukuran</label>
-                                        <input type="text" class="form-control" id="ukuran" readonly>
-                                    </div>
-                                    <div class="col-12 col-md-4">
-                                        <label>Bahan</label>
-                                        <input type="text" class="form-control" id="bahan" readonly>
-                                    </div>
-                                    <div class="col-12 col-md-4">
-                                        <label>Tahun Pembelian</label>
-                                        <input type="text" class="form-control" id="tahun_pembelian" readonly>
-                                    </div>
-                                    <div class="col-12 col-md-4">
-                                        <label>Pabrik</label>
-                                        <input type="text" class="form-control" id="pabrik" readonly>
-                                    </div>
+                                    <input type="text" class="form-control" id="detail" readonly>
                                 </div>
                             </div>
                         </div>
 
-                        <hr class="horizontal dark my-3">
-                        <div class="row">
-                            <div class="col-12 text-center">
-                                <h6>Nomor Barang</h6>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <label>Rangka</label>
-                                <input type="text" class="form-control" id="rangka" readonly>
-                            </div>
-
-                            <div class="col-12 col-md-3">
-                                <label>Mesin</label>
-                                <input type="text" class="form-control" id="mesin" readonly>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <label>Polisi</label>
-                                <input type="text" class="form-control" id="polisi" readonly>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <label>BPKB</label>
-                                <input type="text" class="form-control" id="bpkb" readonly>
-                            </div>
+                        <div class="card-footer text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                         </div>
-
-                        <hr class="horizontal dark my-3">
-                        <div class="row">
-                            <div class="col-12 text-center">
-                                <h6>PIC</h6>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <label>NIP</label>
-                                <input type="text" class="form-control" id="nip_pic" readonly>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <label>Nama</label>
-                                <input type="text" class="form-control" id="nama_pic" readonly>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <label>Jabatan</label>
-                                <input type="text" class="form-control" id="jabatan_pic" readonly>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <label>No. Telepon</label>
-                                <input type="text" class="form-control" id="telp_pic" readonly>
-                            </div>
-                        </div>
-
-                        <hr class="horizontal dark my-3">
-                        <div class="row">
-                            <div class="col-12 text-center">
-                                <h6>Perawatan Barang</h6>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <label>Asal-usul Perolehan</label>
-                                <input type="text" class="form-control" id="asal_perolehan" readonly>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <label>Nilai Perolehan</label>
-                                <input type="text" class="form-control price" id="nilai_perolehan" readonly>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <label>Kondisi</label>
-                                <select id="kondisi" class="form-select kondisi" readonly>
-                                    <option value="">Pilih Kondisi</option>
-                                    <option value="Baik">Baik</option>
-                                    <option value="Perlu Perbaikan">Perlu Perbaikan</option>
-                                    <option value="Rusak Ringan">Rusak Ringan</option>
-                                    <option value="Rusak Sedang">Rusak Sedang</option>
-                                    <option value="Rusak Berat">Rusak Berat</option>
-                                    <option value="Hilang">Hilang</option>
-                                </select>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <label>Tanggal Perawatan</label>
-                                <input type="date" class="form-control" id="tanggal_perawatan_show" readonly>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <label>Harga Perawatan</label>
-                                <input type="text" class="form-control price" id="harga_perawatan" readonly>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <label>Jangka Waktu Perawatan</label>
-                                <select id="waktu_perawatan_show" class="form-control waktu_perawatan" readonly>
-                                    <option value="">Pilih Jangka Waktu</option>
-                                    <option value="3">3 Bulan</option>
-                                    <option value="6">6 Bulan</option>
-                                    <option value="12">12 Bulan</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <hr class="horizontal dark my-3">
-                        <div class="row">
-                            <div class="col-12 text-center">
-                                <h6>Lokasi</h6>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label>Kecamatan</label>
-                                <input type="text" class="form-control" value="{{ Auth::user()->kecamatan->name }}" disabled>
-
-                                @error('harga_perawatan')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                                @enderror
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label>Tempat</label>
-                                <select id="sekolah_id" class="form-control place" readonly>
-                                    <option value=""></option>
-                                    @foreach ($places as $place)
-                                    <option value="{{ $place->id }}">{{ $place->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <label>Gedung</label>
-                                <input type="text" class="form-control" id="gedung" readonly>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <label>Lantai</label>
-                                <input type="text" class="form-control" id="lantai" readonly>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <label>Ruangan</label>
-                                <input type="text" class="form-control" id="ruangan" readonly>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <label>Detail</label>
-                                <input type="text" class="form-control" id="detail" readonly>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card-footer text-end">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+
+    {{-- Modal Import From Excel --}}
+    <div class="modal fade" id="showImportModal" aria-labelledby="showImportModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="card card-plain">
+                        <div class="card-header pb-0 text-left">
+                            <h4 class="text-primary text-gradient">Import <strong>Data Aset</strong></h4>
+                        </div>
+                        <div class="card-body mb-3">
+                            <form action="{{ route('asset.import') }}" method="POST">
+                                <div class="mb-3">
+                                    <label for="formImportExcel" class="form-label">
+                                        Import data aset dari file excel (Belum Selesai)
+                                    </label>
+                                    <input class="form-control" type="file" accept="xlsx" id="formImportExcel" required>
+                                </div>
+                                <div class="d-flex">
+                                    <button class="btn btn-sm bg-gradient-warning ms-auto">
+                                        <i class="fa-solid fa-upload"></i> Import
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
-<script>
-    $(function () {
-        const modalAdd = $("#addAset .modal-content");
-        const modalEdit = $("#editAset .modal-content");
-        const modalShow = $("#showAset .modal-content");
+    <script>
+        $(function() {
+            const modalAdd = $("#addAset .modal-content");
+            const modalEdit = $("#editAset .modal-content");
+            const modalShow = $("#showAset .modal-content");
 
-        // Inisialisasi Select2 untuk modal yang menggunakan select2 (kondisi, waktu_perawatan, place)
-        function initSelect2(parent) {
-            $('.kondisi, .waktu_perawatan, .place', parent).select2({
-                placeholder: "Pilih opsi",
-                dropdownParent: parent,
-                width: "100%"
-            });
-        }
-
-        initSelect2(modalAdd);
-        initSelect2(modalEdit);
-        initSelect2(modalShow);
-
-        // Format harga dengan input mask
-        $('.price').inputmask({
-            alias: 'numeric',
-            prefix: 'Rp',
-            digits: 0,
-            groupSeparator: '.',
-            autoGroup: true,
-            removeMaskOnSubmit: true,
-            rightAlign: false
-        });
-
-        // Preview gambar sebelum upload
-        window.previewImage = function (event) {
-            const input = event.target;
-            const preview = document.getElementById('previewImg');
-            const fileName = document.getElementById('fileName');
-
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                    fileName.innerText = input.files[0].name;
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        };
-
-        // DataTables
-        const table = $('#asetTable').DataTable({
-            processing: true,
-            serverSide: true,
-            ajax: '{{ route('asset.index') }}',
-            columns: [
-                { data: 'rfid_number', name: 'rfid_number', className: "text-start" },
-                { data: 'kode', name: 'kode', className: "text-start" },
-                { data: 'name', name: 'name', className: "text-start" },
-                { data: 'merk', name: 'merk', className: "text-start" },
-                { data: 'tahun_pembelian', name: 'tahun_pembelian', className: "text-start" },
-                { data: 'kondisi_badge', name: 'kondisi', className: "text-start" },
-                { data: 'sekolah.name', name: 'sekolah.name' },
-                { data: 'action', name: 'action', orderable: false, searchable: false }
-            ],
-            drawCallback: function () {
-                $('[data-bs-toggle="tooltip"]').each(function () {
-                    new bootstrap.Tooltip(this);
+            // Inisialisasi Select2 untuk modal yang menggunakan select2 (kondisi, waktu_perawatan, place)
+            function initSelect2(parent) {
+                $('.kondisi, .waktu_perawatan, .place', parent).select2({
+                    placeholder: "Pilih opsi",
+                    dropdownParent: parent,
+                    width: "100%"
                 });
             }
-        });
 
-        // Fungsi untuk mengisi form modal (add, edit, show)
-        function fillAssetForm(prefix, asset) {
-            const selector = `#${prefix}`;
-            const fields = [
-                'kode', 'name', 'register', 'merk', 'ukuran', 'bahan', 'tahun_pembelian',
-                'pabrik', 'rangka', 'mesin', 'polisi', 'bpkb', 'nip_pic', 'nama_pic', 'jabatan_pic',
-                'telp_pic', 'asal_perolehan', 'nilai_perolehan', 'harga_perawatan', 'gedung', 'lantai', 'ruangan', 'detail'
-            ];
+            initSelect2(modalAdd);
+            initSelect2(modalEdit);
+            initSelect2(modalShow);
 
-            // Isi field biasa
-            fields.forEach(field => {
-                $(`${selector} #${field}`).val(asset[field] ?? '');
+            // Format harga dengan input mask
+            $('.price').inputmask({
+                alias: 'numeric',
+                prefix: 'Rp',
+                digits: 0,
+                groupSeparator: '.',
+                autoGroup: true,
+                removeMaskOnSubmit: true,
+                rightAlign: false
             });
 
-            // Isi RFID
-            if (prefix === 'editAset') {
-                $(`${selector} #tag_edit`).val(asset.rfid_number ?? '');
-            }
-            if (prefix === 'showAset') {
-                $(`${selector} #tag_show`).val(asset.rfid_number ?? '');
-            }
+            // Preview gambar sebelum upload
+            window.previewImage = function(event) {
+                const input = event.target;
+                const preview = document.getElementById('previewImg');
+                const fileName = document.getElementById('fileName');
 
-            // Isi Tanggal Perawatan
-            if (prefix === 'editAset') {
-                let tanggal = asset.tanggal_perawatan ?? '';
-                if (tanggal) {
-                    const dateObj = new Date(tanggal);
-                    if (!isNaN(dateObj)) {
-                        const yyyy = dateObj.getFullYear();
-                        const mm = ('0' + (dateObj.getMonth() + 1)).slice(-2);
-                        const dd = ('0' + dateObj.getDate()).slice(-2);
-                        tanggal = `${yyyy}-${mm}-${dd}`;
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                        fileName.innerText = input.files[0].name;
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            };
+
+            // DataTables
+            const table = $('#asetTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: '{{ route('asset.index') }}',
+                columns: [{
+                        data: 'rfid_number',
+                        name: 'rfid_number',
+                        className: "text-start"
+                    },
+                    {
+                        data: 'kode',
+                        name: 'kode',
+                        className: "text-start"
+                    },
+                    {
+                        data: 'name',
+                        name: 'name',
+                        className: "text-start"
+                    },
+                    {
+                        data: 'merk',
+                        name: 'merk',
+                        className: "text-start"
+                    },
+                    {
+                        data: 'tahun_pembelian',
+                        name: 'tahun_pembelian',
+                        className: "text-start"
+                    },
+                    {
+                        data: 'kondisi_badge',
+                        name: 'kondisi',
+                        className: "text-start"
+                    },
+                    {
+                        data: 'sekolah.name',
+                        name: 'sekolah.name'
+                    },
+                    {
+                        data: 'action',
+                        name: 'action',
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
+                drawCallback: function() {
+                    $('[data-bs-toggle="tooltip"]').each(function() {
+                        new bootstrap.Tooltip(this);
+                    });
+                }
+            });
+
+            // Fungsi untuk mengisi form modal (add, edit, show)
+            function fillAssetForm(prefix, asset) {
+                const selector = `#${prefix}`;
+                const fields = [
+                    'kode', 'name', 'register', 'merk', 'ukuran', 'bahan', 'tahun_pembelian',
+                    'pabrik', 'rangka', 'mesin', 'polisi', 'bpkb', 'nip_pic', 'nama_pic', 'jabatan_pic',
+                    'telp_pic', 'asal_perolehan', 'nilai_perolehan', 'harga_perawatan', 'gedung', 'lantai',
+                    'ruangan', 'detail'
+                ];
+
+                // Isi field biasa
+                fields.forEach(field => {
+                    $(`${selector} #${field}`).val(asset[field] ?? '');
+                });
+
+                // Isi RFID
+                if (prefix === 'editAset') {
+                    $(`${selector} #tag_edit`).val(asset.rfid_number ?? '');
+                }
+                if (prefix === 'showAset') {
+                    $(`${selector} #tag_show`).val(asset.rfid_number ?? '');
+                }
+
+                // Isi Tanggal Perawatan
+                if (prefix === 'editAset') {
+                    let tanggal = asset.tanggal_perawatan ?? '';
+                    if (tanggal) {
+                        const dateObj = new Date(tanggal);
+                        if (!isNaN(dateObj)) {
+                            const yyyy = dateObj.getFullYear();
+                            const mm = ('0' + (dateObj.getMonth() + 1)).slice(-2);
+                            const dd = ('0' + dateObj.getDate()).slice(-2);
+                            tanggal = `${yyyy}-${mm}-${dd}`;
+                        }
+                    }
+                    $(`${selector} #tanggal_perawatan_edit`).val(tanggal);
+                }
+                if (prefix === 'showAset') {
+                    let tanggal = asset.tanggal_perawatan ?? '';
+                    if (tanggal) {
+                        const dateObj = new Date(tanggal);
+                        if (!isNaN(dateObj)) {
+                            const yyyy = dateObj.getFullYear();
+                            const mm = ('0' + (dateObj.getMonth() + 1)).slice(-2);
+                            const dd = ('0' + dateObj.getDate()).slice(-2);
+                            tanggal = `${yyyy}-${mm}-${dd}`;
+                        }
+                    }
+                    $(`${selector} #tanggal_perawatan_show`).val(tanggal);
+                }
+
+                // Isi Jangka Waktu Perawatan (select)
+                if (prefix === 'editAset') {
+                    $(`${selector} #waktu_perawatan_edit`).val(asset.waktu_perawatan ?? '').trigger('change');
+                }
+                if (prefix === 'showAset') {
+                    $(`${selector} #waktu_perawatan_show`).val(asset.waktu_perawatan ?? '').trigger('change');
+                }
+
+                // Isi kondisi select2
+                const $kondisi = $(`${selector} #kondisi`);
+                if ($kondisi.length) {
+                    $kondisi.val(asset.kondisi ?? '').trigger('change');
+                }
+
+                // Isi sekolah select2 jika ada
+                const $sekolah = $(`${selector} #sekolah_id`);
+                if ($sekolah.length) {
+                    $sekolah.val(asset.sekolah_id ?? '').trigger('change');
+                }
+
+                // Isi kecamatan jika ada
+                if (asset.sekolah && asset.sekolah.kecamatan) {
+                    const $kecamatan = $(`${selector} #kecamatan`);
+                    if ($kecamatan.length) {
+                        $kecamatan.val(asset.sekolah.kecamatan.nama_kecamatan).trigger('change');
                     }
                 }
-                $(`${selector} #tanggal_perawatan_edit`).val(tanggal);
-            }
-            if (prefix === 'showAset') {
-                let tanggal = asset.tanggal_perawatan ?? '';
-                if (tanggal) {
-                    const dateObj = new Date(tanggal);
-                    if (!isNaN(dateObj)) {
-                        const yyyy = dateObj.getFullYear();
-                        const mm = ('0' + (dateObj.getMonth() + 1)).slice(-2);
-                        const dd = ('0' + dateObj.getDate()).slice(-2);
-                        tanggal = `${yyyy}-${mm}-${dd}`;
-                    }
-                }
-                $(`${selector} #tanggal_perawatan_show`).val(tanggal);
-            }
 
-            // Isi Jangka Waktu Perawatan (select)
-            if (prefix === 'editAset') {
-                $(`${selector} #waktu_perawatan_edit`).val(asset.waktu_perawatan ?? '').trigger('change');
-            }
-            if (prefix === 'showAset') {
-                $(`${selector} #waktu_perawatan_show`).val(asset.waktu_perawatan ?? '').trigger('change');
-            }
-
-            // Isi kondisi select2
-            const $kondisi = $(`${selector} #kondisi`);
-            if ($kondisi.length) {
-                $kondisi.val(asset.kondisi ?? '').trigger('change');
-            }
-
-            // Isi sekolah select2 jika ada
-            const $sekolah = $(`${selector} #sekolah_id`);
-            if ($sekolah.length) {
-                $sekolah.val(asset.sekolah_id ?? '').trigger('change');
-            }
-
-            // Isi kecamatan jika ada
-            if (asset.sekolah && asset.sekolah.kecamatan) {
-                const $kecamatan = $(`${selector} #kecamatan`);
-                if ($kecamatan.length) {
-                    $kecamatan.val(asset.sekolah.kecamatan.nama_kecamatan).trigger('change');
+                // Preview gambar
+                const $previewImg = $(`${selector} #previewImg`);
+                if (asset.foto_awal) {
+                    $previewImg.attr('src', `/storage/assets/${asset.foto_awal}`).show();
+                } else {
+                    $previewImg.hide();
                 }
             }
 
-            // Preview gambar
-            const $previewImg = $(`${selector} #previewImg`);
-            if (asset.foto_awal) {
-                $previewImg.attr('src', `/storage/assets/${asset.foto_awal}`).show();
-            } else {
-                $previewImg.hide();
-            }
-        }
-
-        // Event klik tombol edit
-        $('#asetTable').on('click', '.edit-asset', function () {
-            const assetId = $(this).data('asset-id');
-            $.get(`/asset/${assetId}/edit`, function (response) {
-                fillAssetForm('editAset', response.asset);
-                $('#form-edit-asset').attr('action', `/asset/${assetId}`);
-                $('#editAset').modal('show');
-            }).fail(function () {
-                console.error("Gagal mengambil data untuk edit.");
+            // Event klik tombol edit
+            $('#asetTable').on('click', '.edit-asset', function() {
+                const assetId = $(this).data('asset-id');
+                $.get(`/asset/${assetId}/edit`, function(response) {
+                    fillAssetForm('editAset', response.asset);
+                    $('#form-edit-asset').attr('action', `/asset/${assetId}`);
+                    $('#editAset').modal('show');
+                }).fail(function() {
+                    console.error("Gagal mengambil data untuk edit.");
+                });
             });
-        });
 
-        // Event klik tombol show
-        $('#asetTable').on('click', '.show-asset', function () {
-            const assetId = $(this).data('asset-id');
-            $.get(`/asset/${assetId}/edit`, function (response) {
-                fillAssetForm('showAset', response.asset);
-                $('#showAset').modal('show');
-            }).fail(function () {
-                console.error("Gagal mengambil data untuk lihat.");
+            // Event klik tombol show
+            $('#asetTable').on('click', '.show-asset', function() {
+                const assetId = $(this).data('asset-id');
+                $.get(`/asset/${assetId}/edit`, function(response) {
+                    fillAssetForm('showAset', response.asset);
+                    $('#showAset').modal('show');
+                }).fail(function() {
+                    console.error("Gagal mengambil data untuk lihat.");
+                });
             });
-        });
 
-        // Event klik tombol export
-        $('#buttonExport').on('click', function () {
-            window.location.href = '/export/asset';
+            /**
+             * Date: 28-04-2025
+             */
+            // Event klik tombol export
+            $('#buttonExport').on('click', function() {
+                window.location.href = '/export/asset';
+            });
+
+            // Event untuk buka modal
+            $('#buttonShowImportModal').on('click', function () {
+                $('#showImportModal').modal('show');
+            })
         });
-    });
-</script>
+    </script>
 @endpush

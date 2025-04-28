@@ -210,7 +210,8 @@ class ApiController extends Controller
         $query = $this->filterAssetByRole($query);
 
         if ($request->filled('school')) {
-            $query->where('sekolah_id', $request->school);
+            $sekolah = Sekolah::where('name', $request->school)->first();
+            $query->where('sekolah_id', $sekolah->id);
         }
 
         if ($request->filled('isThere')) {
