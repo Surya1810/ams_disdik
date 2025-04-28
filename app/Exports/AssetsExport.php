@@ -2,18 +2,18 @@
 
 namespace App\Exports;
 
-use App\Models\Asset;
-
 use Illuminate\Support\Facades\Auth;
 
+// Models
+use App\Models\Asset;
+
+// Excel
 use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
-class AssetsExport implements FromCollection, WithHeadings, WithStyles, WithEvents
+class AssetsExport implements FromCollection, WithEvents, WithTitle
 {
     public function collection()
     {
@@ -21,72 +21,118 @@ class AssetsExport implements FromCollection, WithHeadings, WithStyles, WithEven
         $roleId = Auth::user()->role_id;
 
         if ($roleId == 1) {
-            $asset = Asset::with('sekolah')->get();
+            $asset = Asset::with('sekolah.kecamatan')->get();
         } else {
             $asset = Asset::whereHas('sekolah', function ($query) use ($kecamatanId) {
                 $query->where('kecamatan_id', $kecamatanId);
-            })->with('sekolah')->get();
+            })->with('sekolah.kecamatan')->get();
         }
 
         $asset = $asset->map(function ($row) {
             return [
-                'rfid_number' => $row->rfid_number,
-                'kode' => $row->kode,
-                'name' => $row->name,
-                'merk' => $row->merk,
-                'tahun_pembelian' => $row->tahun_pembelian,
-                'kondisi' => $row->kondisi,
-                'sekolah' => $row->sekolah ? $row->sekolah->name : null
+                // Informasi Barang
+                $row->rfid_number, $row->kode, $row->name, $row->register, $row->merk, $row->ukuran ?? '-', $row->bahan ?? '-', $row->tahun_pembelian, $row->pabrik ?? '-',
+
+                // Nomor Barang
+                $row->rangka ?? '-', $row->mesin ?? '-', $row->polisi ?? '-', $row->bpkb ?? '-',
+
+                // Perawatan Barang
+                $row->asal_perolehan, formatRupiah($row->nilai_perolehan), $row->kondisi, $row->tanggal_perawatan->format('Y-m-d'), formatRupiah($row->harga_perawatan), $row->waktu_perawatan,
+
+                // Lokasi
+                $row->sekolah ? $row->sekolah->kecamatan->name : '-', $row->sekolah ? $row->sekolah->name : '-', $row->gedung, $row->lantai, $row->ruangan, $row->detail
             ];
         });
 
         return $asset;
     }
 
-    public function headings(): array
+    public function title(): string
     {
-        return [
-            ["Laporan Data Asset"],
-            ['RFID Number', 'Kode Barang', 'Nama/Jenis Barang', 'Merk/Type', 'Tahun Pembelian', 'Kondisi', 'Tempat']
-        ];
-    }
-
-    public function styles(Worksheet $sheet)
-    {
-        $lastColumn = 'G';
-
-        $sheet->mergeCells("A1:$lastColumn" . "1")
-            ->getStyle("A1")->applyFromArray([
-                'font' => ['bold' => true, 'size' => 14],
-                'alignment' => ['horizontal' => 'center', 'vertical' => 'center']
-            ]);
-
-        $sheet->getStyle("A2:$lastColumn" . "2")->applyFromArray([
-            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-            'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '4F81BD']],
-            'alignment' => ['horizontal' => 'center', 'vertical' => 'center']
-        ]);
-
-        foreach (range('A', $lastColumn) as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-
-        $sheet->getStyle("A2:$lastColumn" . $sheet->getHighestRow())->applyFromArray([
-            'borders' => ['allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => '000000']]]
-        ]);
-
-        // style untuk isi data
-        $sheet->getStyle("A3:$lastColumn" . "3")->applyFromArray([
-            'font' => ['bold' => true],
-            'alignment' => ['horizontal' => 'center', 'vertical' => 'center']
-        ]);
+        return 'Laporan Data Aset';
     }
 
     public function registerEvents(): array
     {
         return [
-            AfterSheet::class => fn(AfterSheet $event) =>
-            $event->sheet->getDelegate()->getDefaultRowDimension()->setRowHeight(-1)
+            AfterSheet::class => function (AfterSheet $event) {
+
+                $sheet = $event->sheet->getDelegate();
+                $lastColumn = 'Y'; // Sampai kolom Y, kolom terakhir
+
+                // 1. Sisipkan 3 baris di atas (karena kita akan butuh baris 1-3 untuk header)
+                $sheet->insertNewRowBefore(1, 3);
+
+                // 2. Baris 1 - Laporan Data Asset
+                $sheet->setCellValue('A1', 'Laporan Data Aset');
+                $sheet->mergeCells("A1:{$lastColumn}1");
+                $sheet->getStyle("A1")->applyFromArray([
+                    'font' => ['bold' => true, 'size' => 16],
+                    'alignment' => ['horizontal' => 'center', 'vertical' => 'center']
+                ]);
+
+                // 3. Baris 2 - Group heading
+                $sheet->setCellValue('A2', 'Informasi Barang');
+                $sheet->mergeCells('A2:I2'); // Kolom A sampai I
+
+                $sheet->setCellValue('J2', 'Nomor Barang');
+                $sheet->mergeCells('J2:M2'); // Kolom J sampai M
+
+                $sheet->setCellValue('N2', 'Perawatan Barang');
+                $sheet->mergeCells('N2:S2'); // Kolom N sampai S
+
+                $sheet->setCellValue('T2', 'Lokasi');
+                $sheet->mergeCells('T2:Y2'); // Kolom T sampai Y
+
+                $sheet->getStyle('A2:Y2')->applyFromArray([
+                    'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+                    'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '4F81BD']],
+                    'alignment' => ['horizontal' => 'center', 'vertical' => 'center']
+                ]);
+
+                // 4. Baris 3 - Sub Heading Detail
+                $subHeadings = [
+                    'RFID', 'Kode Barang', 'Nama/Jenis Barang', 'Nomor Register', 'Merk', 'Ukuran', 'Bahan', 'Tahun Pembelian', 'Pabrik',
+                    'Rangka', 'Mesin', 'Polisi', 'BPKB',
+                    'Asal-usul Perolehan', 'Nilai Perolehan', 'Kondisi', 'Tanggal Perawatan', 'Harga Perawatan', 'Jangka Waktu Perawatan',
+                    'Kecamatan', 'Tempat', 'Gedung', 'Lantai', 'Ruangan', 'Detail'
+                ];
+                $col = 'A';
+                foreach ($subHeadings as $heading) {
+                    $sheet->setCellValue($col.'3', $heading);
+                    $col++;
+                }
+
+                $sheet->getStyle('A3:Y3')->applyFromArray([
+                    'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+                    'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '4F81BD']],
+                    'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
+                ]);
+
+                // Mengatur isi agar rata tengah
+                $sheet->getStyle("A4:$lastColumn" . $sheet->getHighestRow())->applyFromArray([
+                    'alignment' => ['horizontal' => 'center', 'vertical' => 'center']
+                ]);
+
+                // 5. Border untuk semua area
+                $highestRow = $sheet->getHighestRow();
+                $sheet->getStyle("A1:Y{$highestRow}")->applyFromArray([
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => 'thin',
+                            'color' => ['rgb' => '000000']
+                        ]
+                    ]
+                ]);
+
+                // 6. AutoSize semua kolom
+                foreach (range('A', $lastColumn) as $col) {
+                    $sheet->getColumnDimension($col)->setAutoSize(true);
+                }
+
+                // 7. Wrap Text heading
+                $sheet->getStyle('A1:Y3')->getAlignment()->setWrapText(true);
+            },
         ];
     }
 }
