@@ -326,7 +326,7 @@ class ApiController extends Controller
                 'personInCharge' => $personInCharge,
                 'location' => $location
             ]),
-            'rejection_note' => $rejectionNote,
+            'mutationReason' => $rejectionNote,
             'requested_by' => Auth::id(),
         ]);
 
@@ -337,26 +337,16 @@ class ApiController extends Controller
         ], 200);
     }
 
-    public function inspection(Request $request)
+    public function inspection(Request $request, $idItem)
     {
-        $id = $request->input('id');
+        $asset = Asset::findOrFail($idItem);
 
-        $query = Asset::where('id', $id);
-        $asset = $this->filterAssetByRole($query)->firstOrFail();
+        $asset->kondisi = $request->condition;
 
-        Approval::create([
-            'type' => 'mutation',
-            'asset_id' => $asset->id,
-            'status' => 'pending',
-            'payload' => json_encode([
-                'condition' => $request->input('condition'),
-            ]),
-            'requested_by' => Auth::id(),
-        ]);
+        $asset->save();
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'Inspeksi aset berhasil diajukan untuk approval.',
+            'message' => 'Kondisi asset berhasil diperbarui'
         ]);
     }
 

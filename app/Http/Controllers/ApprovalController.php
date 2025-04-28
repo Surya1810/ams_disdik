@@ -115,6 +115,7 @@ class ApprovalController extends Controller
                     }
                     return null;
                 })
+                ->addColumn('keterangan', fn($row) => $row->keterangan ?? '-') // <== Tambahan keterangan
                 ->addColumn('requested_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
                 ->addColumn('status', function ($row) {
                     $color = match ($row->status) {
@@ -125,11 +126,19 @@ class ApprovalController extends Controller
                     };
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
                 })
-                ->rawColumns(['status']) // 'from' dan 'to' bukan HTML di server, jadi tidak perlu rawColumns di sini
+                ->rawColumns(['status'])
                 ->make(true);
         }
 
-        $assets = Asset::all();
+        $user = Auth::user();
+        if ($user->role == 'admin') {
+            $assets = Asset::all();
+        } else {
+            $assets = Asset::whereHas('sekolah', function ($query) use ($user) {
+                $query->where('kecamatan_id', $user->kecamatan_id);
+            })->get();
+        }
+
         return view('asset.mutation', compact('assets'));
     }
 
@@ -426,9 +435,11 @@ class ApprovalController extends Controller
                     case 'mutation':
                         $fields = ['nip_pic', 'nama_pic', 'jabatan_pic', 'telp_pic'];
 
+                        // Convert payload ke array jika perlu
                         $oldValues = $asset->only($fields);
-                        $newValues = array_intersect_key($payload['to'], array_flip($fields));
+                        $newValues = array_intersect_key($payload['to'], array_flip($fields)); // Ambil nilai dari 'to'
 
+                        // Update data asset
                         $asset->fill($newValues);
                         $asset->save();
 
@@ -466,13 +477,13 @@ class ApprovalController extends Controller
                         $jenis = $payload['jenis'] ?? '-';
 
                         $oldValues = $asset->toArray();
-                        $changedFields = array_keys($oldValues);
+                        $changedFields = array_keys($oldValues); // Ambil semua key sebagai field yang berubah
 
                         History::create([
-                            'asset_id' => null,
+                            'asset_id' => null, // Tidak menampilkan asset_id
                             'user_id' => $userId,
                             'change_type' => 'disposal',
-                            'changed_fields' => json_encode($changedFields),
+                            'changed_fields' => json_encode($changedFields), // Semua data aset dimasukkan ke changed_fields
                             'old_values' => json_encode($oldValues),
                             'new_values' => json_encode([
                                 'jenis' => $jenis,
@@ -496,26 +507,6 @@ class ApprovalController extends Controller
                         }
 
                         $asset->delete();
-                        break;
-
-                    case 'inspection': // <<<< ini tambahan baru
-                        $fields = ['condition'];
-
-                        $oldValues = $asset->only($fields);
-                        $newValues = array_intersect_key($payload, array_flip($fields));
-
-                        $asset->fill($newValues);
-                        $asset->last_inspection = now();
-                        $asset->save();
-
-                        History::create([
-                            'asset_id' => $asset->id,
-                            'user_id' => $userId,
-                            'change_type' => 'inspection',
-                            'changed_fields' => json_encode(array_keys($newValues)),
-                            'old_values' => json_encode($oldValues),
-                            'new_values' => json_encode($newValues),
-                        ]);
                         break;
                 }
 
