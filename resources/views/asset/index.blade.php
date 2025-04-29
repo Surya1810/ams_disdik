@@ -64,6 +64,9 @@
                             <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
                                 data-bs-target="#addAset"> <i class="fa-solid fa-plus"></i> Tambah
                             </button>
+                            <div id="filterWrapper">
+                                {{-- Filter Kondisi, Sekolah, Tahun Pembelian, dan Semua --}}
+                            </div>
                             <div id="buttonExportImportWrapper" class="ms-auto">
                                 <button type="button" class="btn bg-gradient-success rounded-partner" id="buttonExport">
                                     <i class="fa-solid fa-download"></i> Export

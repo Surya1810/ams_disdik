@@ -328,8 +328,6 @@ class AssetController extends Controller
         return view('asset.maintenance', compact('assets'));
     }
 
-
-
     /**
      * Date: 28-04-2025
      * Export List Asset to Excel

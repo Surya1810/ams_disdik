@@ -12,6 +12,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 class ApiController extends Controller
 {
@@ -282,6 +283,9 @@ class ApiController extends Controller
                     'lastMaintenance' => optional($asset->tanggal_perawatan)->format('d/m/Y'),
                     'merk' => $asset->merk,
                     'condition' => $asset->kondisi,
+                    'imageUrl' => $asset->foto_awal !== 'dummy.jpg'
+                        ? asset(Storage::url('assets/' . $asset->foto_awal))
+                        : 'https://placehold.co/1280x720'
                 ],
                 'personInCharge' => [
                     'nip' => $asset->nip_pic,
