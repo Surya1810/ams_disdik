@@ -302,28 +302,47 @@ class AssetController extends Controller
     public function maintenance(Request $request)
     {
         if ($request->ajax()) {
-            $data = Asset::query()
-                ->whereIn('kondisi', ['Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat'])
-                ->select(['id', 'name', 'kondisi', 'tanggal_perawatan', 'harga_perawatan', 'waktu_perawatan']);
+            $user = Auth::user();
 
-            // Filter berdasarkan waktu perawatan (dalam bulan)
-            if ($request->filled('waktu')) {
-                $months = (int) $request->waktu;
-                $cutoff = Carbon::now()->subMonths($months);
-                $data->whereDate('tanggal_perawatan', '>=', $cutoff);
+            $query = \App\Models\Asset::query()
+                ->whereIn('kondisi', ['Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat']);
+
+            if ($user->role != 'admin') {
+                $query->whereHas('sekolah', function ($q) use ($user) {
+                    $q->where('kecamatan_id', $user->kecamatan_id);
+                });
             }
 
-            return DataTables::of($data)->make(true);
+            if ($request->filled('waktu')) {
+                $months = (int) $request->waktu;
+                $cutoff = \Carbon\Carbon::now()->subMonths($months)->format('Y-m-d');
+                $query->whereDate('tanggal_perawatan', '>=', $cutoff);
+            }
+
+            return DataTables::of($query)
+                ->editColumn('tanggal_perawatan', function ($row) {
+                    return $row->tanggal_perawatan ? \Carbon\Carbon::parse($row->tanggal_perawatan)->format('d-m-Y') : '-';
+                })
+                ->editColumn('waktu_perawatan', function ($row) {
+                    return $row->waktu_perawatan ? $row->waktu_perawatan . ' Bulan' : '-';
+                })
+                ->editColumn('harga_perawatan', function ($row) {
+                    return $row->harga_perawatan ?? 0;
+                })
+                ->make(true);
         }
 
-        return view('asset.maintenance');
+        $assets = Asset::all();
+        return view('asset.maintenance', compact('assets'));
     }
+
 
     /**
      * Date: 28-04-2025
      * Export List Asset to Excel
      */
-    public function export() {
+    public function export()
+    {
         $date = date('Y-m-d');
         $fileName = "Laporan Data Aset - $date.xlsx";
 
@@ -336,7 +355,5 @@ class AssetController extends Controller
      *
      * ! Belum Selesai
      */
-    public function import() {
-
-    }
+    public function import() {}
 }
