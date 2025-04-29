@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+// Export and Import
+use App\Imports\AssetsImport;
 use App\Exports\AssetsExport;
+
 use App\Models\Asset;
 use App\Models\Sekolah;
 use App\Models\Tag;
@@ -149,16 +152,6 @@ class AssetController extends Controller
             // Update status tag jadi used
             Tag::where('rfid_number', $asset->rfid_number)->update(['status' => 'used']);
 
-            // Simpan ke history
-            History::create([
-                'asset_id' => $asset->id,
-                'user_id' => Auth::id(),
-                'change_type' => 'create',
-                'old_values' => null,
-                'new_values' => json_encode($asset->getAttributes()),
-                'changed_fields' => json_encode(array_keys($validated)),
-            ]);
-
             return redirect()->route('asset.index')->with(['pesan' => 'Aset berhasil ditambahkan', 'level-alert' => 'alert-success']);
         } catch (\Exception $e) {
             return redirect()->back()->with([
@@ -167,7 +160,6 @@ class AssetController extends Controller
             ]);
         }
     }
-
 
     public function update(Request $request, Asset $asset)
     {
@@ -262,8 +254,6 @@ class AssetController extends Controller
         }
     }
 
-
-
     /**
      * Display the specified resource.
      */
@@ -325,7 +315,7 @@ class AssetController extends Controller
      */
     public function export() {
         $date = date('Y-m-d');
-        $fileName = "Laporan Data Aset - $date.xlsx";
+        $fileName = "List Data Aset - $date.xlsx";
 
         return Excel::download(new AssetsExport, $fileName);
     }
@@ -333,10 +323,28 @@ class AssetController extends Controller
     /**
      * Date: 28-04-2025
      * Import Data Asset from Excel
-     *
-     * ! Belum Selesai
      */
-    public function import() {
+    public function import(Request $request) {
+        $validated = $request->validate([
+            'file' => 'required|file|mimes:xlsx',
+            'sekolah_id_import' => 'required|exists:sekolahs,id',
+        ]);
 
+
+        $import = new AssetsImport($validated['sekolah_id_import']);
+        Excel::import($import, $request->file('file'));
+
+        if ($import->getErrors()) {
+            return redirect()->route('asset.index')->with([
+                'pesan' => 'Import selesai dengan beberapa error.',
+                'errors' => $import->getErrors(),
+                'level-alert' => 'alert-warning',
+            ]);
+        }
+
+        return redirect()->route('asset.index')->with([
+            'pesan' => 'Import data aset sepenuhnya telah berhasil!',
+            'level-alert' => 'alert-success',
+        ]);
     }
 }

@@ -9,8 +9,9 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Concerns\WithTitle;
 
-class TagsExport implements FromCollection, WithHeadings, WithStyles, WithEvents
+class TagsExport implements FromCollection, WithHeadings, WithStyles, WithEvents, WithTitle
 {
     public function collection()
     {
@@ -28,9 +29,14 @@ class TagsExport implements FromCollection, WithHeadings, WithStyles, WithEvents
     public function headings(): array
     {
         return [
-            ["Laporan Data Tag RFID"],
+            ["List Tag RFID"],
             ['RFID Number', 'Status', 'Created At']
         ];
+    }
+
+    public function title(): string
+    {
+        return 'List Tag RFID';
     }
 
     public function styles(Worksheet $sheet)
