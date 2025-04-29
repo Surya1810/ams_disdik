@@ -343,15 +343,11 @@ class AssetController extends Controller
      * Date: 28-04-2025
      * Import Data Asset from Excel
      */
-<<<<<<< HEAD
-    public function import() {}
-=======
     public function import(Request $request) {
         $validated = $request->validate([
             'file' => 'required|file|mimes:xlsx',
             'sekolah_id_import' => 'required|exists:sekolahs,id',
         ]);
-
 
         $import = new AssetsImport($validated['sekolah_id_import']);
         Excel::import($import, $request->file('file'));
@@ -369,5 +365,4 @@ class AssetController extends Controller
             'level-alert' => 'alert-success',
         ]);
     }
->>>>>>> ff6082b44cb981bb78733e4766750df8e5658b90
 }
