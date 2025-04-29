@@ -37,7 +37,7 @@ class AssetsExport implements FromCollection, WithEvents, WithTitle
                 $row->rangka ?? '-', $row->mesin ?? '-', $row->polisi ?? '-', $row->bpkb ?? '-',
 
                 // Perawatan Barang
-                $row->asal_perolehan, formatRupiah($row->nilai_perolehan), $row->kondisi, $row->tanggal_perawatan->format('Y-m-d'), formatRupiah($row->harga_perawatan), $row->waktu_perawatan,
+                $row->asal_perolehan, formatRupiah($row->nilai_perolehan), $row->kondisi, $row->tanggal_perawatan->format('Y-m-d'), formatRupiah($row->harga_perawatan), ($row->waktu_perawatan . ' Bulan'),
 
                 // Lokasi
                 $row->sekolah ? $row->sekolah->kecamatan->name : '-', $row->sekolah ? $row->sekolah->name : '-', $row->gedung, $row->lantai, $row->ruangan, $row->detail
@@ -49,7 +49,7 @@ class AssetsExport implements FromCollection, WithEvents, WithTitle
 
     public function title(): string
     {
-        return 'Laporan Data Aset';
+        return 'List Data Aset';
     }
 
     public function registerEvents(): array
@@ -64,7 +64,7 @@ class AssetsExport implements FromCollection, WithEvents, WithTitle
                 $sheet->insertNewRowBefore(1, 3);
 
                 // 2. Baris 1 - Laporan Data Asset
-                $sheet->setCellValue('A1', 'Laporan Data Aset');
+                $sheet->setCellValue('A1', 'List Data Aset');
                 $sheet->mergeCells("A1:{$lastColumn}1");
                 $sheet->getStyle("A1")->applyFromArray([
                     'font' => ['bold' => true, 'size' => 16],

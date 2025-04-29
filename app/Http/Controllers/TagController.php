@@ -109,11 +109,10 @@ class TagController extends Controller
         }
     }
 
-
     public function export()
     {
         $date = date('Y-m-d');
-        $fileName = "Data Tag RFID - $date.xlsx";
+        $fileName = "List Tag RFID - $date.xlsx";
 
         return Excel::download(new TagsExport, $fileName);
     }

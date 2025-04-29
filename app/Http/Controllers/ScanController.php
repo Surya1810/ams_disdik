@@ -6,6 +6,9 @@ use App\Models\Asset;
 use App\Models\Scan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ScanExport;
+use Illuminate\Support\Str;
 
 class ScanController extends Controller
 {
@@ -132,5 +135,15 @@ class ScanController extends Controller
 
         // Hanya update data yang ada dalam $tags
         $model::whereIn('rfid_number', $tags)->update(['is_there' => true]);
+    }
+
+    public function exportFound()
+    {
+        return Excel::download(new ScanExport('found'), 'Berita_Acara_Penemuan.xlsx');
+    }
+
+    public function exportMissing()
+    {
+        return Excel::download(new ScanExport('missing'), 'Berita_Acara_Kehilangan.xlsx');
     }
 }

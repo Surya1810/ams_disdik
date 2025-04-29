@@ -3,112 +3,120 @@
 @section('title', 'Scan')
 
 @section('navbar')
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-            <li class="breadcrumb-item text-sm">
-                <a class="text-white opacity-5" href="javascript:;">Halaman</a>
-            </li>
-            <li class="breadcrumb-item text-sm text-white active" aria-current="page">Scan</li>
-        </ol>
-        <h6 class="nav-breadcrumb font-weight-bolder text-white mb-0">Scan</h6>
-    </nav>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+        <li class="breadcrumb-item text-sm">
+            <a class="text-white opacity-5" href="javascript:;">Halaman</a>
+        </li>
+        <li class="breadcrumb-item text-sm text-white active" aria-current="page">Scan</li>
+    </ol>
+    <h6 class="nav-breadcrumb font-weight-bolder text-white mb-0">Scan</h6>
+</nav>
 @endsection
 
 @section('content')
-    <div class="container-fluid py-2">
-        <div class="row">
-            <div class="col-12 mb-3 text-center">
-                <button class="btn btn-primary rounded-partner" id="refreshButton"><i class="fa-solid fa-arrows-rotate"></i>
-                    Refresh Data</button>
-            </div>
+<div class="container-fluid py-2">
+    <div class="row">
+        <div class="col-12 mb-3 text-center">
+            <button class="btn btn-primary rounded-partner" id="refreshButton"><i class="fa-solid fa-arrows-rotate"></i>
+                Refresh Data</button>
         </div>
-        <div class="row">
-            <!-- Tabel Asset -->
-            <div class="col-12 col-md-6">
-                <div class="card my-4">
-                    <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
-                        <div class="bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3">
-                            <div class="row align-items-center">
-                                <div class="col-6">
-                                    <h6 class="text-white text-capitalize ps-3">Asset Terdaftar</h6>
-                                </div>
-                                <div class="col-6 text-end ps-3 text-white pe-4">
-                                    <small>Found: <strong id="totalIsThereTrue">0</strong></small>
-                                    <small>Missing: <strong id="totalIsThereFalse">0</strong></small>
-                                </div>
+    </div>
+    <div class="row">
+        <!-- Tabel Asset -->
+        <div class="col-12 col-md-6">
+            <div class="card my-4">
+                <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                    <div class="bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3">
+                        <div class="row align-items-center">
+                            <div class="col-6">
+                                <h6 class="text-white text-capitalize ps-3">Asset Terdaftar</h6>
+                            </div>
+                            <div class="col-6 text-end ps-3 text-white pe-4">
+                                <small>Found: <strong id="totalIsThereTrue">0</strong></small>
+                                <small>Missing: <strong id="totalIsThereFalse">0</strong></small>
                             </div>
                         </div>
-                    </div>
-                    <div class="card-body table-responsive pb-2">
-                        <table id="assetTable" class="table text-sm mt-3">
-                            <thead class="font-weight-bolder">
-                                <tr>
-                                    <th class="text-uppercase">Status</th>
-                                    <th class="text-uppercase">RFID</th>
-                                    <th class="text-uppercase">Kode Barang</th>
-                                    <th class="text-uppercase">Nama/Jenis Barang</th>
-                                    <th class="text-uppercase">Merk/Type</th>
-                                    <th class="text-uppercase">Tahun Pembelian</th>
-                                    <th class="text-uppercase">Kondisi</th>
-                                    <th class="text-uppercase">Tempat</th>
-                                    <th class="text-uppercase">Gedung</th>
-                                    <th class="text-uppercase">Lantai</th>
-                                    <th class="text-uppercase">Ruangan</th>
-                                    <th class="text-uppercase">Detail</th>
-                                    <th class="text-uppercase">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Data Asset -->
-                            </tbody>
-                        </table>
                     </div>
                 </div>
+                <div class="card-body table-responsive pb-2">
+                    <table id="assetTable" class="table text-sm mt-3">
+                        <thead class="font-weight-bolder">
+                            <tr>
+                                <th class="text-uppercase">Status</th>
+                                <th class="text-uppercase">RFID</th>
+                                <th class="text-uppercase">Kode Barang</th>
+                                <th class="text-uppercase">Nama/Jenis Barang</th>
+                                <th class="text-uppercase">Merk/Type</th>
+                                <th class="text-uppercase">Tahun Pembelian</th>
+                                <th class="text-uppercase">Kondisi</th>
+                                <th class="text-uppercase">Tempat</th>
+                                <th class="text-uppercase">Gedung</th>
+                                <th class="text-uppercase">Lantai</th>
+                                <th class="text-uppercase">Ruangan</th>
+                                <th class="text-uppercase">Detail</th>
+                                <th class="text-uppercase">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data Asset -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-12 mb-3 text-center">
+                    <button class="btn btn-primary rounded-partner" id="exportFound">
+                        <i class="fa-solid fa-download"></i> Export Found
+                    </button>
+                    <button class="btn btn-primary rounded-partner" id="exportMissing">
+                        <i class="fa-solid fa-download"></i> Export Missing
+                    </button>
+                </div>
             </div>
+        </div>
 
-            <!-- Tabel Tag -->
-            <div class="col-12 col-md-6">
-                <div class="card my-4">
-                    <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
-                        <div class="bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3">
-                            <div class="row align-items-center">
-                                <div class="col-6">
-                                    <h6 class="text-white text-capitalize ps-3">Scanned Data</h6>
-                                </div>
-                                <div class="col-6 text-end ps-3 text-white pe-4">
-                                    <small class="float-right">Total :<strong id="totalRFID">0</strong>
-                                        last checked: <strong>
-                                            @isset($last_checked->created_at)
-                                                {{ $last_checked->created_at }}
-                                            @endisset
-                                        </strong>
-                                    </small>
-                                </div>
+        <!-- Tabel Tag -->
+        <div class="col-12 col-md-6">
+            <div class="card my-4">
+                <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                    <div class="bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3">
+                        <div class="row align-items-center">
+                            <div class="col-6">
+                                <h6 class="text-white text-capitalize ps-3">Scanned Data</h6>
+                            </div>
+                            <div class="col-6 text-end ps-3 text-white pe-4">
+                                <small class="float-right">Total :<strong id="totalRFID">0</strong>
+                                    last checked: <strong>
+                                        @isset($last_checked->created_at)
+                                        {{ $last_checked->created_at }}
+                                        @endisset
+                                    </strong>
+                                </small>
                             </div>
                         </div>
                     </div>
-                    <div class="card-body table-responsive pb-2">
-                        <table id="rfidTable" class="table text-sm mt-3">
-                            <thead class="font-weight-bolder">
-                                <tr>
-                                    <th class="text-uppercase">RFID</th>
-                                    <th class="text-uppercase">Timestamp</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Data RFID -->
-                            </tbody>
-                        </table>
-                    </div>
+                </div>
+                <div class="card-body table-responsive pb-2">
+                    <table id="rfidTable" class="table text-sm mt-3">
+                        <thead class="font-weight-bolder">
+                            <tr>
+                                <th class="text-uppercase">RFID</th>
+                                <th class="text-uppercase">Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data RFID -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
+</div>
 @endsection
 
 @push('scripts')
-    <script type='text/javascript'>
-        let rfidTable = $('#rfidTable').DataTable({
+<script type='text/javascript'>
+    let rfidTable = $('#rfidTable').DataTable({
             "paging": true,
             "processing": true,
             "lengthChange": true,
@@ -161,7 +169,6 @@
             });
         }
 
-
         // Fungsi untuk memperbarui tabel asset dari API
         function updateAssetTable(callback = null) {
             $.getJSON('/api/assets', function(data) {
@@ -171,7 +178,7 @@
                 totalIsThereFalse = 0;
 
                 data.forEach((asset) => {
-                    let rowNode = assetTable.row.add([
+                    let rowNode = assetTable.row.add([ 
                         asset.is_there ? ' <strong>FOUND</strong>' : '<strong>MISSING</strong>',
                         asset.rfid_number,
                         asset.kode,
@@ -225,6 +232,18 @@
             $('#totalIsThereFalse').text(totalIsThereFalse);
         }
 
+        // Tombol untuk mengekspor data Found
+       $('#exportFound').on('click', function () {
+            window.location.href = '/scan/export/found';
+        });
+    
+
+        // Tombol untuk mengekspor data Missing
+        $('#exportMissing').on('click', function () {
+            window.location.href = '/scan/export/missing';
+        });
+        
+
         // Tambahkan event listener ke tombol refresh manual
         $('#refreshButton').on('click', function() {
             loadCachedData();
@@ -234,5 +253,5 @@
         // Panggil pertama kali saat halaman dimuat
         loadCachedData();
         updateAssetTable();
-    </script>
+</script>
 @endpush

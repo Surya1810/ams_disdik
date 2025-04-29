@@ -45,7 +45,8 @@ Route::middleware('auth')->group(function () {
      */
     Route::get('/export/asset', [AssetController::class, 'export'])->name('asset.export');
     Route::post('/import/asset', [AssetController::class, 'import'])->name('asset.import');
-
+    Route::get('/scan/export/found', [ScanController::class, 'exportFound']);
+    Route::get('/scan/export/missing', [ScanController::class, 'exportMissing']);
 
     // Maintenance
     Route::get('/maintenance', [AssetController::class, 'maintenance'])->name('asset.maintenance');

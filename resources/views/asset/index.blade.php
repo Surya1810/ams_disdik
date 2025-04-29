@@ -45,6 +45,21 @@
                         </div>
                     </div>
                     <div class="card-body table-responsive pb-2">
+                        @if (session('errors'))
+                            <div class="alert alert-warning alert-dismissible fade show">
+                                <button type="button" class="btn-close fw-bold text-dark" data-bs-dismiss="alert"
+                                    aria-label="Close">
+                                    &times;
+                                </button>
+                                <strong>Beberapa data gagal diimport:</strong>
+                                <ul>
+                                    @foreach (session('errors') as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         <div class="d-flex" id="buttonWrapper">
                             <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
                                 data-bs-target="#addAset"> <i class="fa-solid fa-plus"></i> Tambah
@@ -53,7 +68,8 @@
                                 <button type="button" class="btn bg-gradient-success rounded-partner" id="buttonExport">
                                     <i class="fa-solid fa-download"></i> Export
                                 </button>
-                                <button type="button" class="btn bg-gradient-warning rounded-partner" id="buttonShowImportModal"> <i class="fa-solid fa-upload"></i>
+                                <button type="button" class="btn bg-gradient-warning rounded-partner"
+                                    id="buttonShowImportModal"> <i class="fa-solid fa-upload"></i>
                                     Import
                                 </button>
                             </div>
@@ -144,8 +160,8 @@
                                             <div class="col-12">
                                                 <label>Nama/Jenis Barang</label>
                                                 <input type="text"
-                                                    class="form-control @error('name') is-invalid @enderror" name="name"
-                                                    value="{{ old('name') }}" required
+                                                    class="form-control @error('name') is-invalid @enderror"
+                                                    name="name" value="{{ old('name') }}" required
                                                     placeholder="Tulis nama/jenis barang" aria-label="name">
                                                 @error('name')
                                                     <span class="invalid-feedback" role="alert">
@@ -1237,13 +1253,32 @@
                         <div class="card-header pb-0 text-left">
                             <h4 class="text-primary text-gradient">Import <strong>Data Aset</strong></h4>
                         </div>
-                        <div class="card-body mb-3">
-                            <form action="{{ route('asset.import') }}" method="POST">
+                        <div class="card-body">
+                            <form action="{{ route('asset.import') }}" method="POST" enctype="multipart/form-data">
+                                @csrf
+                                <div class="col-12 mb-3">
+                                    <label>Tempat</label>
+                                    <select name="sekolah_id_import" id="sekolah_id_import"
+                                        class="form-control place @error('sekolah_id_import') is-invalid @enderror"
+                                        required>
+                                        <option value="" selected disabled hidden>
+                                        </option>
+                                        @foreach ($places as $place)
+                                            <option value="{{ $place->id }}">{{ $place->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('sekolah_id_import')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
                                 <div class="mb-3">
                                     <label for="formImportExcel" class="form-label">
-                                        Import data aset dari file excel (Belum Selesai)
+                                        Import data aset dari file excel
                                     </label>
-                                    <input class="form-control" type="file" accept="xlsx" id="formImportExcel" required>
+                                    <input class="form-control" type="file" name="file" accept="xlsx" id="formImportExcel"
+                                        required>
                                 </div>
                                 <div class="d-flex">
                                     <button class="btn btn-sm bg-gradient-warning ms-auto">
@@ -1269,6 +1304,7 @@
             const modalAdd = $("#addAset .modal-content");
             const modalEdit = $("#editAset .modal-content");
             const modalShow = $("#showAset .modal-content");
+            const modalImport = $("#showImportModal .modal-content");
 
             // Inisialisasi Select2 untuk modal yang menggunakan select2 (kondisi, waktu_perawatan, place)
             function initSelect2(parent) {
@@ -1282,6 +1318,7 @@
             initSelect2(modalAdd);
             initSelect2(modalEdit);
             initSelect2(modalShow);
+            initSelect2(modalImport);
 
             // Format harga dengan input mask
             $('.price').inputmask({
@@ -1484,8 +1521,8 @@
                 window.location.href = '/export/asset';
             });
 
-            // Event untuk buka modal
-            $('#buttonShowImportModal').on('click', function () {
+            // Event untuk buka modal import data aset
+            $('#buttonShowImportModal').on('click', function() {
                 $('#showImportModal').modal('show');
             })
         });
