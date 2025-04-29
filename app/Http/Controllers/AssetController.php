@@ -297,16 +297,18 @@ class AssetController extends Controller
             $query = \App\Models\Asset::query()
                 ->whereIn('kondisi', ['Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat']);
 
+            // Kalau user bukan admin, filter berdasarkan kecamatan_id
             if ($user->role != 'admin') {
                 $query->whereHas('sekolah', function ($q) use ($user) {
                     $q->where('kecamatan_id', $user->kecamatan_id);
                 });
             }
 
+            // Kalau ada filter waktu, filter berdasarkan tanggal_perawatan
             if ($request->filled('waktu')) {
                 $months = (int) $request->waktu;
-                $cutoff = \Carbon\Carbon::now()->subMonths($months)->format('Y-m-d');
-                $query->whereDate('tanggal_perawatan', '>=', $cutoff);
+                $cutoffDate = now()->subMonths($months)->startOfDay(); // Mulai dari awal hari
+                $query->whereDate('tanggal_perawatan', '>=', $cutoffDate);
             }
 
             return DataTables::of($query)
@@ -327,6 +329,7 @@ class AssetController extends Controller
     }
 
 
+
     /**
      * Date: 28-04-2025
      * Export List Asset to Excel
@@ -343,10 +346,8 @@ class AssetController extends Controller
      * Date: 28-04-2025
      * Import Data Asset from Excel
      */
-<<<<<<< HEAD
-    public function import() {}
-=======
-    public function import(Request $request) {
+    public function import(Request $request)
+    {
         $validated = $request->validate([
             'file' => 'required|file|mimes:xlsx',
             'sekolah_id_import' => 'required|exists:sekolahs,id',
@@ -369,5 +370,4 @@ class AssetController extends Controller
             'level-alert' => 'alert-success',
         ]);
     }
->>>>>>> ff6082b44cb981bb78733e4766750df8e5658b90
 }
