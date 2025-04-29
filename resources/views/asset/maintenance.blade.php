@@ -29,11 +29,6 @@
                 </div>
                 <div class="card-body table-responsive">
                     <div class="d-flex justify-content-between align-items-center">
-                        <!-- Tombol Tambah -->
-                        <button type="button" class="btn bg-gradient-primary rounded-partner d-flex align-items-center"
-                            data-bs-toggle="modal" data-bs-target="#addMaintenanceModal">
-                            <i class="fa-solid fa-plus me-1"></i> Tambah
-                        </button>
 
                         <div class="input-group mb-3" style="width: auto;">
                             <span class="input-group-text bg-primary text-white">
@@ -71,71 +66,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Tambah Maintenance -->
-<div class="modal fade" id="addMaintenanceModal" tabindex="-1" aria-labelledby="addMaintenanceModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form method="POST" action="{{ route('asset.store') }}">
-                @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title font-weight-bolder text-primary text-gradient" id="addMaintenanceModalLabel">
-                        Tambah Data Maintenance
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body row g-3">
-                    <div class="col-12">
-                        <label class="form-label">Nama Barang</label>
-                        <select name="asset_id" id="asset_id" class="form-select" required>
-                            <option value="">Pilih Barang</option>
-                            <!-- Loop untuk menampilkan nama barang -->
-                            @foreach($assets as $asset)
-                            <option value="{{ $asset->id }}">{{ $asset->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Kondisi</label>
-                        <select name="kondisi" id="kondisi" class="form-select" required>
-                            <option value="">Pilih Kondisi</option>
-                            <option value="Baik">Baik</option>
-                            <option value="Perlu Perbaikan">Perlu Perbaikan</option>
-                            <option value="Rusak Ringan">Rusak Ringan</option>
-                            <option value="Rusak Sedang">Rusak Sedang</option>
-                            <option value="Rusak Berat">Rusak Berat</option>
-                            <option value="Hilang">Hilang</option>
-                        </select>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Tanggal Perawatan</label>
-                        <input type="date" class="form-control" name="tanggal_perawatan" id="tanggal_perawatan"
-                            required>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Harga Perawatan</label>
-                        <input type="text" name="harga_perawatan" id="harga_perawatan" class="form-control price"
-                            placeholder="Tulis harga perawatan" required>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Jangka Waktu Perawatan</label>
-                        <select name="waktu_perawatan" id="waktu_perawatan" class="form-select" required>
-                            <option value="">Pilih Waktu</option>
-                            <option value="3">3 Bulan</option>
-                            <option value="6">6 Bulan</option>
-                            <option value="12">12 Bulan</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn bg-gradient-primary">Simpan</button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
@@ -177,15 +107,15 @@
             }
         ],
         drawCallback: function(settings) {
-            let api = this.api();
-            let total = 0;
-            api.column(4, { page: 'current' }).data().each(function(data) {
-                if (typeof data === 'string') {
-                    data = data.replace(/[^\d]/g, '');
-                }
-                total += parseInt(data) || 0;
-            });
-            $('#totalHarga').html('Rp ' + total.toLocaleString('id-ID'));
+        let api = this.api();
+        let total = 0;
+        
+        api.rows({ page: 'current' }).data().each(function(row) {
+        let harga = row.harga_perawatan ?? 0;
+        total += parseInt(harga);
+        });
+        
+        $('#totalHarga').html('Rp ' + total.toLocaleString('id-ID'));
         }
     });
 

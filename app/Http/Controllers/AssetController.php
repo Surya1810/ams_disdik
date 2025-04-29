@@ -297,16 +297,18 @@ class AssetController extends Controller
             $query = \App\Models\Asset::query()
                 ->whereIn('kondisi', ['Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat']);
 
+            // Kalau user bukan admin, filter berdasarkan kecamatan_id
             if ($user->role != 'admin') {
                 $query->whereHas('sekolah', function ($q) use ($user) {
                     $q->where('kecamatan_id', $user->kecamatan_id);
                 });
             }
 
+            // Kalau ada filter waktu, filter berdasarkan tanggal_perawatan
             if ($request->filled('waktu')) {
                 $months = (int) $request->waktu;
-                $cutoff = \Carbon\Carbon::now()->subMonths($months)->format('Y-m-d');
-                $query->whereDate('tanggal_perawatan', '>=', $cutoff);
+                $cutoffDate = now()->subMonths($months)->startOfDay(); // Mulai dari awal hari
+                $query->whereDate('tanggal_perawatan', '>=', $cutoffDate);
             }
 
             return DataTables::of($query)
@@ -325,6 +327,7 @@ class AssetController extends Controller
         $assets = Asset::all();
         return view('asset.maintenance', compact('assets'));
     }
+
 
 
     /**
