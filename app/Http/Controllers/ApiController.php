@@ -153,16 +153,15 @@ class ApiController extends Controller
 
     public function PostStockOpname(Request $request, $idSchool)
     {
-        // $validated = $request->validate([
-        //     'stockOpname' => 'required|array',
-        //     'stockOpname.*.id' => 'required|integer|exists:assets,id',
-        //     'stockOpname.*.isThere' => 'required|boolean',
-        //     'stockOpname.*.condition' => 'required|string',
-        // ]);
+        $validated = $request->validate([
+            'stockOpname' => 'required|array',
+            'stockOpname.*.id' => 'required|integer|exists:assets,id',
+            'stockOpname.*.isThere' => 'required|boolean',
+        ]);
         $query = Asset::with('sekolah')->where('sekolah_id', $idSchool);
         $assets = $this->filterAssetByRole($query)->get();
 
-        foreach ($request->stockOpname as $item) {
+        foreach ($validated['stockOpname'] as $item) {
             $asset = Asset::where('id', $item['id'])
                 ->where('sekolah_id', $idSchool)
                 ->first();
