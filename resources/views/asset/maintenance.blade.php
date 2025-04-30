@@ -20,16 +20,13 @@
         <div class="col-12">
             <div class="card my-4">
                 <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
-
                     <div
                         class="bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3 d-flex justify-content-between align-items-center">
                         <h6 class="text-white text-capitalize ps-3 mb-0">Maintenance Aset</h6>
-
                     </div>
                 </div>
                 <div class="card-body table-responsive">
-                    <div class="d-flex justify-content-between align-items-center">
-
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div class="input-group mb-3" style="width: auto;">
                             <span class="input-group-text bg-primary text-white">
                                 <i class="fa-solid fa-filter"></i>
@@ -41,6 +38,12 @@
                                 <option value="6">6 Bulan</option>
                                 <option value="12">1 Tahun</option>
                             </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <button id="downloadPdf" class="btn btn-danger">
+                                <i class="fa-solid fa-file-pdf"></i> Download PDF
+                            </button>
                         </div>
                     </div>
 
@@ -74,67 +77,77 @@
 @push('scripts')
 <script type="text/javascript">
     $(document).ready(function() {
-    let table = $('#maintenanceTable').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: '{{ route('asset.maintenance') }}',
-            data: function (d) {
-                d.waktu = $('#filterWaktu').val();
-            }
-        },
-        columns: [
-            { data: 'name', name: 'name' },
-            { data: 'kondisi', name: 'kondisi' },
-            { data: 'tanggal_perawatan', name: 'tanggal_perawatan' },
-            {
-                data: 'waktu_perawatan',
-                name: 'waktu_perawatan',
-                render: function(data) {
-                    return data ? data + ' Bulan' : '-';
+        let table = $('#maintenanceTable').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route('asset.maintenance') }}',
+                data: function(d) {
+                    d.waktu = $('#filterWaktu').val(); // Ambil filter waktu
                 }
             },
-            {
-                data: 'harga_perawatan',
-                name: 'harga_perawatan',
-                render: function(data) {
-                    if (!data) data = 0;
-                    return 'Rp ' + parseInt(data).toLocaleString('id-ID');
+            columns: [
+                { data: 'name', name: 'name' },
+                { data: 'kondisi', name: 'kondisi' },
+                { data: 'tanggal_perawatan', name: 'tanggal_perawatan' },
+                {
+                    data: 'waktu_perawatan',
+                    name: 'waktu_perawatan',
+                    render: function(data) {
+                        return data ? data + ' Bulan' : '-';
+                    }
                 },
-                className: 'text-end',
-                orderable: false,
-                searchable: false
+                {
+                    data: 'harga_perawatan',
+                    name: 'harga_perawatan',
+                    render: function(data) {
+                        if (!data) data = 0;
+                        return 'Rp ' + parseInt(data).toLocaleString('id-ID');
+                    },
+                    className: 'text-end',
+                    orderable: false,
+                    searchable: false
+                }
+            ],
+            drawCallback: function(settings) {
+                let api = this.api();
+                let total = 0;
+
+                api.rows({ page: 'current' }).data().each(function(row) {
+                    let harga = row.harga_perawatan ?? 0;
+                    total += parseInt(harga);
+                });
+
+                $('#totalHarga').html('Rp ' + total.toLocaleString('id-ID'));
             }
-        ],
-        drawCallback: function(settings) {
-        let api = this.api();
-        let total = 0;
-        
-        api.rows({ page: 'current' }).data().each(function(row) {
-        let harga = row.harga_perawatan ?? 0;
-        total += parseInt(harga);
         });
-        
-        $('#totalHarga').html('Rp ' + total.toLocaleString('id-ID'));
-        }
-    });
 
-    // Trigger reload saat filter berubah
-    $('#filterWaktu').on('change', function() {
-        table.ajax.reload();
-    });
+        // Reload table saat filter berubah
+        $('#filterWaktu').on('change', function() {
+            table.ajax.reload();
+        });
 
-    // Format harga input pakai Inputmask
-    Inputmask({
-        alias: 'currency',
-        prefix: 'Rp ',
-        groupSeparator: '.',
-        digits: 0,
-        digitsOptional: false,
-        rightAlign: false,
-        removeMaskOnSubmit: true,
-        autoUnmask: true
-    }).mask('.price');
-});
+        // Tombol download PDF mengikuti filter waktu
+        $('#downloadPdf').on('click', function() {
+            let waktu = $('#filterWaktu').val();
+            let url = '{{ route('maintenance.pdf') }}';
+            if (waktu) {
+                url += '?waktu=' + waktu;
+            }
+            window.open(url);
+        });
+
+        // Format harga input (kalau kamu nanti punya input form)
+        Inputmask({
+            alias: 'currency',
+            prefix: 'Rp ',
+            groupSeparator: '.',
+            digits: 0,
+            digitsOptional: false,
+            rightAlign: false,
+            removeMaskOnSubmit: true,
+            autoUnmask: true
+        }).mask('.price');
+    });
 </script>
 @endpush

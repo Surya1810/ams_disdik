@@ -50,7 +50,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/mutation/pdf/{id}', [ApprovalController::class, 'mutationPdf'])->name('mutation.pdf');
     Route::get('/loan/pdf/{id}', [ApprovalController::class, 'loanPdf'])->name('loan.pdf');
     Route::get('/disposal/pdf/{id}', [ApprovalController::class, 'disposalPdf'])->name('disposal.pdf');
-
+    Route::get('/maintenance/pdf', [AssetController::class, 'maintenancePdf'])->name('maintenance.pdf');
 
     // Maintenance
     Route::get('/maintenance', [AssetController::class, 'maintenance'])->name('asset.maintenance');

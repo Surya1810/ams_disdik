@@ -19,6 +19,7 @@ use Intervention\Image\Drivers\Gd\Driver;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AssetController extends Controller
 {
@@ -323,9 +324,9 @@ class AssetController extends Controller
             // Kalau ada filter waktu, filter berdasarkan tanggal_perawatan
             if ($request->filled('waktu')) {
                 $months = (int) $request->waktu;
-                $cutoffDate = now()->subMonths($months)->startOfDay(); // Mulai dari awal hari
-                $query->whereDate('tanggal_perawatan', '>=', $cutoffDate);
+                $query->where('waktu_perawatan', '>=', $months);
             }
+
 
             return DataTables::of($query)
                 ->editColumn('tanggal_perawatan', function ($row) {
@@ -344,6 +345,34 @@ class AssetController extends Controller
         return view('asset.maintenance', compact('assets'));
     }
 
+    public function maintenancePdf(Request $request)
+    {
+        $user = Auth::user();
+
+        $query = \App\Models\Asset::query()
+            ->whereIn('kondisi', ['Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat']);
+
+        // Filter kecamatan jika bukan admin
+        if ($user->role != 'admin') {
+            $query->whereHas('sekolah', function ($q) use ($user) {
+                $q->where('kecamatan_id', $user->kecamatan_id);
+            });
+        }
+
+        // Filter waktu perawatan jika ada
+        if ($request->filled('waktu')) {
+            $months = (int) $request->waktu;
+            $cutoffDate = now()->subMonths($months)->startOfDay();
+            $query->whereDate('tanggal_perawatan', '>=', $cutoffDate);
+        }
+
+        $maintenanceList = $query->orderBy('tanggal_perawatan', 'desc')->get();
+
+        $pdf = PDF::loadView('asset.maintenance_pdf', compact('maintenanceList'));
+        return $pdf->download('berita_acara_barang_rusak.pdf');
+    }
+
+
     /**
      * Date: 28-04-2025
      * Export List Asset to Excel
@@ -358,7 +387,8 @@ class AssetController extends Controller
         $fileName = "List Data Aset - $date.xlsx";
 
         return Excel::download(
-            new AssetsExport($kondisi, $tempat, $tahun), $fileName
+            new AssetsExport($kondisi, $tempat, $tahun),
+            $fileName
         );
     }
 
@@ -366,7 +396,8 @@ class AssetController extends Controller
      * Date: 28-04-2025
      * Import Data Asset from Excel
      */
-    public function import(Request $request) {
+    public function import(Request $request)
+    {
         $validated = $request->validate([
             'file' => 'required|file|mimes:xlsx',
             'sekolah_id_import' => 'required|exists:sekolahs,id',
