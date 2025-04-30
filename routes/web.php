@@ -35,6 +35,7 @@ Route::middleware('auth')->group(function () {
     // =========================================================== Asset ==================================================================
     // Asset
     Route::resource('asset', AssetController::class);
+    Route::post('/asset/mark-maintained', [AssetController::class, 'markAsMaintained'])->name('asset.markMaintained');
     Route::get('mutation', [ApprovalController::class, 'mutation'])->name('asset.mutation');
     Route::get('loan', [ApprovalController::class, 'loan'])->name('asset.loan');
     Route::get('disposal', [ApprovalController::class, 'disposal'])->name('asset.disposal');
