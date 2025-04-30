@@ -271,6 +271,7 @@ class AssetController extends Controller
         }
     }
 
+
     /**
      * Display the specified resource.
      */
@@ -314,36 +315,110 @@ class AssetController extends Controller
             $query = \App\Models\Asset::query()
                 ->whereIn('kondisi', ['Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat']);
 
-            // Kalau user bukan admin, filter berdasarkan kecamatan_id
             if ($user->role != 'admin') {
                 $query->whereHas('sekolah', function ($q) use ($user) {
                     $q->where('kecamatan_id', $user->kecamatan_id);
                 });
             }
 
-            // Kalau ada filter waktu, filter berdasarkan tanggal_perawatan
             if ($request->filled('waktu')) {
-                $months = (int) $request->waktu;
-                $query->where('waktu_perawatan', '>=', $months);
+                $selected = (int) $request->waktu;
+                $allowed = [];
+
+                if ($selected === 3) {
+                    $allowed = [3];
+                } elseif ($selected === 6) {
+                    $allowed = [3, 6];
+                } elseif ($selected === 12) {
+                    $allowed = [3, 6, 12];
+                }
+
+                $query->whereIn('waktu_perawatan', $allowed);
             }
 
-
             return DataTables::of($query)
+                ->addColumn('checkbox', function ($row) {
+                    $tanggalPerawatan = $row->tanggal_perawatan
+                        ? \Carbon\Carbon::parse($row->tanggal_perawatan)
+                        : null;
+                    $hariIni = \Carbon\Carbon::today();
+
+                    if ($tanggalPerawatan && $tanggalPerawatan->lessThanOrEqualTo($hariIni)) {
+                        return '<input type="checkbox" class="maintenance-checkbox" data-id="' . $row->id . '" data-waktu="' . (int)$row->waktu_perawatan . '">';
+                    }
+                    return '';
+                })
+
                 ->editColumn('tanggal_perawatan', function ($row) {
-                    return $row->tanggal_perawatan ? \Carbon\Carbon::parse($row->tanggal_perawatan)->format('d-m-Y') : '-';
+                    return $row->tanggal_perawatan
+                        ? \Carbon\Carbon::parse($row->tanggal_perawatan)->format('d-m-Y')
+                        : '-';
                 })
                 ->editColumn('waktu_perawatan', function ($row) {
                     return $row->waktu_perawatan ? $row->waktu_perawatan . ' Bulan' : '-';
                 })
-                ->editColumn('harga_perawatan', function ($row) {
-                    return $row->harga_perawatan ?? 0;
+                ->editColumn('waktu_perawatan', function ($row) {
+                    return $row->waktu_perawatan ?? '-';
                 })
+                ->setRowClass(function ($row) {
+                    $waktuPerawatan = 0;
+
+                    if (!empty($row->waktu_perawatan) && is_numeric(trim($row->waktu_perawatan))) {
+                        $waktuPerawatan = (int) trim($row->waktu_perawatan);
+                    }
+
+                    $jatuhTempo = $row->tanggal_perawatan
+                        ? \Carbon\Carbon::parse($row->tanggal_perawatan)->addMonths($waktuPerawatan)
+                        : null;
+
+                    return ($jatuhTempo && $jatuhTempo->isPast()) ? 'table-danger' : '';
+                })
+
+
+                ->rawColumns(['checkbox'])
                 ->make(true);
         }
 
         $assets = Asset::all();
         return view('asset.maintenance', compact('assets'));
     }
+
+
+    public function markAsMaintained(Request $request)
+    {
+        $request->validate([
+            'assets' => 'required|array',
+            'assets.*.id' => 'required|exists:assets,id',
+            'assets.*.waktu' => 'required|integer|min:1'
+        ]);
+
+        try {
+            foreach ($request->assets as $assetData) {
+                $asset = Asset::find($assetData['id']);
+
+                $waktu = (int) $assetData['waktu']; // konversi ke integer!
+
+                if ($waktu > 0) {
+                    $tanggal_perawatan = now()->addMonths($waktu);
+                    $asset->tanggal_perawatan = $tanggal_perawatan;
+                }
+
+                $asset->save();
+            }
+
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tanggal perawatan berhasil diperbarui.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 
     public function maintenancePdf(Request $request)
     {
