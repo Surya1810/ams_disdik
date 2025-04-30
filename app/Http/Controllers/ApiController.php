@@ -137,7 +137,7 @@ class ApiController extends Controller
                 'school' => $asset->sekolah->name ?? '-',
                 'rfid' => $asset->rfid_number,
                 'room' => $asset->ruangan ?? '-',
-                'isThere' => (bool) $asset->is_there,
+                'isThere' => false,
                 'purcaseYear' => $asset->tahun_pembelian,
                 'condition' => $asset->kondisi,
             ];
