@@ -65,6 +65,7 @@ Route::middleware('auth')->group(function () {
 
     // Scan
     Route::resource('scan', ScanController::class);
+    Route::get('/api/scanned/assets', [ScanController::class, 'scannedAssets'])->name('scanned.assets');
 
     // Approval
     Route::resource('approval', ApprovalController::class);

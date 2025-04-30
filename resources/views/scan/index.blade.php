@@ -8,9 +8,9 @@
         <li class="breadcrumb-item text-sm">
             <a class="text-white opacity-5" href="javascript:;">Halaman</a>
         </li>
-        <li class="breadcrumb-item text-sm text-white active" aria-current="page">Scan</li>
+        <li class="breadcrumb-item text-sm text-white active" aria-current="page">History Stock Opname</li>
     </ol>
-    <h6 class="nav-breadcrumb font-weight-bolder text-white mb-0">Scan</h6>
+    <h6 class="nav-breadcrumb font-weight-bolder text-white mb-0">History Stock Opname</h6>
 </nav>
 @endsection
 
@@ -22,9 +22,9 @@
                 Refresh Data</button>
         </div>
     </div>
-    <div class="row">
+    <div>
         <!-- Tabel Asset -->
-        <div class="col-12 col-md-6">
+        <div class="col-12">
             <div class="card my-4">
                 <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
                     <div class="bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3">
@@ -33,35 +33,41 @@
                                 <h6 class="text-white text-capitalize ps-3">Asset Terdaftar</h6>
                             </div>
                             <div class="col-6 text-end ps-3 text-white pe-4">
-                                <small>Found: <strong id="totalIsThereTrue">0</strong></small>
-                                <small>Missing: <strong id="totalIsThereFalse">0</strong></small>
+                                <small>Found: <strong id="totalIsThereTrue">{{ $status['foundCount'] }}</strong></small>
+                                <small>Missing: <strong id="totalIsThereFalse">{{ $status['missingCount'] }}</strong></small>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="card-body table-responsive pb-2">
-                    <table id="assetTable" class="table text-sm mt-3">
-                        <thead class="font-weight-bolder">
-                            <tr>
-                                <th class="text-uppercase">Status</th>
-                                <th class="text-uppercase">RFID</th>
-                                <th class="text-uppercase">Kode Barang</th>
-                                <th class="text-uppercase">Nama/Jenis Barang</th>
-                                <th class="text-uppercase">Merk/Type</th>
-                                <th class="text-uppercase">Tahun Pembelian</th>
-                                <th class="text-uppercase">Kondisi</th>
-                                <th class="text-uppercase">Tempat</th>
-                                <th class="text-uppercase">Gedung</th>
-                                <th class="text-uppercase">Lantai</th>
-                                <th class="text-uppercase">Ruangan</th>
-                                <th class="text-uppercase">Detail</th>
-                                <th class="text-uppercase">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Data Asset -->
-                        </tbody>
-                    </table>
+                    <select id="filterStatus" class="form-select">
+                        <option value="">-- Semua Status --</option>
+                        <option value="1">FOUND</option>
+                        <option value="0">MISSING</option>
+                    </select>
+                    <div class="p-2 mb-3 overflow-x-scroll">
+                        <table id="assetTable" class="table text-sm mt-3">
+                            <thead class="font-weight-bolder">
+                                <tr>
+                                    <th class="text-uppercase">Status</th>
+                                    <th class="text-uppercase">RFID</th>
+                                    <th class="text-uppercase">Kode Barang</th>
+                                    <th class="text-uppercase">Nama/Jenis Barang</th>
+                                    <th class="text-uppercase">Merk/Type</th>
+                                    <th class="text-uppercase">Tahun Pembelian</th>
+                                    <th class="text-uppercase">Kondisi</th>
+                                    <th class="text-uppercase">Tempat</th>
+                                    <th class="text-uppercase">Gedung</th>
+                                    <th class="text-uppercase">Lantai</th>
+                                    <th class="text-uppercase">Ruangan</th>
+                                    <th class="text-uppercase">Detail</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data Asset -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="col-12 mb-3 text-center">
                     <button class="btn btn-primary rounded-partner" id="exportFound">
@@ -75,7 +81,7 @@
         </div>
 
         <!-- Tabel Tag -->
-        <div class="col-12 col-md-6">
+        <div class="col-12 mt-5 pt-3">
             <div class="card my-4">
                 <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
                     <div class="bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3">
@@ -84,10 +90,10 @@
                                 <h6 class="text-white text-capitalize ps-3">Scanned Data</h6>
                             </div>
                             <div class="col-6 text-end ps-3 text-white pe-4">
-                                <small class="float-right">Total :<strong id="totalRFID">0</strong>
+                                <small class="float-right">Total : <strong id="totalRFID">{{ $scansCount }}</strong>
                                     last checked: <strong>
-                                        @isset($last_checked->created_at)
-                                        {{ $last_checked->created_at }}
+                                        @isset($lastScan->created_at)
+                                        {{ $lastScan->created_at }}
                                         @endisset
                                     </strong>
                                 </small>
@@ -99,8 +105,8 @@
                     <table id="rfidTable" class="table text-sm mt-3">
                         <thead class="font-weight-bolder">
                             <tr>
-                                <th class="text-uppercase">RFID</th>
-                                <th class="text-uppercase">Timestamp</th>
+                                <th class="text-uppercase">Total Discan</th>
+                                <th class="text-uppercase">Waktu</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -116,142 +122,138 @@
 
 @push('scripts')
 <script type='text/javascript'>
-    let rfidTable = $('#rfidTable').DataTable({
-            "paging": true,
-            "processing": true,
-            "lengthChange": true,
-            "searching": true,
-            "info": true,
-            "autoWidth": false,
-            "responsive": false,
-            "ordering": true,
-            "serverSide": false,
-            "destroy": true,
-            "oLanguage": {
-                "sEmptyTable": "Waiting scanner data"
+    const rfidTable = $('#rfidTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: '{{ route('scanned.assets') }}',
+        },
+        columns: [
+            {
+                data: 'total',
+                name: 'total',
+                className: 'text-start'
             },
-            columns: [{
-                    data: 'rfid_number'
-                },
-                {
-                    data: 'timestamp'
-                }
-            ]
-        });
-
-        let assetTable = $('#assetTable').DataTable({
-            "paging": true,
-            "processing": true,
-            "lengthChange": true,
-            "searching": true,
-            "info": true,
-            "autoWidth": false,
-            "responsive": false,
-            "ordering": false,
-            "scrollX": true,
-            "serverSide": false,
-            "destroy": true,
-        });
-
-        // Variabel untuk menyimpan jumlah total
-        let totalRFID = 0;
-        let totalIsThereTrue = 0;
-        let totalIsThereFalse = 0;
-
-        // Fungsi untuk mengambil data RFID dari cache
-        function loadCachedData() {
-            $.getJSON('/api/scan-asset', function(response) {
-                if (response && response.data && response.data.tags) {
-                    totalRFID = response.data.total;
-                    updateRFIDTable(response.data.tags);
-                    updateTotalDisplay();
-                }
+            {
+                data: 'created_at',
+                name: 'created_at',
+                className: "text-start"
+            }
+        ],
+        drawCallback: function() {
+            $('[data-bs-toggle="tooltip"]').each(function() {
+                new bootstrap.Tooltip(this);
             });
         }
+    });
 
-        // Fungsi untuk memperbarui tabel asset dari API
-        function updateAssetTable(callback = null) {
-            $.getJSON('/api/assets', function(data) {
-                assetTable.clear();
+    const table = $('#assetTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: '{{ route('scan.index') }}',
+            data: function (d) {
+                d.is_there = $('#filterStatus').find(':selected').val();
+            }
+        },
+        rowCallback: function(row, data, index) {
+            // Cek isi kolom 'is_there' (karena pakai raw HTML <strong>)
+            const isFound = data.is_there.includes('FOUND');
 
-                totalIsThereTrue = 0;
-                totalIsThereFalse = 0;
-
-                data.forEach((asset) => {
-                    let rowNode = assetTable.row.add([ 
-                        asset.is_there ? ' <strong>FOUND</strong>' : '<strong>MISSING</strong>',
-                        asset.rfid_number,
-                        asset.kode,
-                        asset.name,
-                        asset.merk,
-                        asset.tahun_pembelian,
-                        asset.kondisi,
-                        asset.sekolah,
-                        asset.pinjaman,
-                        asset.room,
-                        asset.row,
-                        asset.rack,
-                        asset.box
-                    ]).node();
-
-                    if (asset.is_there) {
-                        totalIsThereTrue++;
-                        $(rowNode).addClass('bg-success-2');
-                    } else {
-                        totalIsThereFalse++;
-                        $(rowNode).addClass('bg-danger-2');
-                    }
-                });
-
-                assetTable.draw();
-                updateTotalDisplay();
-                if (callback) callback();
+            if (isFound) {
+                $(row).removeClass('bg-danger').addClass('bg-success text-white');
+            } else {
+                $(row).removeClass('bg-success').addClass('bg-danger text-white');
+            }
+        },
+        columns: [
+            {
+                data: 'is_there',
+                name: 'is_there',
+                className: 'text-start'
+            },
+            {
+                data: 'rfid_number',
+                name: 'rfid_number',
+                className: "text-start"
+            },
+            {
+                data: 'kode',
+                name: 'kode',
+                className: "text-start"
+            },
+            {
+                data: 'name',
+                name: 'name',
+                className: "text-start"
+            },
+            {
+                data: 'merk',
+                name: 'merk',
+                className: "text-start"
+            },
+            {
+                data: 'tahun_pembelian',
+                name: 'tahun_pembelian',
+                className: "text-start"
+            },
+            {
+                data: 'kondisi',
+                name: 'kondisi',
+                className: "text-start"
+            },
+            {
+                data: 'sekolah.name',
+                name: 'sekolah.name',
+                className: 'text-start'
+            },
+            {
+                data: 'gedung',
+                name: 'gedung',
+                className: 'text-start'
+            },
+            {
+                data: 'lantai',
+                name: 'lantai',
+                className: 'text-start'
+            },
+            {
+                data: 'ruangan',
+                name: 'ruangan',
+                className: 'text-start'
+            },
+            {
+                data: 'detail',
+                name: 'detail',
+                className: 'text-start'
+            }
+        ],
+        drawCallback: function() {
+            $('[data-bs-toggle="tooltip"]').each(function() {
+                new bootstrap.Tooltip(this);
             });
         }
+    });
 
-        // Fungsi untuk memperbarui tabel RFID
-        function updateRFIDTable(data) {
-            rfidTable.clear();
-            data.forEach((rfid) => {
-                rfidTable.row.add({
-                    rfid_number: rfid,
-                    timestamp: new Date().toLocaleTimeString('id-ID', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit'
-                    })
-                });
-            });
-            rfidTable.draw();
-        }
 
-        // Fungsi untuk update tampilan total
-        function updateTotalDisplay() {
-            $('#totalRFID').text(totalRFID);
-            $('#totalIsThereTrue').text(totalIsThereTrue);
-            $('#totalIsThereFalse').text(totalIsThereFalse);
-        }
+    // Tombol untuk mengekspor data Found
+    $('#exportFound').on('click', function () {
+        window.location.href = '/scan/export/found';
+    });
 
-        // Tombol untuk mengekspor data Found
-       $('#exportFound').on('click', function () {
-            window.location.href = '/scan/export/found';
-        });
-    
+    // Tombol untuk mengekspor data Missing
+    $('#exportMissing').on('click', function () {
+        window.location.href = '/scan/export/missing';
+    });
 
-        // Tombol untuk mengekspor data Missing
-        $('#exportMissing').on('click', function () {
-            window.location.href = '/scan/export/missing';
-        });
-        
+    // Tambahkan event listener ke tombol refresh manual
+    $('#refreshButton').on('click', function() {
+        table.ajax.reload();
+        rfidTable.ajax.reload();
+    });
 
-        // Tambahkan event listener ke tombol refresh manual
-        $('#refreshButton').on('click', function() {
-            loadCachedData();
-            updateAssetTable();
-        });
-
-        // Panggil pertama kali saat halaman dimuat
-        loadCachedData();
-        updateAssetTable();
+    $('#filterStatus').on('change', function () {
+        table.ajax.reload();
+    });
 </script>
 @endpush

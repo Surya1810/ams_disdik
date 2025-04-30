@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use App\Models\Sekolah;
 use App\Models\Asset;
 use App\Models\Approval;
+use App\Models\Scan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -136,7 +137,7 @@ class ApiController extends Controller
                 'school' => $asset->sekolah->name ?? '-',
                 'rfid' => $asset->rfid_number,
                 'room' => $asset->ruangan ?? '-',
-                'isThere' => (bool) $asset->is_there,
+                'isThere' => false,
                 'purcaseYear' => $asset->tahun_pembelian,
                 'condition' => $asset->kondisi,
             ];
@@ -152,16 +153,15 @@ class ApiController extends Controller
 
     public function PostStockOpname(Request $request, $idSchool)
     {
-        // $validated = $request->validate([
-        //     'stockOpname' => 'required|array',
-        //     'stockOpname.*.id' => 'required|integer|exists:assets,id',
-        //     'stockOpname.*.isThere' => 'required|boolean',
-        //     'stockOpname.*.condition' => 'required|string',
-        // ]);
+        $validated = $request->validate([
+            'stockOpname' => 'required|array',
+            'stockOpname.*.id' => 'required|integer|exists:assets,id',
+            'stockOpname.*.isThere' => 'required|boolean',
+        ]);
         $query = Asset::with('sekolah')->where('sekolah_id', $idSchool);
         $assets = $this->filterAssetByRole($query)->get();
 
-        foreach ($request->stockOpname as $item) {
+        foreach ($validated['stockOpname'] as $item) {
             $asset = Asset::where('id', $item['id'])
                 ->where('sekolah_id', $idSchool)
                 ->first();
@@ -172,6 +172,11 @@ class ApiController extends Controller
                 $asset->save();
             }
         }
+
+        Scan::create([
+            'total' => count($request->stockOpname),
+            'user_id' => Auth::user()->id
+        ]);
 
         return response()->json([
             'status' => 'success',

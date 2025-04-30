@@ -137,7 +137,7 @@
                 <li class="nav-item">
                     <a class="nav-link text-dark" href="{{ route('scan.index') }}">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <span class="nav-link-text ms-1">Scan</span>
+                        <span class="nav-link-text ms-1">History Stock Opname</span>
                     </a>
                 </li>
 

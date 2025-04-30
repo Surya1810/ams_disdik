@@ -22,7 +22,7 @@
         <div class="row">
             <div class="col-lg-8">
                 <div class="row">
-                    <div class="col-xl-6 mb-xl-0 mb-4">
+                    {{-- <div class="col-xl-6 mb-xl-0 mb-4">
                         <div class="card bg-transparent shadow-xl">
                             <div class="overflow-hidden position-relative border-radius-xl"
                                 style="background-image: url('https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/card-visa.jpg');">
@@ -49,47 +49,62 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-xl-6">
+                    </div> --}}
+                    <div class="col-xl-12">
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="card">
                                     <div class="card-header p-3 text-center">
-                                        <div class="d-flex align-items-center">
+                                        <div class="d-flex align-items-center justify-content-center">
                                             <div
                                                 class="icon icon-shape icon-lg bg-gradient-primary shadow text-center border-radius-lg">
-                                                <i class="fas fa-landmark opacity-10"></i>
+                                                <i class="fa-solid fa-boxes-packing"></i>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="card-body pt-0 p-3 text-center">
                                         <h6 class="text-center mb-0">Total Asset</h6>
-                                        <span class="text-xs">Belong Interactive</span>
                                         <hr class="horizontal dark my-3">
-                                        <h5 class="mb-0">+$2000</h5>
+                                        <h5 class="mb-0">{{ $data['assetsCount'] }}</h5>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6 mt-md-0 mt-4">
+                            <div class="col-md-4">
                                 <div class="card">
-                                    <div class="card-header mx-4 p-3 text-center">
+                                    <div class="card-header p-3 text-center">
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <div
+                                                class="icon icon-shape icon-lg bg-gradient-danger shadow text-center border-radius-lg">
+                                                <i class="fa-solid fa-boxes-packing"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body pt-0 p-3 text-center">
+                                        <h6 class="text-center mb-0">Asset Hilang</h6>
+                                        <hr class="horizontal dark my-3">
+                                        <h5 class="mb-0">{{ $data['kehilanganCount'] }}</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mt-md-0 mt-4">
+                                <div class="card">
+                                    <div class="card-header mx-4 p-3 d-flex justify-content-center align-items-center">
                                         <div
-                                            class="icon icon-shape icon-lg bg-gradient-primary shadow text-center border-radius-lg">
-                                            <i class="fab fa-paypal opacity-10"></i>
+                                            class="icon icon-shape icon-lg bg-gradient-success shadow text-center border-radius-lg">
+                                            <i class="fa-solid fa-tags"></i>
                                         </div>
                                     </div>
                                     <div class="card-body pt-0 p-3 text-center">
                                         <h6 class="text-center mb-0">Total Tag RFID</h6>
-                                        <span class="text-xs">Freelance Payment</span>
                                         <hr class="horizontal dark my-3">
-                                        <h5 class="mb-0">$455.00</h5>
+                                        <h5 class="mb-0">{{ $data['tagsCount'] }}</h5>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-12 mb-lg-0 mb-4">
-                        <div class="card mt-4">
+                        {{-- <div class="card mt-4">
                             <div class="card-header pb-0 p-3">
                                 <div class="row">
                                     <div class="col-6 d-flex align-items-center">
@@ -124,6 +139,23 @@
                                                 data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Card"></i>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div> --}}
+                        <div class="row mt-4">
+                            <div class="card col-md-4">
+                                <div class="card-header p-3 text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div
+                                            class="icon icon-shape icon-lg bg-gradient-warning shadow text-center border-radius-lg">
+                                            <i class="fas fa-boxes-packing opacity-10"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body pt-0 p-3 text-center">
+                                    <h6 class="text-center mb-0">Total Asset Dirawat</h6>
+                                    <hr class="horizontal dark my-3">
+                                    <h5 class="mb-0">{{ $data['perawatanCount'] }}</h5>
                                 </div>
                             </div>
                         </div>
