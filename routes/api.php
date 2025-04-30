@@ -14,12 +14,6 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    Route::get('/assets', function () {
-        return response()->json(
-            Asset::with(['tag:rfid_number,rfid_number'])->get()
-        );
-    });
-
     Route::post('/scan-asset', [ScanController::class, 'scanAsset']);
     Route::get('/scan-asset', [ScanController::class, 'getLatestScansAsset']);
 

@@ -8,16 +8,99 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ScanExport;
-use Illuminate\Support\Str;
+
+use Illuminate\Support\Facades\Auth;
+
+use Yajra\DataTables\Facades\DataTables;
 
 class ScanController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('scan.index');
+        $kecamatanId = Auth::user()->kecamatan_id;
+        $roleId = Auth::user()->role_id;
+
+        // Hitung status missing and found
+        $statusMissingCount = $roleId == 1
+            ? Asset::where('is_there', 0)->count()
+            : Asset::whereHas('sekolah', function ($query) use ($kecamatanId) {
+                $query->where('kecamatan_id', $kecamatanId);
+            })->where('is_there', 0)->get()->count();
+        $statusFoundCount = $roleId == 1
+            ? Asset::where('is_there', 1)->count()
+            : Asset::whereHas('sekolah', function ($query) use ($kecamatanId) {
+                $query->where('kecamatan_id', $kecamatanId);
+            })->where('is_there', 1)->get()->count();
+        $status = [
+            'foundCount' => $statusFoundCount,
+            'missingCount' => $statusMissingCount
+        ];
+
+        // Untuk role 1, bisa melihat semua aset
+        if ($roleId == 1) {
+            $assets = Asset::all();
+        } else {
+            // Untuk role 2 dan 3, hanya dapat melihat aset di kecamatan dan sekolah mereka
+            $assets = Asset::whereHas('sekolah', function ($query) use ($kecamatanId) {
+                $query->where('kecamatan_id', $kecamatanId);
+            })->with('sekolah')->get();
+        }
+
+        if ($request->ajax()) {
+            // Query untuk DataTables
+            $assetsQuery = Asset::with('sekolah');
+
+            // Filter berdasarkan kecamatan untuk role 2 dan 3
+            if ($roleId != 1) {
+                $assetsQuery->whereHas('sekolah', function ($query) use ($kecamatanId) {
+                    $query->where('kecamatan_id', $kecamatanId);
+                });
+            }
+
+            // Filter
+            if ($request->filled('is_there')) {
+                $assetsQuery->where('is_there', $request->is_there);
+            }
+
+            return DataTables::of($assetsQuery)
+                ->addColumn('is_there', fn($row) => $row->is_there ? '<strong>FOUND</strong>' : '<strong>MISSING</strong>')
+                ->rawColumns(['is_there'])
+                ->make(true);
+        }
+
+        // Hitung Scan
+        if ($roleId == 1) {
+            $scansCount = Scan::sum('total');
+            $lastScan = Scan::orderBy('id', 'DESC')->first();
+        } else {
+            $scansCount = Scan::where('user_id', Auth::user()->id)->sum('total');
+            $lastScan = Scan::orderBy('id', 'DESC')
+                ->where('user_id', Auth::user()->id)
+                ->first();
+        }
+
+        return view('scan.index', compact('status', 'scansCount', 'lastScan'));
+    }
+
+    public function scannedAssets(Request $request) {
+        $roleId = Auth::user()->role_id;
+
+        if ($request->ajax()) {
+            if ($roleId == 1) {
+                $scans = Scan::orderBy('id', 'DESC')->get();
+            } else {
+                $scans = Scan::where('user_id', Auth::user()->id)
+                    ->orderBy('id', 'DESC')->get();
+            }
+
+            return DataTables::of($scans)
+                ->addColumn('created_at', function ($scan) {
+                    return $scan->created_at->format('Y-m-d');
+                })->make(true);
+        }
     }
 
     /**
@@ -87,27 +170,16 @@ class ScanController extends Controller
         // Simpan log scan ke database
         $scan = new Scan();
         $scan->total = count($tags);
-        $scan->category = 'dokumen';
+        $scan->user_id = Auth::user()->id;
         $scan->save();
 
         // Update status asset berdasarkan RFID
         $this->updateRFIDStatus(Asset::class, $tags);
 
-        // Buat log scan tanpa database
-        $scanData = [
-            'total' => count($tags),
-            'category' => 'dokumen',
-            'tags' => $tags
-        ];
-
-        // Simpan log scan ke cache (TTL 30 detik)
-        Cache::put('latest_scan_asset', $scanData, 30);
-
         return response()->json([
             'status' => 'success',
             'message' => 'RFID scanned successfully',
             'total_scanned' => count($tags),
-            'category' => 'dokumen'
         ]);
     }
 
