@@ -283,9 +283,9 @@ class ApiController extends Controller
                     'lastMaintenance' => optional($asset->tanggal_perawatan)->format('d/m/Y'),
                     'merk' => $asset->merk,
                     'condition' => $asset->kondisi,
-                    'imageUrl' => $asset->foto_awal
-                        ? asset(Storage::url('assets/' . $asset->foto_awal))
-                        : 'https://placehold.co/1280x720'
+                    'imageUrl' => (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
+                        ? asset('assets/Image/no_image.png')
+                        : asset(Storage::url('assets/' . $asset->foto_awal)),
                 ],
                 'personInCharge' => [
                     'nip' => $asset->nip_pic,

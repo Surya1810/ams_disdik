@@ -60,14 +60,55 @@
                             </div>
                         @endif
 
-                        <div class="d-flex" id="buttonWrapper">
-                            <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
-                                data-bs-target="#addAset"> <i class="fa-solid fa-plus"></i> Tambah
-                            </button>
-                            <div id="filterWrapper">
-                                {{-- Filter Kondisi, Sekolah, Tahun Pembelian, dan Semua --}}
+                        <div class="d-flex justify-content-between" id="buttonWrapper">
+                            <div id="leftButtonWrapper" class="d-flex align-items-center gap-2 flex-wrap mb-3">
+                                <button type="button" class="btn bg-gradient-primary rounded-partner mb-0" data-bs-toggle="modal"
+                                    data-bs-target="#addAset"> <i class="fa-solid fa-plus"></i> Tambah
+                                </button>
+                                <div class="d-flex " id="filterWrapper">
+                                    {{-- Filter Kondisi --}}
+                                    <select id="filterKondisi" class="form-control w-auto">
+                                        <option value="">-- Semua Kondisi --</option>
+                                        <option value="Baik">
+                                            Baik
+                                        </option>
+                                        <option value="Perlu Perbaikan">
+                                            Perlu Perbaikan
+                                        </option>
+                                        <option value="Rusak Ringan">
+                                            Rusak Ringan
+                                        </option>>
+                                            Rusak Sedang
+                                        </option>
+                                        <option value="Rusak Berat">
+                                            Rusak Berat
+                                        </option>
+                                        <option value="Hilang">
+                                            Hilang
+                                        </option>
+                                    </select>
+                                    {{-- Filter Tempat/Lokasi/Sekolah --}}
+                                    <select id="filterTempat" class="form-control w-auto">
+                                        <option value="">-- Semua Tempat --</option>
+                                        @foreach ($places as $place)
+                                            <option value="{{ $place->id }}"
+                                                {{ old('sekolah_id') == $place->id ? 'selected' : '' }}>
+                                                {{ $place->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    {{-- Filter Tahun --}}
+                                    <select id="filterTahun" class="form-control w-auto">
+                                        <option value="">-- Semua Tahun --</option>
+                                        @foreach ($tahunPembelianArr as $tahun)
+                                            <option value="{{ $tahun }}">
+                                                {{ $tahun }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
-                            <div id="buttonExportImportWrapper" class="ms-auto">
+                            <div id="rightButtonWrapper" class="ms-auto">
                                 <button type="button" class="btn bg-gradient-success rounded-partner" id="buttonExport">
                                     <i class="fa-solid fa-download"></i> Export
                                 </button>
@@ -1355,7 +1396,14 @@
             const table = $('#asetTable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: '{{ route('asset.index') }}',
+                ajax: {
+                    url: '{{ route('asset.index') }}',
+                    data: function (d) {
+                        d.kondisi = $('#filterKondisi').find(':selected').val();
+                        d.tempat = $('#filterTempat').find(':selected').val();
+                        d.tahun_pembelian = $('#filterTahun').find(':selected').val();
+                    }
+                },
                 columns: [{
                         data: 'rfid_number',
                         name: 'rfid_number',
@@ -1402,6 +1450,11 @@
                         new bootstrap.Tooltip(this);
                     });
                 }
+            });
+
+            // Trigger reload saat filter diubah
+            $('#filterKondisi, #filterTempat, #filterTahun').on('change', function() {
+                table.ajax.reload();
             });
 
             // Fungsi untuk mengisi form modal (add, edit, show)
@@ -1521,7 +1574,20 @@
             // Event klik tombol export
             $('#buttonExport').on('click', function(e) {
                 e.preventDefault();
-                window.location.href = '/export/asset';
+
+                const kondisi = $('#filterKondisi').find(':selected').val();
+                const tempat = $('#filterTempat').find(':selected').val();
+                const tahun = $('#filterTahun').find(':selected').val();
+
+                // Buat URL dengan parameter yang tidak kosong
+                const params = new URLSearchParams();
+
+                if (kondisi !== '') params.append('kondisi', kondisi);
+                if (tempat !== '') params.append('tempat', tempat);
+                if (tahun !== '') params.append('tahun', tahun);
+
+                const url = '/export/asset' + (params.toString() ? '?' + params.toString() : '');
+                window.location.href = url;
             });
 
             // Event untuk buka modal import data aset
