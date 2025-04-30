@@ -15,19 +15,44 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 class AssetsExport implements FromCollection, WithEvents, WithTitle
 {
+    protected $kondisi;
+    protected $sekolahId; // tempat
+    protected $tahunPembelian;
+
+    public function __construct($kondisi = null, $sekolahId = null, $tahunPembelian = null)
+    {
+        $this->kondisi = $kondisi;
+        $this->sekolahId = $sekolahId;
+        $this->tahunPembelian = $tahunPembelian;
+    }
+
     public function collection()
     {
         $kecamatanId = Auth::user()->kecamatan_id;
         $roleId = Auth::user()->role_id;
 
         if ($roleId == 1) {
-            $asset = Asset::with('sekolah.kecamatan')->get();
+            $asset = Asset::with('sekolah.kecamatan');
         } else {
             $asset = Asset::whereHas('sekolah', function ($query) use ($kecamatanId) {
                 $query->where('kecamatan_id', $kecamatanId);
-            })->with('sekolah.kecamatan')->get();
+            })->with('sekolah.kecamatan');
         }
 
+        // Filter jika ada
+        if ($this->kondisi) {
+            $asset->where('kondisi', $this->kondisi);
+        }
+
+        if ($this->sekolahId) {
+            $asset->where('tempat', $this->sekolahId);
+        }
+
+        if ($this->tahunPembelian) {
+            $asset->where('tahun_pembelian', $this->tahunPembelian);
+        }
+
+        $asset = $asset->get();
         $asset = $asset->map(function ($row) {
             return [
                 // Informasi Barang

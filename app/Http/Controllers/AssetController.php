@@ -60,6 +60,19 @@ class AssetController extends Controller
                 });
             }
 
+            // Filter
+            if ($request->filled('kondisi')) {
+                $assetsQuery->where('kondisi', $request->kondisi);
+            }
+
+            if ($request->filled('tempat')) {
+                $assetsQuery->where('sekolah_id', $request->tempat);
+            }
+
+            if ($request->filled('tahun_pembelian')) {
+                $assetsQuery->where('tahun_pembelian', $request->tahun_pembelian);
+            }
+
             return DataTables::of($assetsQuery)
                 ->addColumn('kondisi_badge', function ($row) {
                     $badge = match ($row->kondisi) {
@@ -85,7 +98,10 @@ class AssetController extends Controller
                 ->make(true);
         }
 
-        return view('asset.index', compact('tags', 'places', 'asset'));
+        // Untuk pilihan di filter tahun pembelian
+        $tahunPembelianArr = $asset->pluck('tahun_pembelian')->unique()->values()->all();
+
+        return view('asset.index', compact('tags', 'places', 'asset', 'tahunPembelianArr'));
     }
 
 
@@ -332,12 +348,18 @@ class AssetController extends Controller
      * Date: 28-04-2025
      * Export List Asset to Excel
      */
-    public function export()
+    public function export(Request $request)
     {
+        $kondisi = $request->query('kondisi');
+        $tempat = $request->query('tempat');
+        $tahun  = $request->query('tahun');
+
         $date = date('Y-m-d');
         $fileName = "List Data Aset - $date.xlsx";
 
-        return Excel::download(new AssetsExport, $fileName);
+        return Excel::download(
+            new AssetsExport($kondisi, $tempat, $tahun), $fileName
+        );
     }
 
     /**
