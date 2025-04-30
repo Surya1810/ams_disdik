@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use App\Models\Sekolah;
 use App\Models\Asset;
 use App\Models\Approval;
+use App\Models\Scan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -172,6 +173,11 @@ class ApiController extends Controller
                 $asset->save();
             }
         }
+
+        Scan::create([
+            'total' => count($request->stockOpname),
+            'user_id' => Auth::user()->id
+        ]);
 
         return response()->json([
             'status' => 'success',
