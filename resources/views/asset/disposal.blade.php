@@ -32,12 +32,14 @@
                     <table id="disposalTable" class="table table-striped">
                         <thead>
                             <tr>
+                                <th hidden>ID</th>
                                 <th>No</th>
                                 <th>Keterangan</th>
                                 <th>Jenis</th>
                                 <th>User</th>
                                 <th>Status</th>
                                 <th>Tanggal</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                     </table>
@@ -147,12 +149,15 @@
                 processing: true,
                 serverSide: true,
                 ajax: '{{ route('asset.disposal') }}',
-                columns: [{ data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+                columns: [
+                { data: 'id', name: 'id', visible: false },
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
                 { data: 'keterangan', name: 'keterangan' },
                 { data: 'jenis', name: 'jenis', orderable: false, searchable: false },
                 { data: 'user', name: 'user' },
                 { data: 'status', name: 'status', orderable: false, searchable: false },
-                { data: 'created_at', name: 'created_at' }
+                { data: 'created_at', name: 'created_at' },
+                { data: 'action', name: 'action', orderable: false, searchable: false } // posisi terakhir
                 ]
             });
         });

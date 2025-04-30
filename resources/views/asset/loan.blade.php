@@ -32,12 +32,14 @@
                     <table id="loanTable" class="table text-sm mt-3">
                         <thead class="font-weight-bolder">
                             <tr>
+                                <th class="hidden">ID</th>
                                 <th class="text-uppercase">Nama Barang</th>
                                 <th class="text-uppercase">Diajukan Oleh</th>
                                 <th class="text-uppercase">Dari</th>
                                 <th class="text-uppercase">Ke</th>
                                 <th class="text-uppercase">Waktu</th>
                                 <th class="text-uppercase">Status</th>
+                                <th class="text-uppercase">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -239,47 +241,33 @@
         type: 'GET',
     },
     columns: [
-        { data: 'asset_name', name: 'asset_name' },
-        { data: 'requested_by', name: 'requested_by' },
-        {
-            data: function(row) {
-                if (row.from) {
-                    return `<div>
-                        <strong>NIP:</strong> ${row.from.nip_pic}<br>
-                        <strong>Nama:</strong> ${row.from.nama_pic}<br>
-                        <strong>Jabatan:</strong> ${row.from.jabatan_pic}<br>
-                        <strong>Telp:</strong> ${row.from.telp_pic}
-                    </div>`;
-                }
-                return '-';
-            },
-            name: 'from.nip_pic',
-            orderable: false,
-            searchable: false
-        },
-        {
-            data: function(row) {
-                if (row.to) {
-                    return `<div>
-                        <strong>NIP:</strong> ${row.to.nip_pic}<br>
-                        <strong>Nama:</strong> ${row.to.nama_pic}<br>
-                        <strong>Jabatan:</strong> ${row.to.jabatan_pic}<br>
-                        <strong>Telp:</strong> ${row.to.telp_pic}
-                    </div>`;
-                }
-                return '-';
-            },
-            name: 'to.nip_pic',
-            orderable: false,
-            searchable: false
-        },
-        { data: 'requested_at', name: 'requested_at' },
-        {
-            data: 'status', 
-            name: 'status',
-        },
+    { data: 'id', name: 'id', visible: false },
+    { data: 'asset_name', name: 'asset_name' },
+    { data: 'requested_by', name: 'requested_by' },
+    {
+    data: 'from',
+    orderable: false,
+    searchable: false
+    },
+    {
+    data: 'to',
+    orderable: false,
+    searchable: false
+    },
+    { data: 'requested_at', name: 'requested_at' },
+    { data: 'status', name: 'status' },
+    {
+    data: function(row) {
+    return `<a href="loan/pdf/${row.id}" title="Download PDF" style="color: #dc3545; text-decoration: none;">
+        <i class="fa-solid fa-file-pdf fa-lg"></i>
+    </a>`;
+    },
+    name: 'action',
+    orderable: false,
+    searchable: false
+    }
     ],
-    rawColumns: ['status', 'from', 'to']
+    rawColumns: ['from', 'to', 'status', 'action']
 });
 
 });

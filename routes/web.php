@@ -47,6 +47,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/import/asset', [AssetController::class, 'import'])->name('asset.import');
     Route::get('/scan/export/found', [ScanController::class, 'exportFound']);
     Route::get('/scan/export/missing', [ScanController::class, 'exportMissing']);
+    Route::get('/mutation/pdf/{id}', [ApprovalController::class, 'mutationPdf'])->name('mutation.pdf');
+    Route::get('/loan/pdf/{id}', [ApprovalController::class, 'loanPdf'])->name('loan.pdf');
+    Route::get('/disposal/pdf/{id}', [ApprovalController::class, 'disposalPdf'])->name('disposal.pdf');
+
 
     // Maintenance
     Route::get('/maintenance', [AssetController::class, 'maintenance'])->name('asset.maintenance');

@@ -34,12 +34,14 @@
                     <table id="mutationTable" class="table text-sm mt-3">
                         <thead class="font-weight-bolder text-uppercase">
                             <tr>
+                                <th hidden>ID</th>
                                 <th>Nama Barang</th>
                                 <th>Diajukan Oleh</th>
                                 <th>Dari</th>
                                 <th>Ke</th>
                                 <th>Waktu</th>
                                 <th>Status</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -165,44 +167,55 @@
                 type: 'GET',
             },
             columns: [
-                { data: 'asset_name', name: 'asset_name' },
-                { data: 'requested_by', name: 'requested_by' },
-                {
-                    data: function(row) {
-                        if (row.from) {
-                            return `<div>
-                                <strong>NIP:</strong> ${row.from.nip_pic}<br>
-                                <strong>Nama:</strong> ${row.from.nama_pic}<br>
-                                <strong>Jabatan:</strong> ${row.from.jabatan_pic}<br>
-                                <strong>Telp:</strong> ${row.from.telp_pic}
-                            </div>`;
-                        }
-                        return '-';
-                    },
-                    name: 'from.nip_pic',
-                    orderable: false,
-                    searchable: false
-                },
-                {
-                    data: function(row) {
-                        if (row.to) {
-                            return `<div>
-                                <strong>NIP:</strong> ${row.to.nip_pic}<br>
-                                <strong>Nama:</strong> ${row.to.nama_pic}<br>
-                                <strong>Jabatan:</strong> ${row.to.jabatan_pic}<br>
-                                <strong>Telp:</strong> ${row.to.telp_pic}
-                            </div>`;
-                        }
-                        return '-';
-                    },
-                    name: 'to.nip_pic',
-                    orderable: false,
-                    searchable: false
-                },
-                { data: 'requested_at', name: 'requested_at' },
-                { data: 'status', name: 'status' },
+            { data: 'id', name: 'id', visible: false },
+            { data: 'asset_name', name: 'asset_name' },
+            { data: 'requested_by', name: 'requested_by' },
+            {
+            data: function(row) {
+            if (row.from) {
+            return `<div>
+                <strong>NIP:</strong> ${row.from.nip_pic}<br>
+                <strong>Nama:</strong> ${row.from.nama_pic}<br>
+                <strong>Jabatan:</strong> ${row.from.jabatan_pic}<br>
+                <strong>Telp:</strong> ${row.from.telp_pic}
+            </div>`;
+            }
+            return '-';
+            },
+            name: 'from.nip_pic',
+            orderable: false,
+            searchable: false
+            },
+            {
+            data: function(row) {
+            if (row.to) {
+            return `<div>
+                <strong>NIP:</strong> ${row.to.nip_pic}<br>
+                <strong>Nama:</strong> ${row.to.nama_pic}<br>
+                <strong>Jabatan:</strong> ${row.to.jabatan_pic}<br>
+                <strong>Telp:</strong> ${row.to.telp_pic}
+            </div>`;
+            }
+            return '-';
+            },
+            name: 'to.nip_pic',
+            orderable: false,
+            searchable: false
+            },
+            { data: 'requested_at', name: 'requested_at' },
+            { data: 'status', name: 'status' },
+            {
+            data: function(row) {
+            return `<a href="mutation/pdf/${row.id}" title="Download PDF" style="color: #dc3545; text-decoration: none;">
+                <i class="fa-solid fa-file-pdf fa-lg"></i>
+            </a>`;
+            },
+            name: 'action',
+            orderable: false,
+            searchable: false
+            }
             ],
-            rawColumns: ['status', 'from', 'to'] // 'from' dan 'to' berisi HTML di client-side
+            rawColumns: ['status', 'from', 'to', 'action'] 
         });
     });
 </script>

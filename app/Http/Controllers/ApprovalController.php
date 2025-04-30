@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class ApprovalController extends Controller
 {
@@ -87,6 +89,7 @@ class ApprovalController extends Controller
                 ->latest();
 
             return DataTables::of($approvals)
+                ->addColumn('id', fn($row) => $row->id)
                 ->addColumn('asset_name', fn($row) => $row->asset->name ?? '-')
                 ->addColumn('requested_by', fn($row) => $row->requester->name ?? '-')
                 ->addColumn('from', function ($row) {
@@ -115,7 +118,7 @@ class ApprovalController extends Controller
                     }
                     return null;
                 })
-                ->addColumn('keterangan', fn($row) => $row->keterangan ?? '-') // <== Tambahan keterangan
+                ->addColumn('keterangan', fn($row) => $row->keterangan ?? '-')
                 ->addColumn('requested_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
                 ->addColumn('status', function ($row) {
                     $color = match ($row->status) {
@@ -142,7 +145,6 @@ class ApprovalController extends Controller
         return view('asset.mutation', compact('assets'));
     }
 
-
     public function loan(Request $request)
     {
         $user = Auth::user();
@@ -153,6 +155,7 @@ class ApprovalController extends Controller
                 ->where('requested_by', Auth::id());
 
             return DataTables::of($approvals)
+                ->addColumn('id', fn($row) => $row->id)
                 ->addColumn('asset_name', fn($row) => $row->asset->name ?? '-')
                 ->addColumn('requested_by', fn($row) => $row->requester->name ?? '-')
                 ->addColumn('from', function ($row) {
@@ -195,7 +198,7 @@ class ApprovalController extends Controller
                     };
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
                 })
-                ->rawColumns(['status'])  // Beri rawColumns untuk status karena berupa HTML
+                ->rawColumns(['status', 'from', 'to'])  // Beri rawColumns untuk status karena berupa HTML
                 ->make(true);
         }
 
@@ -221,6 +224,7 @@ class ApprovalController extends Controller
                 ->latest();
 
             return DataTables::of($data)
+                ->addColumn('id', fn($row) => $row->id)
                 ->addIndexColumn() // <-- supaya ada nomor urut otomatis (No)
                 ->addColumn('keterangan', function ($row) {
                     $payload = json_decode($row->payload, true);
@@ -244,10 +248,16 @@ class ApprovalController extends Controller
                     };
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
                 })
+                ->addColumn('action', function ($row) {
+                    $url = route('disposal.pdf', $row->id);
+                    return '<a href="' . $url . '" title="Download PDF" style="color: #dc3545; text-decoration: none;">
+        <i class="fa-solid fa-file-pdf fa-lg"></i>';
+                })
+
                 ->editColumn('created_at', function ($row) {
                     return $row->created_at->format('d-m-Y H:i');
                 })
-                ->rawColumns(['jenis', 'status']) // badge HTML biar muncul
+                ->rawColumns(['jenis', 'status', 'action']) // badge HTML biar muncul
                 ->make(true);
         }
 
@@ -258,7 +268,38 @@ class ApprovalController extends Controller
         return view('asset.disposal', compact('assets'));
     }
 
+    public function mutationPdf($id)
+    {
+        Carbon::setLocale('id');
+        $mutation = Approval::with('asset')->findOrFail($id);
 
+        $pdf = Pdf::loadView('asset.mutation_pdf', compact('mutation'));
+        return $pdf->download("berita_Acara_Mutasi_{$mutation->id}.pdf");
+    }
+
+    public function loanPdf($id)
+    {
+        Carbon::setLocale('id');
+        $loan = Approval::with('asset')->findOrFail($id);
+
+        $pdf = Pdf::loadView('asset.loan_pdf', compact('loan'));
+        return $pdf->download("Berita_Acara_Pinjam_{$loan->id}.pdf");
+    }
+
+    public function disposalPdf($id)
+    {
+        Carbon::setLocale('id');
+        $disposal = Approval::with('asset')->findOrFail($id);
+
+        $payload = json_decode($disposal->payload, true);
+        $jenis = $payload['jenis'] ?? 'disposal';
+
+        // Nama file hanya berdasarkan jenis saja
+        $fileName = "Berita_Acara_" . ucfirst($jenis) . ".pdf";
+
+        $pdf = Pdf::loadView('asset.disposal_pdf', compact('disposal'))->setPaper('A4');
+        return $pdf->download($fileName);
+    }
 
     /**
      * Show the form for creating a new resource.
