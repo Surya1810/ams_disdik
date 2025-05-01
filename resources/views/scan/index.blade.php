@@ -161,9 +161,9 @@
             const isFound = data.is_there.includes('FOUND');
 
             if (isFound) {
-                $(row).removeClass('bg-danger').addClass('bg-success text-white');
+                $(row).removeClass('table-danger').addClass('table-success');
             } else {
-                $(row).removeClass('bg-success').addClass('bg-danger text-white');
+                $(row).removeClass('table-success').addClass('table-danger');
             }
         },
         columns: [

@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\ApprovalController;
+use App\Http\Controllers\ScanController;
 
-Route::controller(ApprovalController::class)->group(function () {
+Route::controller(ScanController::class)->group(function () {
     Route::resource('scan', ScanController::class);
     Route::get('/scan/export/found', 'exportFound');
     Route::get('/scan/export/missing', 'exportMissing');
