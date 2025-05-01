@@ -75,6 +75,9 @@ class AssetController extends Controller
             }
 
             return DataTables::of($assetsQuery)
+                ->addColumn('sekolah_name', function ($row) {
+                    return $row->sekolah->category . ' ' . $row->sekolah->name;
+                })
                 ->addColumn('kondisi_badge', function ($row) {
                     $badge = match ($row->kondisi) {
                         'Baik' => '<span class="badge bg-success">Baik</span>',
@@ -103,15 +106,6 @@ class AssetController extends Controller
         $tahunPembelianArr = $asset->pluck('tahun_pembelian')->unique()->values()->all();
 
         return view('asset.index', compact('tags', 'places', 'asset', 'tahunPembelianArr'));
-    }
-
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -262,22 +256,13 @@ class AssetController extends Controller
                 'changed_fields' => json_encode($changedFields),
             ]);
 
-            return redirect()->route('asset.index')->with(['pesan' => 'Aset berhasil diperbarui', 'level-alert' => 'alert-warning']);
+            return redirect()->route('asset.index')->with(['pesan' => 'Aset berhasil diperbarui', 'level-alert' => 'alert-success']);
         } catch (\Exception $e) {
             return redirect()->back()->with([
                 'pesan' => 'Terjadi kesalahan saat memperbarui aset: ' . $e->getMessage(),
                 'level-alert' => 'alert-danger',
             ]);
         }
-    }
-
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Asset $asset)
-    {
-        //
     }
 
     /**
@@ -297,14 +282,6 @@ class AssetController extends Controller
             'tags' => $tags,
             'places' => $places,
         ]);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Asset $asset)
-    {
-        //
     }
 
     public function maintenance(Request $request)
@@ -419,7 +396,6 @@ class AssetController extends Controller
         }
     }
 
-
     public function maintenancePdf(Request $request)
     {
         $user = Auth::user();
@@ -481,10 +457,12 @@ class AssetController extends Controller
         $import = new AssetsImport($validated['sekolah_id_import']);
         Excel::import($import, $request->file('file'));
 
+        // dd($import->getErrors());
+
         if ($import->getErrors()) {
             return redirect()->route('asset.index')->with([
-                'pesan' => 'Import selesai dengan beberapa error.',
-                'errors' => $import->getErrors(),
+                'pesan' => 'Import data aset gagal. Silahkan periksa pesan error.',
+                'list_errors' => $import->getErrors(),
                 'level-alert' => 'alert-warning',
             ]);
         }

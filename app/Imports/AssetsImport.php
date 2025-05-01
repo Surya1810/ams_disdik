@@ -6,6 +6,7 @@ use App\Models\Asset;
 use App\Models\Tag;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -31,8 +32,15 @@ class AssetsImport implements ToCollection, WithHeadingRow
                     continue;
                 }
 
-                if (!Tag::where('rfid_number', $row['tag'])->exists()) {
+                $tag = Tag::where('rfid_number', $row['tag'])->first();
+
+                if (!$tag->exists()) {
                     $this->errors[] = "Baris {$rowNumber}: tag '{$row['tag']}' tidak ditemukan.";
+                    continue;
+                }
+
+                if ($tag->kecamatan_id != Auth::user()->kecamatan_id) {
+                    $this->errors[] = "Baris {$rowNumber}: tag '{$row['tag']}' tidak tersedia.";
                     continue;
                 }
 

@@ -55,7 +55,6 @@
             </div>
         </div>
 
-
         <hr class="horizontal dark mt-0">
 
         <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
@@ -64,13 +63,6 @@
                     <a class="nav-link text-dark" href="{{ route('dashboard') }}">
                         <i class="fa-solid fa-house"></i>
                         <span class="nav-link-text ms-1">Dashboard</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link text-dark" href="{{ route('report.index') }}">
-                        <i class="fa-solid fa-chart-column"></i>
-                        <span class="nav-link-text ms-1">Report</span>
                     </a>
                 </li>
 

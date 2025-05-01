@@ -45,15 +45,15 @@
                         </div>
                     </div>
                     <div class="card-body table-responsive pb-2">
-                        @if (session('errors'))
+                        @if (session('list_errors'))
                             <div class="alert alert-warning alert-dismissible fade show">
                                 <button type="button" class="btn-close fw-bold text-dark" data-bs-dismiss="alert"
                                     aria-label="Close">
                                     &times;
                                 </button>
                                 <strong>Beberapa data gagal diimport:</strong>
-                                <ul>
-                                    @foreach (session('errors') as $error)
+                                <ul class="overflow-y-auto" style="max-height: 100px">
+                                    @foreach (session('list_errors') as $error)
                                         <li>{{ $error }}</li>
                                     @endforeach
                                 </ul>
@@ -65,41 +65,46 @@
                                 <button type="button" class="btn bg-gradient-primary rounded-partner mb-0" data-bs-toggle="modal"
                                     data-bs-target="#addAset"> <i class="fa-solid fa-plus"></i> Tambah
                                 </button>
-                                <div class="d-flex " id="filterWrapper">
-                                    {{-- Filter Kondisi --}}
-                                    <select id="filterKondisi" class="form-control w-auto">
-                                        <option value="">-- Semua Kondisi --</option>
-                                        <option value="Baik">
-                                            Baik
-                                        </option>
-                                        <option value="Perlu Perbaikan">
-                                            Perlu Perbaikan
-                                        </option>
-                                        <option value="Rusak Ringan">
-                                            Rusak Ringan
-                                        </option>>
-                                            Rusak Sedang
-                                        </option>
-                                        <option value="Rusak Berat">
-                                            Rusak Berat
-                                        </option>
-                                        <option value="Hilang">
-                                            Hilang
-                                        </option>
-                                    </select>
+                                <div class="d-flex gap-2" id="filterWrapper">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-primary text-white">
+                                            <i class="fa-solid fa-filter"></i>
+                                        </span>
+                                        {{-- Filter Kondisi --}}
+                                        <select id="filterKondisi" class="form-control w-auto ps-2">
+                                            <option value="">Semua Kondisi</option>
+                                            <option value="Baik">
+                                                Baik
+                                            </option>
+                                            <option value="Perlu Perbaikan">
+                                                Perlu Perbaikan
+                                            </option>
+                                            <option value="Rusak Ringan">
+                                                Rusak Ringan
+                                            </option>>
+                                                Rusak Sedang
+                                            </option>
+                                            <option value="Rusak Berat">
+                                                Rusak Berat
+                                            </option>
+                                            <option value="Hilang">
+                                                Hilang
+                                            </option>
+                                        </select>
+                                    </div>
                                     {{-- Filter Tempat/Lokasi/Sekolah --}}
                                     <select id="filterTempat" class="form-control w-auto">
-                                        <option value="">-- Semua Tempat --</option>
+                                        <option value="">Semua Tempat </option>
                                         @foreach ($places as $place)
                                             <option value="{{ $place->id }}"
                                                 {{ old('sekolah_id') == $place->id ? 'selected' : '' }}>
-                                                {{ $place->name }}
+                                                {{ $place->category . ' ' . $place->name }}
                                             </option>
                                         @endforeach
                                     </select>
                                     {{-- Filter Tahun --}}
                                     <select id="filterTahun" class="form-control w-auto">
-                                        <option value="">-- Semua Tahun --</option>
+                                        <option value="">Semua Tahun</option>
                                         @foreach ($tahunPembelianArr as $tahun)
                                             <option value="{{ $tahun }}">
                                                 {{ $tahun }}
@@ -1435,8 +1440,8 @@
                         className: "text-start"
                     },
                     {
-                        data: 'sekolah.name',
-                        name: 'sekolah.name'
+                        data: 'sekolah_name',
+                        name: 'sekolah_name'
                     },
                     {
                         data: 'action',
