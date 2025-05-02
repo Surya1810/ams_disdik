@@ -29,8 +29,6 @@ class ReportController extends Controller
             $query->where('kecamatan_id', $kecamatanId);
         })->with('sekolah')->get();
 
-        // dd($assetsQuery);
-
         // Hitung asset
         $assetsCount = ($roleId === 1 || $roleId === 2) ? Asset::count() : $assetsQuery->count();
         $assetsNilai = ($roleId === 1 || $roleId === 2)
@@ -61,9 +59,6 @@ class ReportController extends Controller
         $tagsUsedCount = ($roleId === 1 || $roleId === 2)
             ? Tag::where('status', 'used')->count()
             : Tag::where('kecamatan_id', $kecamatanId)->where('status', 'used')->count();
-
-            // dd($kecamatanId);
-            // dd(Tag::where('kecamatan_id', $kecamatanId)->where('status', 'used')->count());
 
         // Tahun Pembelian
         $tahunPembelianArr = ($roleId === 1 || $roleId === 2)

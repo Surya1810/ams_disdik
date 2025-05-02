@@ -3,12 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Http\RedirectResponse;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
@@ -27,7 +25,7 @@ class ProfileController extends Controller
             'name' => 'required|unique:users,name,' . $user->id,
         ]);
 
-        $user->email = $request->email;
+        $user->name = $request->name;
         $user->update();
         return redirect()->back()->with(['pesan' => 'Profile updated successfully', 'level-alert' => 'alert-success']);
     }
@@ -54,14 +52,5 @@ class ProfileController extends Controller
         } else {
             return redirect()->back()->with(['pesan' => 'Current password not match', 'level-alert' => 'alert-danger']);
         }
-    }
-
-    /**Delete the user's account.*/
-    public function destroy(Request $request, $id)
-    {
-        return redirect()->back()->with([
-            'pesan' => 'Please contact admin',
-            'level-alert' => 'alert-danger'
-        ]);
     }
 }

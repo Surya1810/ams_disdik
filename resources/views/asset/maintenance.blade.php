@@ -28,7 +28,7 @@
                 <div class="card-body table-responsive">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div class="input-group mb-3" style="width: auto;">
-                            <span class="input-group-text bg-primary text-white">
+                            <span class="input-group-text bg-primary text-white border-0">
                                 <i class="fa-solid fa-filter"></i>
                             </span>
                             <select id="filterWaktu" class="form-select" style="box-shadow: none; appearance: none; width: 200px;">
@@ -38,7 +38,7 @@
                                 <option value="12">1 Tahun</option>
                             </select>
                         </div>
-                
+
                         <div class="mb-3">
                             <button id="downloadPdf" class="btn btn-primary">
                                 <i class="fa-solid fa-file-pdf"></i> Download PDF
@@ -48,7 +48,7 @@
                             </button>
                         </div>
                     </div>
-                
+
                     <div class="table-responsive">
                         <table id="maintenanceTable" class="table text-sm mt-3">
                             <thead class="font-weight-bolder text-uppercase">
@@ -70,7 +70,7 @@
                             </tfoot>
                         </table>
                     </div>
-                
+
                    <div class="card mt-4 border-0 shadow" style="background-color: #fff3cd;">
                     <div
                         class="card-body d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center py-4">
@@ -113,7 +113,7 @@
                 let today = new Date();
                 today.setHours(0,0,0,0);
                 tanggalPerawatan.setHours(0,0,0,0);
-                
+
                 if (tanggalPerawatan
                 <= today) { return `<input type="checkbox" class="maintenance-checkbox" data-id="${row.id}"
                     data-waktu="${row.waktu_perawatan ?? 0}" />`;

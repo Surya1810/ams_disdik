@@ -67,7 +67,7 @@
                                 </button>
                                 <div class="d-flex gap-2" id="filterWrapper">
                                     <div class="input-group">
-                                        <span class="input-group-text bg-primary text-white">
+                                        <span class="input-group-text bg-primary text-white border-0">
                                             <i class="fa-solid fa-filter"></i>
                                         </span>
                                         {{-- Filter Kondisi --}}

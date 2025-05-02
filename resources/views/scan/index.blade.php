@@ -40,11 +40,18 @@
                     </div>
                 </div>
                 <div class="card-body table-responsive pb-2">
-                    <select id="filterStatus" class="form-select">
-                        <option value="">-- Semua Status --</option>
-                        <option value="1">FOUND</option>
-                        <option value="0">MISSING</option>
-                    </select>
+                    <div class="col-md-2">
+                        <div class="input-group">
+                            <span class="input-group-text bg-primary text-white border-0">
+                                <i class="fa-solid fa-filter"></i>
+                            </span>
+                            <select id="filterStatus" class="form-select">
+                                <option value="">Semua Status</option>
+                                <option value="1">FOUND</option>
+                                <option value="0">MISSING</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="p-2 mb-3 overflow-x-scroll">
                         <table id="assetTable" class="table text-sm mt-3">
                             <thead class="font-weight-bolder">

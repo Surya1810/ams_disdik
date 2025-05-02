@@ -25,6 +25,14 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css" />
 
     @stack('css')
+
+    <style type="text/css">
+        #linkProfile:hover {
+            p, small {
+                color: #3006c7!important;
+            }
+        }
+    </style>
 </head>
 
 <body class="g-sidenav-show bg-gray-100">
@@ -49,10 +57,10 @@
         <div class="d-flex align-items-center justify-content-center my-3">
             <img src="{{ asset('assets/Image/profile/profile.jpg') }}" alt="Avatar"
                 class="rounded-circle shadow me-2" width="45" height="45">
-            <div class="d-flex flex-column">
+            <a href="{{ route('profile.edit') }}" class="d-flex flex-column" id="linkProfile">
                 <p class="text-dark fw-bold mb-0">{{ Auth::user()->name }}</p>
                 <small class="text-dark">{{ Auth::user()->role->name }}</small>
-            </div>
+            </a>
         </div>
 
         <hr class="horizontal dark mt-0">
