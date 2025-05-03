@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Scan')
+@section('title', 'History Stock Opname')
 
 @push('css')
     <style>

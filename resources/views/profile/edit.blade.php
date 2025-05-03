@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Tag RFID')
+@section('title', 'Profile Settings')
 
 @section('navbar')
     <nav aria-label="breadcrumb">
