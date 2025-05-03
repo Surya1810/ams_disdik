@@ -553,7 +553,7 @@
                                             @foreach ($places as $place)
                                                 <option value="{{ $place->id }}"
                                                     {{ old('sekolah_id') == $place->id ? 'selected' : '' }}>
-                                                    {{ $place->name }}
+                                                    {{ $place->category . ' ' . $place->name }}
                                                 </option>
                                             @endforeach
                                         </select>

@@ -34,13 +34,23 @@ class AssetsImport implements ToCollection, WithHeadingRow
 
                 $tag = Tag::where('rfid_number', $row['tag'])->first();
 
+                // Error saat tag tidak ditemukan
                 if (!$tag->exists()) {
                     $this->errors[] = "Baris {$rowNumber}: tag '{$row['tag']}' tidak ditemukan.";
                     continue;
                 }
 
+                // Error saat tag tidak sesuai dengan miliknya
                 if ($tag->kecamatan_id != Auth::user()->kecamatan_id) {
                     $this->errors[] = "Baris {$rowNumber}: tag '{$row['tag']}' tidak tersedia.";
+                    continue;
+                }
+
+                // Error saat tag sudah digunakan
+                $tagIsUsed = Asset::where('rfid_number', $row['tag'])->first();
+
+                if ($tagIsUsed) {
+                    $this->errors[] = "Baris {$rowNumber}: tag '{$row['tag']}' sudah digunakan.";
                     continue;
                 }
 
