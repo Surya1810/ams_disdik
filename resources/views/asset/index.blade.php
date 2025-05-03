@@ -1335,7 +1335,9 @@
                                         <option value="" selected disabled hidden>
                                         </option>
                                         @foreach ($places as $place)
-                                            <option value="{{ $place->id }}">{{ $place->name }}</option>
+                                            <option value="{{ $place->id }}">
+                                                {{ $place->category . ' ' . $place->name }}
+                                            </option>
                                         @endforeach
                                     </select>
                                     @error('sekolah_id_import')
