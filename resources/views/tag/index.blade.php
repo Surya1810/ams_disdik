@@ -23,18 +23,35 @@
                         </div>
                     </div>
                     <div class="card-body table-responsive pb-2">
-                        <div class="d-flex" id="buttonWrapper">
-                        @if (Auth::user()->role_id == 1)
-                            <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
-                                data-bs-target="#addTagModal">
-                                <i class="fa-solid fa-plus"></i> Inject
-                            </button>
-                        @elseif (Auth::user()->role_id == 2)
-                            <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
-                                data-bs-target="#distributeTagModal">
-                                <i class="fa-solid fa-share-nodes"></i> Distribusi
-                            </button>
-                        @endif
+                        <div class="d-flex gap-2" id="buttonWrapper">
+                            @if (Auth::user()->role_id == 1)
+                                <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
+                                    data-bs-target="#addTagModal">
+                                    <i class="fa-solid fa-plus"></i> Inject
+                                </button>
+                            @elseif (Auth::user()->role_id == 2)
+                                <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
+                                    data-bs-target="#distributeTagModal">
+                                    <i class="fa-solid fa-share-nodes"></i> Distribusi
+                                </button>
+                            @endif
+                            <div class="col-auto">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-primary text-white border-0">
+                                        <i class="fa-solid fa-filter"></i>
+                                    </span>
+                                    {{-- Filter Kondisi --}}
+                                    <select id="filterStatus" class="form-control w-auto ps-2">
+                                        <option value="">Semua Status</option>
+                                        <option value="used">
+                                            USED
+                                        </option>
+                                        <option value="available">
+                                            AVAILABLE
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
                             <div id="buttonExportWrapper" class="ms-auto">
                                 <button type="button" class="btn bg-gradient-success rounded-partner" id="buttonExport">
                                     <i class="fa-solid fa-download"></i> Export
@@ -172,7 +189,12 @@
             const table = $('#tagTable').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('tag.index') }}",
+                ajax: {
+                    url: "{{ route('tag.index') }}",
+                    data: function (d) {
+                        d.status = $('#filterStatus').find(':selected').val();
+                    }
+                },
                 columns: [{
                         data: 'rfid_number',
                         name: 'rfid_number',
@@ -204,6 +226,16 @@
                     });
                 }
             });
+
+            /**
+             * Date: 03-05-2025
+             * Digunakan untuk trigger select filter status
+             **/
+            $('#filterStatus').on('change', function(e) {
+                e.preventDefault();
+                table.ajax.reload();
+            });
+
 
             $('.kecamatan_id').select2({
             placeholder: 'Pilih Kecamatan',
@@ -283,12 +315,18 @@
         }
 
         /**
-         * Date: 28-04-2025
+         * Date: 03-05-2025
          * Event listener for export button
          **/
         $('#buttonExport').on('click', function (e) {
             e.preventDefault();
-            window.location.href = '/export/tag';
+            const status = $('#filterStatus').find(':selected').val();
+            const params = new URLSearchParams();
+
+            if (status !== '') params.append('status', status);
+
+            const url = '/export/tag' + (params.toString() ? '?' + params.toString() : '');
+            window.location.href = url;
         });
     </script>
 @endpush

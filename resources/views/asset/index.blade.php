@@ -81,7 +81,7 @@
                                             </option>
                                             <option value="Rusak Ringan">
                                                 Rusak Ringan
-                                            </option>>
+                                            </option>
                                                 Rusak Sedang
                                             </option>
                                             <option value="Rusak Berat">
@@ -1306,7 +1306,14 @@
                             <form action="{{ route('asset.import') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <div class="mb-3">
-                                    <label>Range Tag Tersedia</label>
+                                    <label class="d-flex align-items-center gap-2">
+                                        <span>
+                                            Tag Tersedia:
+                                        </span>
+                                        <a href="{{ route('tag.index') }}" class="badge badge-sm bg-gradient-primary mb-0" target="_blank" rel="noopener" title="Lihat List Tag">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                    </label>
                                     <div class="input-group">
                                         <input type="text" class="form-control" value="{{ $availableTags['firstTagAvailable'] }}" style="text-align: center" disabled>
                                         <span class="input-group-text">s.d.</span>
@@ -1570,7 +1577,7 @@
                 // Preview gambar
                 const $previewImg = $(`${selector} #previewImg`);
                 if (asset.foto_awal) {
-                    $previewImg.attr('src', `/storage/assets/${asset.foto_awal}`).show();
+                    $previewImg.attr('src', `/storage/public/assets/${asset.foto_awal}`).show();
                 } else {
                     $previewImg.hide();
                 }

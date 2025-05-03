@@ -25,6 +25,10 @@ class TagController extends Controller
                 ? Tag::with('kecamatan')
                 : Tag::with('kecamatan')->where('kecamatan_id', Auth::user()->kecamatan_id);
 
+            if ($request->filled('status')) {
+                $tags = $tags->where('status', $request->status);
+            }
+
             return DataTables::of($tags)
                 ->addColumn('kecamatan', function ($tag) {
                     return $tag->kecamatan ? $tag->kecamatan->name : '-';
@@ -115,12 +119,16 @@ class TagController extends Controller
         }
     }
 
-    public function export()
+    public function export(Request $request)
     {
         $date = date('Y-m-d');
-        $fileName = "List Tag RFID - $date.xlsx";
+        $fileName = "List Tag RFID - $date";
+        $status = $request->query('status');
 
-        return Excel::download(new TagsExport, $fileName);
+        return Excel::download(
+            new TagsExport($status),
+            $fileName . ' - ' . ($status ? strtoupper($status) : 'SEMUA STATUS') . '.xlsx'
+        );
     }
 
     public function distribute(Request $request)

@@ -13,17 +13,27 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 
 class TagsExport implements FromCollection, WithHeadings, WithStyles, WithEvents, WithTitle
 {
+    protected $status;
+
+    public function __construct($status = null)
+    {
+        $this->status = $status;
+    }
+
     public function collection()
     {
-        return Tag::select('rfid_number', 'status', 'created_at')
-            ->get()
-            ->map(function ($row) {
-                return [
-                    'rfid_number' => $row->rfid_number,
-                    'status' => $row->status,
-                    'created_at' => $row->created_at->format('Y-m-d'),
-                ];
-            });
+        $selectedColumns = ['rfid_number', 'status', 'created_at'];
+        $query = $this->status
+            ? Tag::where('status', $this->status)->get($selectedColumns)
+            : Tag::get($selectedColumns);
+
+        return $query->map(function ($row) {
+            return [
+                'rfid_number' => $row->rfid_number,
+                'status' => $row->status,
+                'created_at' => $row->created_at->format('Y-m-d'),
+            ];
+        });
     }
 
     public function headings(): array

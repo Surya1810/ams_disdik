@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    Report
+    Dashboard
 @endsection
 
 @push('css')
