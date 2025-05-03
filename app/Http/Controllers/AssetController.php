@@ -105,7 +105,23 @@ class AssetController extends Controller
         // Untuk pilihan di filter tahun pembelian
         $tahunPembelianArr = $asset->pluck('tahun_pembelian')->unique()->values()->all();
 
-        return view('asset.index', compact('tags', 'places', 'asset', 'tahunPembelianArr'));
+        // Get available tag in range
+        $firstTagAvailable = Tag::where('status', 'available')
+            ->where('kecamatan_id', $kecamatanId)
+            ->orderBy('rfid_number', 'ASC')
+            ->value('rfid_number');
+        $lastTagAvailable = Tag::where('status', 'available')
+            ->where('kecamatan_id', $kecamatanId)
+            ->orderBy('rfid_number', 'DESC')
+            ->value('rfid_number');
+        $availableTags = [
+            'firstTagAvailable' => $firstTagAvailable,
+            'lastTagAvailable' => $lastTagAvailable
+        ];
+
+        return view('asset.index', compact(
+            'tags', 'places', 'asset', 'tahunPembelianArr', 'availableTags'
+        ));
     }
 
     /**
@@ -457,11 +473,9 @@ class AssetController extends Controller
         $import = new AssetsImport($validated['sekolah_id_import']);
         Excel::import($import, $request->file('file'));
 
-        // dd($import->getErrors());
-
         if ($import->getErrors()) {
             return redirect()->route('asset.index')->with([
-                'pesan' => 'Import data aset gagal. Silahkan periksa pesan error.',
+                'pesan' => 'Import data aset tidak sepenuhnya berhasil. Silahkan cek pesan yang muncul',
                 'list_errors' => $import->getErrors(),
                 'level-alert' => 'alert-warning',
             ]);
@@ -471,5 +485,19 @@ class AssetController extends Controller
             'pesan' => 'Import data aset sepenuhnya telah berhasil!',
             'level-alert' => 'alert-success',
         ]);
+    }
+
+    /**
+     * Date: 03-05-2025
+     * Fungsi untuk download template import data aset
+     */
+    public function downloadTemplateImport() {
+        $path = storage_path('app/templates/template_import_data_aset.xlsx');
+
+        if (!file_exists($path)) {
+            return response()->json(['error' => 'File tidak ditemukan.'], 404);
+        }
+
+        return response()->download($path, 'template_import_data_aset.xlsx');
     }
 }

@@ -25,22 +25,29 @@
                         </div>
                     </div>
                     <div class="card-body table-responsive pb-2">
-                        <div class="mb-3 d-flex gap-2">
-                            <button id="bulk-approve" class="btn btn-success btn-sm">Approve Terpilih</button>
-                            <button id="bulk-reject" class="btn btn-danger btn-sm">Reject Terpilih</button>
-                            <select id="filter-status" class="form-control w-auto">
-                                <option value="">-- Semua Status --</option>
-                                <option value="pending">Pending</option>
-                                <option value="approved">Approved</option>
-                                <option value="rejected">Rejected</option>
-                            </select>
+                        <div class="mb-3 d-flex align-items-center gap-2">
+                            <button id="bulk-approve" class="btn btn-success mb-0">Approve Terpilih</button>
+                            <button id="bulk-reject" class="btn btn-danger mb-0">Reject Terpilih</button>
 
-                            <select id="filter-type" class="form-control w-auto">
-                                <option value="">-- Semua Jenis --</option>
-                                <option value="mutation">Mutation</option>
-                                <option value="disposal">Disposal</option>
-                                <option value="loan">Loan</option>
-                            </select>
+                            <div class="d-flex gap-2 ms-0 ms-3">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-primary text-white border-0">
+                                        <i class="fa-solid fa-filter"></i>
+                                    </span>
+                                    <select id="filter-status" class="form-control w-auto ps-2">
+                                        <option value="">Semua Status</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="approved">Approved</option>
+                                        <option value="rejected">Rejected</option>
+                                    </select>
+                                </div>
+                                <select id="filter-type" class="form-control w-auto">
+                                    <option value="">Semua Jenis</option>
+                                    <option value="mutation">Mutation</option>
+                                    <option value="disposal">Disposal</option>
+                                    <option value="loan">Loan</option>
+                                </select>
+                            </div>
                         </div>
 
                         <!-- Tabel Approval -->

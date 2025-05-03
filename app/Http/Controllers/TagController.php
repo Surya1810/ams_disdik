@@ -8,6 +8,7 @@ use App\Models\Kecamatan;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Auth;
 
 class TagController extends Controller
 {
@@ -16,8 +17,15 @@ class TagController extends Controller
      */
     public function index(Request $request)
     {
+        $roleId = Auth::user()->role_id;
+        $kecamatanId = Auth::user()->kecamatan_id;
+
         if ($request->ajax()) {
-            return DataTables::of(Tag::with('kecamatan')) // Load relasi kecamatan
+            $tags = ($roleId == 1 || $roleId == 2)
+                ? Tag::with('kecamatan')
+                : Tag::with('kecamatan')->where('kecamatan_id', Auth::user()->kecamatan_id);
+
+            return DataTables::of($tags)
                 ->addColumn('kecamatan', function ($tag) {
                     return $tag->kecamatan ? $tag->kecamatan->name : '-';
                 })
@@ -42,8 +50,6 @@ class TagController extends Controller
                     </a>
                     ';
                 })
-
-
                 ->rawColumns(['status', 'action'])
                 ->make(true);
         }

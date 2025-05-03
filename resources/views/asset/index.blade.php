@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    Aset
+    Asset
 @endsection
 
 @push('css')
@@ -27,9 +27,9 @@
             <li class="breadcrumb-item text-sm">
                 <a class="text-white opacity-5" href="javascript:;">Halaman</a>
             </li>
-            <li class="breadcrumb-item text-sm text-white active" aria-current="page">Aset</li>
+            <li class="breadcrumb-item text-sm text-white active" aria-current="page">Asset</li>
         </ol>
-        <h6 class="nav-breadcrumb font-weight-bolder text-white mb-0">Aset</h6>
+        <h6 class="nav-breadcrumb font-weight-bolder text-white mb-0">Asset</h6>
     </nav>
 @endsection
 
@@ -41,7 +41,7 @@
                 <div class="card my-4">
                     <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
                         <div class="bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3">
-                            <h6 class="text-white text-capitalize ps-3">List Aset</h6>
+                            <h6 class="text-white text-capitalize ps-3">List Asset</h6>
                         </div>
                     </div>
                     <div class="card-body table-responsive pb-2">
@@ -1305,10 +1305,21 @@
                         <div class="card-body">
                             <form action="{{ route('asset.import') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
+                                <div class="mb-3">
+                                    <label>Range Tag Tersedia</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" value="{{ $availableTags['firstTagAvailable'] }}" style="text-align: center" disabled>
+                                        <span class="input-group-text">s.d.</span>
+                                        <input type="text" class="form-control" value="{{ $availableTags['lastTagAvailable'] }}" style="text-align: center" disabled>
+                                    </div>
+                                </div>
                                 <div class="col-12 mb-3">
-                                    <label>Tempat</label>
+                                    <label for="sekolah_id_import">Tempat</label>
                                     <select name="sekolah_id_import" id="sekolah_id_import"
                                         class="form-control place @error('sekolah_id_import') is-invalid @enderror"
+                                        @if (!$availableTags['firstTagAvailable'])
+                                            {{ "disabled " }}
+                                        @endif
                                         required>
                                         <option value="" selected disabled hidden>
                                         </option>
@@ -1324,16 +1335,31 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="formImportExcel" class="form-label">
-                                        Import data aset dari file excel
+                                        Import Data Aset dari File Excel
                                     </label>
-                                    <input class="form-control" type="file" name="file" accept="xlsx" id="formImportExcel"
-                                        required>
+                                    <input class="form-control" type="file" name="file" accept=".xlsx" id="formImportExcel"
+                                        @if (!$availableTags['firstTagAvailable'])
+                                            {{ "disabled " }}
+                                        @endif
+                                    required>
                                 </div>
-                                <div class="d-flex">
-                                    <button class="btn btn-sm bg-gradient-warning ms-auto">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <button id="buttonDownloadTemplateImport" class="btn btn-m bg-gradient-primary" type="button">
+                                        Download Template
+                                    </button>
+                                    <button class="btn btn-sm bg-gradient-warning"
+                                    @if (!$availableTags['firstTagAvailable'])
+                                        {{ "disabled " }}
+                                    @endif
+                                    >
                                         <i class="fa-solid fa-upload"></i> Import
                                     </button>
                                 </div>
+                                @if (!$availableTags['firstTagAvailable'])
+                                <div class="small text-danger">
+                                    *Import tidak bisa dilakukan, karena tag tidak tersedia.
+                                </div>
+                                @endif
                             </form>
                         </div>
 
@@ -1596,9 +1622,53 @@
             });
 
             // Event untuk buka modal import data aset
-            $('#buttonShowImportModal').on('click', function() {
+            $('#buttonShowImportModal').on('click', function () {
                 $('#showImportModal').modal('show');
             })
+        });
+
+        /**
+         * Date: 03-05-2025
+         * Download Template untuk Import Data Aset
+         **/
+        $('#buttonDownloadTemplateImport').on('click', function (e) {
+            e.preventDefault();
+            $.ajax({
+                url: '{{ route("asset.download.template.import") }}',
+                method: 'GET',
+                xhrFields: {
+                    responseType: 'blob' // penting untuk file binary
+                },
+                success: function (data, status, xhr) {
+                    const blob = new Blob([data]);
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'template_import_data_aset.xlsx';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                },
+                error: function (xhr) {
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        iconColor: 'white',
+                        customClass: {
+                            popup: 'colored-toast'
+                        },
+                        showConfirmButton: false,
+                        timer: 5000,
+                        timerProgressBar: true
+                    });
+
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'File Template untuk Import Data Aset Gagal Diunduh'
+                    });
+                }
+            });
         });
     </script>
 @endpush

@@ -290,7 +290,7 @@ class ApiController extends Controller
                     'condition' => $asset->kondisi,
                     'imageUrl' => (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
                         ? asset('assets/Image/no_image.png')
-                        : asset(Storage::url('assets/' . $asset->foto_awal)),
+                        : asset(Storage::url('/public/assets/' . $asset->foto_awal)),
                 ],
                 'personInCharge' => [
                     'nip' => $asset->nip_pic,
