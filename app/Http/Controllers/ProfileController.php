@@ -18,7 +18,7 @@ class ProfileController extends Controller
     }
 
     /**Update the user's profile information.*/
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
         $user = User::find(Auth::id());
         $request->validate([
@@ -30,7 +30,7 @@ class ProfileController extends Controller
         return redirect()->back()->with(['pesan' => 'Profile updated successfully', 'level-alert' => 'alert-success']);
     }
     /**Update the user's user password.*/
-    public function password(Request $request, $id)
+    public function password(Request $request)
     {
         $request->validate([
             'old_password' => 'required',

@@ -5,10 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Kecamatan;
-use App\Models\Asset;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
@@ -58,16 +55,6 @@ class UserController extends Controller
         return view('user.index', compact('kecamatans', 'roles'));
     }
 
-
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
     /**
      * Store a newly created resource in storage.
      */
@@ -87,14 +74,6 @@ class UserController extends Controller
         ]);
 
         return redirect()->back()->with(['pesan' => 'Pengguna berhasil ditambahkan', 'level-alert' => 'alert-success']);
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
     }
 
     /**
