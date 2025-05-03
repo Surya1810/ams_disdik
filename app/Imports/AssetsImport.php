@@ -10,21 +10,34 @@ use Illuminate\Support\Facades\Auth;
 
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class AssetsImport implements ToCollection, WithHeadingRow
+class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
 {
-    protected $sekolahId;
     protected $errors = [];
+    protected $sekolahId;
+    protected $availableTags;
 
     public function __construct($sekolahId)
     {
         $this->sekolahId = $sekolahId;
+
+        // Cache data tag yang tersedia sekali saja
+        $this->availableTags = Tag::where('status', 'available')
+            ->where('kecamatan_id', Auth::user()->kecamatan_id)
+            ->get()
+            ->keyBy('rfid_number');
+    }
+
+    public function chunkSize(): int
+    {
+        return 100; // Proses per 100 baris
     }
 
     public function collection(Collection $rows)
     {
         foreach ($rows as $index => $row) {
-            $rowNumber = $index + 2; // Baris 1 header, jadi mulai dari 2
+            $rowNumber = $index + 2;
 
             try {
                 if (empty($row['tag']) || empty($row['kode'])) {
@@ -32,22 +45,14 @@ class AssetsImport implements ToCollection, WithHeadingRow
                     continue;
                 }
 
-                $tag = Tag::where('rfid_number', $row['tag'])->first();
+                $tag = $this->availableTags[$row['tag']] ?? null;
 
-                // Error saat tag tidak ditemukan
-                if (!$tag->exists()) {
-                    $this->errors[] = "Baris {$rowNumber}: tag '{$row['tag']}' tidak ditemukan.";
+                if (!$tag) {
+                    $this->errors[] = "Baris {$rowNumber}: tag '{$row['tag']}' tidak ditemukan atau tidak tersedia.";
                     continue;
                 }
 
-                // Error saat tag tidak sesuai dengan miliknya
-                if ($tag->kecamatan_id != Auth::user()->kecamatan_id) {
-                    $this->errors[] = "Baris {$rowNumber}: tag '{$row['tag']}' tidak tersedia.";
-                    continue;
-                }
-
-                // Error saat tag sudah digunakan
-                $tagIsUsed = Asset::where('rfid_number', $row['tag'])->first();
+                $tagIsUsed = Asset::where('rfid_number', $row['tag'])->exists();
 
                 if ($tagIsUsed) {
                     $this->errors[] = "Baris {$rowNumber}: tag '{$row['tag']}' sudah digunakan.";
@@ -82,15 +87,14 @@ class AssetsImport implements ToCollection, WithHeadingRow
                     'gedung' => $row['gedung'],
                     'lantai' => $row['lantai'],
                     'ruangan' => $row['ruangan'],
-                    'detail' => $row['detail']
+                    'detail' => $row['detail'],
                 ];
 
-                $asset = Asset::create($data);
+                Asset::create($data);
 
-                // Update Tag
-                Tag::where('rfid_number', $asset->rfid_number)->update([
-                    'status' => 'used'
-                ]);
+                // Update status tag
+                $tag->update(['status' => 'used']);
+
             } catch (\Exception $e) {
                 $this->errors[] = "Baris {$rowNumber}: " . $e->getMessage();
                 continue;
@@ -103,3 +107,4 @@ class AssetsImport implements ToCollection, WithHeadingRow
         return $this->errors;
     }
 }
+
