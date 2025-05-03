@@ -18,6 +18,10 @@
             margin: 0 auto;
             /* center image */
         }
+
+        #filterWrapper select:hover {
+            cursor: pointer;
+        }
     </style>
 @endpush
 

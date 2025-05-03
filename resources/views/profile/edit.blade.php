@@ -33,7 +33,7 @@
                                                 @csrf
                                                 @method('PUT')
                                                 <p class="m-0"><strong>Profile Information</strong></p>
-                                                <small>Update your accounts profile information.</small><br>
+                                                <small>Perbarui informasi profil akun Anda.</small><br>
                                                 <label class="mt-4 mb-0 form-label col-form-label-sm"
                                                     for="name">Name</label>
                                                 <div class="input-group mb-3">
@@ -57,8 +57,7 @@
                                                 @csrf
                                                 @method('PUT')
                                                 <p class="m-0"><strong>Update Password</strong></p>
-                                                <small>Ensure your account is using a long random password to stay
-                                                    secure.</small><br>
+                                                <small>Pastikan akun Anda menggunakan kata sandi yang panjang dan acak untuk tetap aman.</small><br>
                                                 <label class="mt-4 mb-0 form-label col-form-label-sm" for="old_password">Current
                                                     Password</label>
                                                 <div class="input-group mb-3">
