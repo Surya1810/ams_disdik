@@ -305,8 +305,8 @@ class ApiController extends Controller
                     'information' => $asset->detail,
                 ],
                 'school' => [
-                    'nameSchool' => $asset->sekolah->name ?? null,
-                    'idSchool' => $asset->sekolah->id ?? null,
+                    'id' => $asset->sekolah->id ?? null,
+                    'schoolName' => $asset->sekolah->name ?? null,
                 ]
             ]
         ]);

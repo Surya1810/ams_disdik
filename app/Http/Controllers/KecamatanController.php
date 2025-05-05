@@ -76,7 +76,7 @@ class KecamatanController extends Controller
 
         $kecamatan->update($validatedData);
 
-        return redirect()->route('kecamatan.index')->with(['pesan' => 'Kecamatan berhasil diperbarui', 'level-alert' => 'alert-warning']);
+        return redirect()->route('kecamatan.index')->with(['pesan' => 'Kecamatan berhasil diperbarui', 'level-alert' => 'alert-success']);
     }
 
     /**

@@ -110,7 +110,7 @@ class SekolahController extends Controller
 
         return redirect()->route('sekolah.index')->with([
             'pesan' => 'Sekolah berhasil diperbarui',
-            'level-alert' => 'alert-warning'
+            'level-alert' => 'alert-success'
         ]);
     }
 
