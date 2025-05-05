@@ -125,8 +125,8 @@
 
                     {{-- Alasan --}}
                     <div class="mb-3">
-                        <label for="detail" class="form-label">Alasan Mutasi</label>
-                        <textarea name="detail" class="form-control" rows="3" placeholder="Tulis alasan pengajuan..."
+                        <label for="keterangan" class="form-label">Alasan Mutasi</label>
+                        <textarea name="keterangan" class="form-control" rows="3" placeholder="Tulis alasan pengajuan..."
                             required></textarea>
                     </div>
                 </div>

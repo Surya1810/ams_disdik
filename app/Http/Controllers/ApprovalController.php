@@ -61,7 +61,7 @@ class ApprovalController extends Controller
                 ->addColumn('keterangan', function ($row) {
                     // Pastikan payload didecode dengan benar
                     $payload = json_decode($row->payload, true); // Dekode string JSON ke array
-                    return $payload['keterangan'] ?? '-'; // Ambil 'keterangan' atau tampilkan '-'
+                    return $payload['keterangan'] ?? '-';
                 })
                 ->addColumn('status', function ($row) {
                     $color = match ($row->status) {
@@ -118,7 +118,6 @@ class ApprovalController extends Controller
                     }
                     return null;
                 })
-                ->addColumn('keterangan', fn($row) => $row->keterangan ?? '-')
                 ->addColumn('requested_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
                 ->addColumn('status', function ($row) {
                     $color = match ($row->status) {
@@ -358,7 +357,6 @@ class ApprovalController extends Controller
                     'jabatan_pic' => $request->new_jabatan,
                     'telp_pic' => $request->new_telp,
                 ],
-                'detail' => $request->detail,
                 'keterangan' => $request->input('keterangan', null),
             ];
         } elseif ($type === 'loan') {

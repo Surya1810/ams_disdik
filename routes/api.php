@@ -24,6 +24,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/search', [ApiController::class, 'getSearch']);
     Route::get('/item/detail/{id}', [ApiController::class, 'getItemDetail']);
     Route::post('/item/mutation/{id}', [ApiController::class, 'mutation']);
+    Route::post('/item/location/{id}', [ApiController::class, 'location']);
     Route::post('/item/inspection/{id}', [ApiController::class, 'inspection']);
     Route::put('/item/search/{id}', [ApiController::class, 'updateSearch']);
     Route::get('/user-profile', [ApiController::class, 'profile']);

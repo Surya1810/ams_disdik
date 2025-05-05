@@ -303,6 +303,10 @@ class ApiController extends Controller
                     'floor' => (int) $asset->lantai,
                     'room' => $asset->ruangan,
                     'information' => $asset->detail,
+                ],
+                'school' => [
+                    'nameSchool' => $asset->sekolah->name ?? null,
+                    'idSchool' => $asset->sekolah->id ?? null,
                 ]
             ]
         ]);
@@ -313,12 +317,53 @@ class ApiController extends Controller
         $asset = Asset::findOrFail($idItem);
 
         $personInCharge = $request->personInCharge;
-        if (empty($personInCharge['nip']) || empty($personInCharge['name']) || empty($personInCharge['position']) || empty($personInCharge['numberTelp'])) {
+        if (
+            empty($personInCharge['nip_pic']) ||
+            empty($personInCharge['nama_pic']) ||
+            empty($personInCharge['jabatan_pic']) ||
+            empty($personInCharge['telp_pic'])
+        ) {
             return response()->json([
                 'success' => false,
                 'message' => 'Data personInCharge tidak lengkap'
             ], 400);
         }
+
+        $payload = [
+            'from' => [
+                'nip_pic' => $asset->nip_pic,
+                'nama_pic' => $asset->nama_pic,
+                'jabatan_pic' => $asset->jabatan_pic,
+                'telp_pic' => $asset->telp_pic,
+            ],
+            'to' => [
+                'nip_pic' => $personInCharge['nip_pic'],
+                'nama_pic' => $personInCharge['nama_pic'],
+                'jabatan_pic' => $personInCharge['jabatan_pic'],
+                'telp_pic' => $personInCharge['telp_pic'],
+            ],
+            'keterangan' => $request->input('keterangan', null),
+        ];
+
+        $approval = Approval::create([
+            'type' => 'mutation',
+            'asset_id' => $asset->id,
+            'status' => 'pending',
+            'payload' => json_encode($payload),
+            'requested_by' => Auth::id(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mutasi aset berhasil diajukan untuk approval.',
+            'approval_id' => $approval->id
+        ], 200);
+    }
+
+
+    public function location(Request $request, $idItem)
+    {
+        $asset = Asset::findOrFail($idItem);
 
         $location = $request->location;
         if (empty($location['building']) || empty($location['floor']) || empty($location['room']) || empty($location['information'])) {
@@ -327,22 +372,34 @@ class ApiController extends Controller
                 'message' => 'Data location tidak lengkap'
             ], 400);
         }
-        $rejectionNote = $request->input('rejection_note', null);
+
+        $payload = [
+            'old_values' => [
+                'building' => $asset->gedung,
+                'floor' => $asset->lantai,
+                'room' => $asset->ruangan,
+                'detail' => $asset->detail,
+            ],
+            'new_values' => [
+                'building' => $location['building'],
+                'floor' => $location['floor'],
+                'room' => $location['room'],
+                'detail' => $location['information'],
+            ],
+            'keterangan' => $request->input('keterangan', null),
+        ];
+
         $approval = Approval::create([
-            'type' => 'mutation',
+            'type' => 'loan',
             'asset_id' => $asset->id,
             'status' => 'pending',
-            'payload' => json_encode([
-                'personInCharge' => $personInCharge,
-                'location' => $location
-            ]),
-            'mutationReason' => $rejectionNote,
+            'payload' => json_encode($payload),
             'requested_by' => Auth::id(),
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Mutasi aset berhasil diajukan untuk approval.',
+            'message' => 'Perubahan lokasi berhasil diajukan untuk approval.',
             'approval_id' => $approval->id
         ], 200);
     }
