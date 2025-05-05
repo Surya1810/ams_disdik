@@ -10,11 +10,16 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::middleware('auth')->group(function () {
+
     require __DIR__ . '/web/report.php'; // Report
-    require __DIR__ . '/web/assets.php'; // Asset
-    require __DIR__ . '/web/history.php'; // History
-    require __DIR__ . '/web/approval.php'; // Approval
-    require __DIR__ . '/web/scan.php'; // Scan
+
+    Route::middleware('auth.not.admin')->group(function() {
+        require __DIR__ . '/web/assets.php'; // Asset
+        require __DIR__ . '/web/history.php'; // History
+        require __DIR__ . '/web/approval.php'; // Approval
+        require __DIR__ . '/web/scan.php'; // Scan
+    });
+
     require __DIR__ . '/web/tag.php'; // Tag
     require __DIR__ . '/web/profile.php'; // Profile
 

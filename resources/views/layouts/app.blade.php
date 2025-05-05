@@ -74,6 +74,7 @@
                     </a>
                 </li>
 
+                @if (auth()->user()->role_id != 1)
                 <li class="nav-item mt-3">
                     <h6 class="ps-4 ms-2 text-uppercase text-xs text-dark font-weight-bolder opacity-5">Asset
                     </h6>
@@ -140,8 +141,9 @@
                         <span class="nav-link-text ms-1">History Stock Opname</span>
                     </a>
                 </li>
+                @endif
 
-                @if (Auth::user()->role_id == 1 || Auth::user()->role_id == 2)
+                @if (Auth::user()->role_id == 2)
                     <li class="nav-item">
                         <a class="nav-link text-dark" href="{{ route('approval.index') }}">
                             <i class="fa-solid fa-clipboard-check"></i>
