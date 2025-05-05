@@ -111,7 +111,7 @@ class ApiController extends Controller
         $result = $sekolahs->map(function ($sekolah) {
             return [
                 'id' => $sekolah->id,
-                'SchoolName' => $sekolah->name,
+                'schoolName' => $sekolah->name,
                 'lastStockOpname' => optional($sekolah->last_stock_opname)->format('d/m/Y') ?? '-',
                 'totalAset' => $sekolah->assets()->count(),
             ];
