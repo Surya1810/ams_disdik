@@ -312,16 +312,16 @@ class ApiController extends Controller
         ]);
     }
 
-    public function mutation(Request $request, $idItem)
+    public function mutationPerson(Request $request, $idItem)
     {
         $asset = Asset::findOrFail($idItem);
 
         $personInCharge = $request->personInCharge;
         if (
-            empty($personInCharge['nip_pic']) ||
-            empty($personInCharge['nama_pic']) ||
-            empty($personInCharge['jabatan_pic']) ||
-            empty($personInCharge['telp_pic'])
+            empty($personInCharge['nip']) ||
+            empty($personInCharge['name']) ||
+            empty($personInCharge['position']) ||
+            empty($personInCharge['phoneNumber'])
         ) {
             return response()->json([
                 'success' => false,
@@ -337,12 +337,12 @@ class ApiController extends Controller
                 'telp_pic' => $asset->telp_pic,
             ],
             'to' => [
-                'nip_pic' => $personInCharge['nip_pic'],
-                'nama_pic' => $personInCharge['nama_pic'],
-                'jabatan_pic' => $personInCharge['jabatan_pic'],
-                'telp_pic' => $personInCharge['telp_pic'],
+                'nip_pic' => $personInCharge['nip'],
+                'nama_pic' => $personInCharge['name'],
+                'jabatan_pic' => $personInCharge['position'],
+                'telp_pic' => $personInCharge['phoneNumber'],
             ],
-            'keterangan' => $request->input('keterangan', null),
+            'keterangan' => $request->input('reason', null),
         ];
 
         $approval = Approval::create([
@@ -361,7 +361,7 @@ class ApiController extends Controller
     }
 
 
-    public function location(Request $request, $idItem)
+    public function mutationLocation(Request $request, $idItem)
     {
         $asset = Asset::findOrFail($idItem);
 
@@ -386,7 +386,8 @@ class ApiController extends Controller
                 'room' => $location['room'],
                 'detail' => $location['information'],
             ],
-            'keterangan' => $request->input('keterangan', null),
+            'keterangan' => $request->input('reason', null),
+            'sekolah_id' => $request->input('schoolId')
         ];
 
         $approval = Approval::create([
