@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\History;
+use Carbon\Carbon;
 use Yajra\DataTables\DataTables;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +13,7 @@ class HistoryController extends Controller
     /**
      * Display a listing of the resource.
      */
+
     public function changesHistory(Request $request)
     {
         if ($request->ajax()) {
@@ -33,26 +35,42 @@ class HistoryController extends Controller
                         $newValues = json_decode($row->new_values, true) ?? [];
                         $changedFields = json_decode($row->changed_fields, true) ?? [];
 
+                        // Hapus perubahan updated_at
+                        $changedFields = array_filter($changedFields, fn($field) => $field !== 'updated_at');
+
                         if (empty($changedFields)) {
                             return "<span class='text-warning'>Asset diubah, namun tidak ada perubahan terdeteksi</span>";
                         }
 
                         $result = "<div class='text-primary mb-2'>Asset telah diubah:</div>";
-                        $result .= "<ul style='padding-left: 18px;'>"; // Biar lebih rapi masuk ke dalam
+                        $result .= "<ul style='padding-left: 18px;'>";
+
                         foreach ($changedFields as $field) {
                             $oldVal = $oldValues[$field] ?? '-';
                             $newVal = $newValues[$field] ?? '-';
-                            $result .= "<li><strong>" . ucfirst($field) . ":</strong> dari <em>$oldVal</em> ke <em>$newVal</em></li>";
-                        }
-                        $result .= "</ul>";
 
+                            // Coba format kalau nilainya mirip tanggal
+                            try {
+                                if (strtotime($oldVal)) {
+                                    $oldVal = Carbon::parse($oldVal)->translatedFormat('d F Y');
+                                }
+                                if (strtotime($newVal)) {
+                                    $newVal = Carbon::parse($newVal)->translatedFormat('d F Y');
+                                }
+                            } catch (\Exception $e) {
+                                // Lewat saja kalau gagal parsing
+                            }
+
+                            $label = ucwords(str_replace('_', ' ', $field));
+                            $result .= "<li><strong>$label:</strong> dari <em>" . e($oldVal) . "</em> ke <em>" . e($newVal) . "</em></li>";
+                        }
+
+                        $result .= "</ul>";
                         return $result;
                     }
 
                     return "<span class='text-muted'>Tidak ada perubahan</span>";
                 })
-
-
                 ->editColumn('created_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
                 ->rawColumns(['perubahan'])
                 ->make(true);
