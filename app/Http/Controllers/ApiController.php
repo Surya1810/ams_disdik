@@ -221,7 +221,8 @@ class ApiController extends Controller
         }
 
         if ($request->filled('isThere')) {
-            $query->where('is_there', $request->isThere);
+            $isThere = $request->isThere == 'true' ? 1 : 0;
+            $query->where('is_there', $isThere);
         }
 
         if ($request->filled('condition')) {
