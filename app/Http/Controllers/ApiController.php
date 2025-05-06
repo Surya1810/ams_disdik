@@ -296,7 +296,7 @@ class ApiController extends Controller
                     'nip' => $asset->nip_pic,
                     'name' => $asset->nama_pic,
                     'position' => $asset->jabatan_pic,
-                    'numberTelp' => $asset->telp_pic,
+                    'phoneNumber' => $asset->telp_pic,
                 ],
                 'location' => [
                     'building' => $asset->gedung,
@@ -425,7 +425,7 @@ class ApiController extends Controller
         $asset->nip_pic = $request->personIncharge['nip'];
         $asset->nama_pic = $request->personIncharge['name'];
         $asset->jabatan_pic = $request->personIncharge['position'];
-        $asset->telp_pic = (string) $request->personIncharge['numberTelp'];
+        $asset->telp_pic = (string) $request->personIncharge['phoneNumber'];
 
         $asset->gedung = $request->location['building'];
         $asset->lantai = $request->location['floor'];
