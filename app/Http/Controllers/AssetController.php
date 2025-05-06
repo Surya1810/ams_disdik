@@ -120,7 +120,11 @@ class AssetController extends Controller
         ];
 
         return view('asset.index', compact(
-            'tags', 'places', 'asset', 'tahunPembelianArr', 'availableTags'
+            'tags',
+            'places',
+            'asset',
+            'tahunPembelianArr',
+            'availableTags'
         ));
     }
 
@@ -389,20 +393,20 @@ class AssetController extends Controller
             foreach ($request->assets as $assetData) {
                 $asset = Asset::find($assetData['id']);
 
-                $waktu = (int) $assetData['waktu']; // konversi ke integer!
+                $waktu = (int) $assetData['waktu'];
 
                 if ($waktu > 0) {
                     $tanggal_perawatan = now()->addMonths($waktu);
                     $asset->tanggal_perawatan = $tanggal_perawatan;
                 }
 
+                $asset->kondisi = 'Baik'; // Tambahan: ubah status menjadi Baik
                 $asset->save();
             }
 
-
             return response()->json([
                 'success' => true,
-                'message' => 'Tanggal perawatan berhasil diperbarui.'
+                'message' => 'Tanggal perawatan dan status berhasil diperbarui.'
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -491,7 +495,8 @@ class AssetController extends Controller
      * Date: 03-05-2025
      * Fungsi untuk download template import data aset
      */
-    public function downloadTemplateImport() {
+    public function downloadTemplateImport()
+    {
         $path = storage_path('app/templates/template_import_data_aset.xlsx');
 
         if (!file_exists($path)) {

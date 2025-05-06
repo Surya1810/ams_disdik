@@ -6,7 +6,6 @@ use App\Models\Approval;
 use App\Models\Asset;
 use App\Models\History;
 use App\Models\Sekolah;
-use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -14,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\DataTables;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use App\Models\Tag;
 
 class ApprovalController extends Controller
 {
