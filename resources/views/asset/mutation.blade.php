@@ -215,7 +215,7 @@
             searchable: false
             }
             ],
-            rawColumns: ['status', 'from', 'to', 'action'] 
+            rawColumns: ['status', 'from', 'to', 'action']
         });
     });
 </script>

@@ -20,6 +20,7 @@ Route::middleware('auth')->group(function () {
         require __DIR__ . '/web/scan.php'; // Scan
     });
 
+
     require __DIR__ . '/web/tag.php'; // Tag
     require __DIR__ . '/web/profile.php'; // Profile
 

@@ -102,6 +102,17 @@ Pengguna
                                     @endforeach
                                 </select>
                             </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" name="password" class="form-control" required
+                                    placeholder="Masukkan password user">
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirm_password" class="form-label">Konfirmasi Password</label>
+                                <input type="password" name="confirm_password" class="form-control" required
+                                    placeholder="Konfirmasi password user">
+                            </div>
                         </div>
 
                         <div class="card-footer text-center pt-0 px-lg-2 px-1">
@@ -158,6 +169,17 @@ Pengguna
                                     @endif
                                     @endforeach
                                 </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" name="password" class="form-control" required
+                                    placeholder="Masukkan password user">
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirm_password" class="form-label">Konfirmasi Password</label>
+                                <input type="password" name="confirm_password" class="form-control" required
+                                    placeholder="Konfirmasi password user">
                             </div>
                         </div>
 
@@ -220,7 +242,7 @@ Pengguna
         $.get('/user/' + id + '/edit', function (data) {
             $('#editUserForm').attr('action', '/user/' + id);
             $('#editUserForm input[name="name"]').val(data.name);
-            $('#editUserForm select[name="role"]').val(data.role).trigger('change');
+            $('#editUserForm select[name="role"]').val(data.role_id).trigger('change');
             $('#editUserForm select[name="kecamatan_id"]').val(data.kecamatan_id).trigger('change');
             $('#editUserModal').modal('show');
         }).fail(function () {

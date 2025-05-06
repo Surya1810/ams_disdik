@@ -48,7 +48,7 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
                 $tag = $this->availableTags[$row['tag']] ?? null;
 
                 if (!$tag) {
-                    $this->errors[] = "Baris {$rowNumber}: tag '{$row['tag']}' tidak ditemukan atau tidak tersedia.";
+                    $this->errors[] = "Baris {$rowNumber}: tag '{$row['tag']}' tidak ditemukan, tidak tersedia, atau sudah digunakan.";
                     continue;
                 }
 

@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\Kecamatan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
@@ -62,15 +63,17 @@ class UserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|unique:users,name',
-            'role_id' => 'required|in:1,2',
+            'role' => 'required|in:1,2,3',
             'kecamatan_id' => 'required|exists:kecamatans,id',
+            'password' => 'required|string|min:8',
+            'confirm_password' => 'required|string|same:password'
         ]);
 
         User::create([
             'name' => $request->name,
-            'password' => bcrypt('default123'),
-            'role_id' => $request->role_id,
+            'role_id' => $request->role,
             'kecamatan_id' => $request->kecamatan_id,
+            'password' => Hash::make($request->password)
         ]);
 
         return redirect()->back()->with(['pesan' => 'Pengguna berhasil ditambahkan', 'level-alert' => 'alert-success']);
@@ -94,27 +97,28 @@ class UserController extends Controller
 
         $rules = [
             'name' => 'required|string|max:255',
-            'role_id' => 'required',
-            'kecamatan_id' => 'required'
+            'role' => 'required',
+            'kecamatan_id' => 'required',
         ];
 
         if ($request->filled('password')) {
-            $rules['password'] = 'confirmed|min:6';
+            $rules['password'] = 'required|string|min:8';
+            $rules['confirm_password'] = 'required|string|same:password';
         }
 
         $validated = $request->validate($rules);
 
         $user->name = $validated['name'];
-        $user->role_id = $validated['role_id'];
+        $user->role_id = $validated['role'];
         $user->kecamatan_id = $validated['kecamatan_id'];
 
         if ($request->filled('password')) {
-            $user->password = bcrypt($validated['password']);
+            $user->password = Hash::make($validated['password']);
         }
 
         $user->save();
 
-        return redirect()->route('user.index')->with(['pesan' => 'Kecamatan berhasil diperbarui', 'level-alert' => 'alert-warning']);
+        return redirect()->route('user.index')->with(['pesan' => 'Pengguna berhasil diperbarui', 'level-alert' => 'alert-success']);
     }
 
 
@@ -127,7 +131,7 @@ class UserController extends Controller
 
         if ($user->document == null) {
             $user->delete();
-            return redirect()->back()->with(['pesan' => 'User deleted successfully', 'level-alert' => 'alert-danger']);
+            return redirect()->back()->with(['pesan' => 'User deleted successfully', 'level-alert' => 'alert-success']);
         } else {
             return redirect()->back()->with(['pesan' => 'User has document', 'level-alert' => 'alert-danger']);
         }

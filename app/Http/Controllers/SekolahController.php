@@ -16,8 +16,7 @@ class SekolahController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $sekolahs = Sekolah::with('kecamatan')
-                ->withCount('assets');
+            $sekolahs =  Sekolah::with('kecamatan')->withCount('assets');
 
             // Role 1 (admin) dan Role 2 (dispora) dapat melihat semua data
             if (in_array(Auth::user()->role_id, [1, 2])) {
