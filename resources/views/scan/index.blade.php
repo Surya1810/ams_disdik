@@ -263,8 +263,7 @@
 
     // Tambahkan event listener ke tombol refresh manual
     $('#refreshButton').on('click', function() {
-        table.ajax.reload();
-        rfidTable.ajax.reload();
+        location.reload();
     });
 
     $('#filterStatus').on('change', function () {
