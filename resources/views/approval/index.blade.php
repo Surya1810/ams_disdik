@@ -124,8 +124,8 @@
       name: 'status'
      },
      {
-      data: 'created_at',
-      name: 'created_at'
+      data: 'waktu',
+      name: 'waktu'
      },
      {
       data: 'rejection_note',

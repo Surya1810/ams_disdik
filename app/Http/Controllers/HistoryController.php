@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\History;
+use App\Models\Sekolah;
 use Carbon\Carbon;
 use Yajra\DataTables\DataTables;
 use Illuminate\Http\Request;
@@ -92,23 +93,45 @@ class HistoryController extends Controller
                 ->addColumn('asset', fn($row) => $row->asset->name ?? '-')
                 ->addColumn('user', fn($row) => $row->user->name ?? '-')
                 ->addColumn('dari', function ($row) {
-                    // Menangani JSON kosong atau tidak valid
                     $oldValues = json_decode($row->old_values, true);
+
+                    // Mapping field ke label ramah
+                    $labelMap = [
+                        'nip_pic' => 'NIP',
+                        'nama_pic' => 'Nama',
+                        'jabatan_pic' => 'Jabatan',
+                        'telp_pic' => 'Telp',
+                    ];
+
                     if (is_array($oldValues) && !empty($oldValues)) {
-                        return '<ul>' . collect($oldValues)->map(fn($v, $k) => "<li><strong>$k</strong>: $v</li>")->implode('') . '</ul>';
+                        return '<ul>' . collect($oldValues)->map(function ($v, $k) use ($labelMap) {
+                            $label = $labelMap[$k] ?? ucwords(str_replace('_', ' ', $k));
+                            return "<li><strong>{$label}</strong>: {$v}</li>";
+                        })->implode('') . '</ul>';
                     }
-                    return '-'; // Menangani jika old_values kosong atau tidak valid
+                    return '-';
                 })
                 ->addColumn('ke', function ($row) {
-                    // Menangani JSON kosong atau tidak valid
                     $newValues = json_decode($row->new_values, true);
+
+                    // Mapping field ke label ramah
+                    $labelMap = [
+                        'nip_pic' => 'NIP',
+                        'nama_pic' => 'Nama',
+                        'jabatan_pic' => 'Jabatan',
+                        'telp_pic' => 'Telp',
+                    ];
+
                     if (is_array($newValues) && !empty($newValues)) {
-                        return '<ul>' . collect($newValues)->map(fn($v, $k) => "<li><strong>$k</strong>: $v</li>")->implode('') . '</ul>';
+                        return '<ul>' . collect($newValues)->map(function ($v, $k) use ($labelMap) {
+                            $label = $labelMap[$k] ?? ucwords(str_replace('_', ' ', $k));
+                            return "<li><strong>{$label}</strong>: {$v}</li>";
+                        })->implode('') . '</ul>';
                     }
-                    return '-'; // Menangani jika new_values kosong atau tidak valid
+                    return '-';
                 })
                 ->editColumn('created_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
-                ->rawColumns(['dari', 'ke'])  // Supaya HTML di 'dari' dan 'ke' tidak di-escape
+                ->rawColumns(['dari', 'ke'])
                 ->make(true);
         }
 
@@ -129,17 +152,49 @@ class HistoryController extends Controller
                 ->addColumn('user', fn($row) => $row->user->name ?? '-')
                 ->addColumn('dari', function ($row) {
                     $oldValues = json_decode($row->old_values, true);
-                    if (is_array($oldValues) && !empty($oldValues)) {
-                        return '<ul>' . collect($oldValues)->map(fn($v, $k) => "<li><strong>$k</strong>: $v</li>")->implode('') . '</ul>';
+
+                    // Ambil nama sekolah jika ada
+                    if (isset($oldValues['sekolah_id'])) {
+                        $sekolah = \App\Models\Sekolah::find($oldValues['sekolah_id']);
+                        $oldValues['sekolah'] = $sekolah->name ?? '-';
+                        unset($oldValues['sekolah_id']);
                     }
-                    return '-';
+
+                    // Urutan field yang diinginkan
+                    $orderedKeys = ['sekolah', 'gedung', 'lantai', 'ruangan', 'detail'];
+
+                    $output = '<ul>';
+                    foreach ($orderedKeys as $key) {
+                        if (isset($oldValues[$key])) {
+                            $label = ucfirst($key);
+                            $output .= "<li><strong>{$label}</strong>: {$oldValues[$key]}</li>";
+                        }
+                    }
+                    $output .= '</ul>';
+
+                    return $output === '<ul></ul>' ? '-' : $output;
                 })
                 ->addColumn('ke', function ($row) {
                     $newValues = json_decode($row->new_values, true);
-                    if (is_array($newValues) && !empty($newValues)) {
-                        return '<ul>' . collect($newValues)->map(fn($v, $k) => "<li><strong>$k</strong>: $v</li>")->implode('') . '</ul>';
+
+                    if (isset($newValues['sekolah_id'])) {
+                        $sekolah = \App\Models\Sekolah::find($newValues['sekolah_id']);
+                        $newValues['sekolah'] = $sekolah->name ?? '-';
+                        unset($newValues['sekolah_id']);
                     }
-                    return '-';
+
+                    $orderedKeys = ['sekolah', 'gedung', 'lantai', 'ruangan', 'detail'];
+
+                    $output = '<ul>';
+                    foreach ($orderedKeys as $key) {
+                        if (isset($newValues[$key])) {
+                            $label = ucfirst($key);
+                            $output .= "<li><strong>{$label}</strong>: {$newValues[$key]}</li>";
+                        }
+                    }
+                    $output .= '</ul>';
+
+                    return $output === '<ul></ul>' ? '-' : $output;
                 })
                 ->editColumn('created_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
                 ->rawColumns(['dari', 'ke'])

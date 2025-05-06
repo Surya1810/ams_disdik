@@ -72,8 +72,11 @@ class ApprovalController extends Controller
                     };
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
                 })
+                ->addColumn('waktu', function ($row) {
+                    return \Carbon\Carbon::parse($row->created_at)->locale('id')->translatedFormat('d F Y H:i');
+                })
                 ->addColumn('rejection_note', fn($row) => $row->rejection_note ?? '-')
-                ->rawColumns(['checkbox', 'status']) // Hanya kolom yang mengandung HTML
+                ->rawColumns(['checkbox', 'status', 'waktu']) // Hanya kolom yang mengandung HTML
                 ->make(true);
         }
 
