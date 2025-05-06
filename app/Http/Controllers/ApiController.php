@@ -364,8 +364,8 @@ class ApiController extends Controller
     public function mutationLocation(Request $request, $idItem)
     {
         $asset = Asset::findOrFail($idItem);
-
         $location = $request->location;
+
         if (empty($location['building']) || empty($location['floor']) || empty($location['room']) || empty($location['information'])) {
             return response()->json([
                 'success' => false,
@@ -408,9 +408,7 @@ class ApiController extends Controller
     public function inspection(Request $request, $idItem)
     {
         $asset = Asset::findOrFail($idItem);
-
         $asset->kondisi = $request->condition;
-
         $asset->save();
 
         return response()->json([
@@ -422,17 +420,15 @@ class ApiController extends Controller
     {
         $asset = Asset::findOrFail($idItem);
 
-        $asset->nip_pic = $request->personIncharge['nip'];
-        $asset->nama_pic = $request->personIncharge['name'];
-        $asset->jabatan_pic = $request->personIncharge['position'];
-        $asset->telp_pic = (string) $request->personIncharge['phoneNumber'];
-
+        $asset->nip_pic = $request->personInCharge['nip'];
+        $asset->nama_pic = $request->personInCharge['name'];
+        $asset->jabatan_pic = $request->personInCharge['position'];
+        $asset->telp_pic = (string) $request->personInCharge['phoneNumber'];
         $asset->gedung = $request->location['building'];
         $asset->lantai = $request->location['floor'];
         $asset->ruangan = $request->location['room'];
         $asset->detail = $request->location['information'];
-
-        $asset->status = 'Found';
+        $asset->is_there = $request->is_there;
 
         $asset->save();
 
