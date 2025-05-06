@@ -167,56 +167,59 @@
                 type: 'GET',
             },
             columns: [
-            { data: 'id', name: 'id', visible: false },
-            { data: 'asset_name', name: 'asset_name' },
-            { data: 'requested_by', name: 'requested_by' },
-            {
-            data: function(row) {
-            if (row.from) {
-            return `<div>
-                <strong>NIP:</strong> ${row.from.nip_pic}<br>
-                <strong>Nama:</strong> ${row.from.nama_pic}<br>
-                <strong>Jabatan:</strong> ${row.from.jabatan_pic}<br>
-                <strong>Telp:</strong> ${row.from.telp_pic}
-            </div>`;
-            }
-            return '-';
-            },
-            name: 'from.nip_pic',
-            orderable: false,
-            searchable: false
-            },
-            {
-            data: function(row) {
-            if (row.to) {
-            return `<div>
-                <strong>NIP:</strong> ${row.to.nip_pic}<br>
-                <strong>Nama:</strong> ${row.to.nama_pic}<br>
-                <strong>Jabatan:</strong> ${row.to.jabatan_pic}<br>
-                <strong>Telp:</strong> ${row.to.telp_pic}
-            </div>`;
-            }
-            return '-';
-            },
-            name: 'to.nip_pic',
-            orderable: false,
-            searchable: false
-            },
-            { data: 'requested_at', name: 'requested_at' },
-            { data: 'status', name: 'status' },
-            {
-            data: function(row) {
-            return `<a href="mutation/pdf/${row.id}" title="Download PDF" style="color: #dc3545; text-decoration: none;">
-                <i class="fa-solid fa-file-pdf fa-lg"></i>
-            </a>`;
-            },
-            name: 'action',
-            orderable: false,
-            searchable: false
-            }
-            ],
-            rawColumns: ['status', 'from', 'to', 'action']
+                { data: 'id', name: 'id', visible: false },
+                { data: 'asset_name', name: 'asset_name' },
+                { data: 'requested_by', name: 'requested_by' },
+                {
+                    data: 'from',
+                    name: 'from',
+                    render: function (data, type, row) {
+                        if (data && data !== '-') {
+                            const parts = data.split('#');
+                            return `<div>
+                                <strong>NIP:</strong> ${parts[0]}<br>
+                                <strong>Nama:</strong> ${parts[1]}<br>
+                                <strong>Jabatan:</strong> ${parts[2]}<br>
+                                <strong>Telp:</strong> ${parts[3]}
+                            </div>`;
+                        }
+                        return '-';
+                    },
+                    orderable: false,
+                },
+                {
+                    data: 'to',
+                    name: 'to',
+                    render: function (data, type, row) {
+                        if (data && data !== '-') {
+                            const parts = data.split('#');
+                            return `<div>
+                                <strong>NIP:</strong> ${parts[0]}<br>
+                                <strong>Nama:</strong> ${parts[1]}<br>
+                                <strong>Jabatan:</strong> ${parts[2]}<br>
+                                <strong>Telp:</strong> ${parts[3]}
+                            </div>`;
+                        }
+                        return '-';
+                    },
+                    orderable: false,
+                },
+                { data: 'requested_at', name: 'requested_at' },
+                { data: 'status', name: 'status', orderable: false, searchable: false },
+                {
+                    data: 'id',
+                    name: 'action',
+                    render: function (data) {
+                        return `<a href="mutation/pdf/${data}" title="Download PDF" style="color: #dc3545; text-decoration: none;">
+                            <i class="fa-solid fa-file-pdf fa-lg"></i>
+                        </a>`;
+                    },
+                    orderable: false,
+                    searchable: false
+                }
+            ]
         });
+
     });
 </script>
 @endpush

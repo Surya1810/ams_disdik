@@ -83,6 +83,7 @@ class ApprovalController extends Controller
         return view('approval.index');
     }
 
+
     public function mutation(Request $request)
     {
         if ($request->ajax()) {
@@ -99,27 +100,27 @@ class ApprovalController extends Controller
                     $payload = json_decode($row->payload, true);
                     $from = $payload['from'] ?? null;
                     if ($from) {
-                        return [
-                            'nip_pic' => $from['nip_pic'] ?? '-',
-                            'nama_pic' => $from['nama_pic'] ?? '-',
-                            'jabatan_pic' => $from['jabatan_pic'] ?? '-',
-                            'telp_pic' => $from['telp_pic'] ?? '-',
-                        ];
+                        return implode('#', [
+                            $from['nip_pic'] ?? '',
+                            $from['nama_pic'] ?? '',
+                            $from['jabatan_pic'] ?? '',
+                            $from['telp_pic'] ?? '',
+                        ]);
                     }
-                    return null;
+                    return '-';
                 })
                 ->addColumn('to', function ($row) {
                     $payload = json_decode($row->payload, true);
                     $to = $payload['to'] ?? null;
                     if ($to) {
-                        return [
-                            'nip_pic' => $to['nip_pic'] ?? '-',
-                            'nama_pic' => $to['nama_pic'] ?? '-',
-                            'jabatan_pic' => $to['jabatan_pic'] ?? '-',
-                            'telp_pic' => $to['telp_pic'] ?? '-',
-                        ];
+                        return implode('#', [
+                            $to['nip_pic'] ?? '',
+                            $to['nama_pic'] ?? '',
+                            $to['jabatan_pic'] ?? '',
+                            $to['telp_pic'] ?? '',
+                        ]);
                     }
-                    return null;
+                    return '-';
                 })
                 ->addColumn('requested_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
                 ->addColumn('status', function ($row) {
@@ -131,18 +132,32 @@ class ApprovalController extends Controller
                     };
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
                 })
+                ->filterColumn('asset_name', function ($query, $keyword) {
+                    $query->whereHas('asset', function ($q) use ($keyword) {
+                        $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                    });
+                })
+                ->filterColumn('requested_by', function ($query, $keyword) {
+                    $query->whereHas('requester', function ($q) use ($keyword) {
+                        $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                    });
+                })
+                ->filterColumn('from', function ($query, $keyword) {
+                    $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                })
+                ->filterColumn('to', function ($query, $keyword) {
+                    $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                })
                 ->rawColumns(['status'])
                 ->make(true);
         }
 
         $user = Auth::user();
-        if ($user->role == 'admin') {
-            $assets = Asset::all();
-        } else {
-            $assets = Asset::whereHas('sekolah', function ($query) use ($user) {
+        $assets = $user->role == 'admin'
+            ? Asset::all()
+            : Asset::whereHas('sekolah', function ($query) use ($user) {
                 $query->where('kecamatan_id', $user->kecamatan_id);
             })->get();
-        }
 
         return view('asset.mutation', compact('assets'));
     }
