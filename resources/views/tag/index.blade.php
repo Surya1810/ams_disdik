@@ -215,7 +215,7 @@
                     },
                     {
                         data: 'kecamatan',
-                        name: 'kecamatan',
+                        name: 'kecamatan.name',
                         className: "text-start"
                     },
                     {

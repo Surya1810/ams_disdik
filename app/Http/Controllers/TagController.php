@@ -23,13 +23,25 @@ class TagController extends Controller
         if ($request->ajax()) {
             $tags = ($roleId == 1 || $roleId == 2)
                 ? Tag::with('kecamatan')
-                : Tag::with('kecamatan')->where('kecamatan_id', Auth::user()->kecamatan_id);
+                : Tag::with('kecamatan')->where('kecamatan_id', $kecamatanId);
 
             if ($request->filled('status')) {
                 $tags = $tags->where('status', $request->status);
             }
 
             return DataTables::of($tags)
+                ->filter(function ($query) use ($request) {
+                    if ($request->filled('search.value')) {
+                        $search = $request->input('search.value');
+                        $query->where(function ($q) use ($search) {
+                            $q->where('rfid_number', 'like', "%{$search}%")
+                                ->orWhere('status', 'like', "%{$search}%")
+                                ->orWhereHas('kecamatan', function ($q2) use ($search) {
+                                    $q2->where('name', 'like', "%{$search}%");
+                                });
+                        });
+                    }
+                })
                 ->addColumn('kecamatan', function ($tag) {
                     return $tag->kecamatan ? $tag->kecamatan->name : '-';
                 })
@@ -44,15 +56,14 @@ class TagController extends Controller
                 })
                 ->addColumn('action', function ($tag) {
                     if (strtolower($tag->status) !== 'available') {
-                        return ''; // Tidak ada aksi jika status bukan available
+                        return '';
                     }
-
                     return '
-                    <a role="button" class="text-danger px-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus"
-                        onclick="deleteTag(\'' . $tag->rfid_number . '\')">
-                    <i class="fa-solid fa-trash"></i>
-                    </a>
-                    ';
+                <a role="button" class="text-danger px-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus"
+                    onclick="deleteTag(\'' . $tag->rfid_number . '\')">
+                <i class="fa-solid fa-trash"></i>
+                </a>
+                ';
                 })
                 ->rawColumns(['status', 'action'])
                 ->make(true);
