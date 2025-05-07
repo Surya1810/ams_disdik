@@ -237,6 +237,12 @@ class ApprovalController extends Controller
                 ->filterColumn('to', function ($query, $keyword) {
                     $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
                 })
+                ->filterColumn('status', function ($query, $keyword) {
+                    $query->where('status', 'like', "%{$keyword}%");
+                })
+                ->filterColumn('requested_at', function ($query, $keyword) {
+                    $query->whereRaw("DATE_FORMAT(created_at, '%d-%m-%Y %H:%i') LIKE ?", ["%{$keyword}%"]);
+                })
                 ->rawColumns(['status'])
                 ->make(true);
         }
@@ -253,17 +259,18 @@ class ApprovalController extends Controller
     public function disposal(Request $request)
     {
         $user = Auth::user();
+
         if ($request->ajax()) {
             $data = Approval::with(['asset', 'requester'])
                 ->where('type', 'disposal')
                 ->whereHas('asset')
+                ->where('requested_by', $user->id)
                 ->select('approvals.*')
-                ->where('requested_by', Auth::user()->id)
                 ->latest();
 
             return DataTables::of($data)
                 ->addColumn('id', fn($row) => $row->id)
-                ->addIndexColumn() // <-- supaya ada nomor urut otomatis (No)
+                ->addIndexColumn()
                 ->addColumn('keterangan', function ($row) {
                     $payload = json_decode($row->payload, true);
                     return $payload['keterangan'] ?? '-';
@@ -289,13 +296,24 @@ class ApprovalController extends Controller
                 ->addColumn('action', function ($row) {
                     $url = route('disposal.pdf', $row->id);
                     return '<a href="' . $url . '" title="Download PDF" style="color: #dc3545; text-decoration: none;">
-        <i class="fa-solid fa-file-pdf fa-lg"></i>';
+                    <i class="fa-solid fa-file-pdf fa-lg"></i>
+                </a>';
                 })
-
                 ->editColumn('created_at', function ($row) {
                     return $row->created_at->format('d-m-Y H:i');
                 })
-                ->rawColumns(['jenis', 'status', 'action']) // badge HTML biar muncul
+
+                ->filterColumn('keterangan', function ($query, $keyword) {
+                    $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                })
+                ->filterColumn('jenis', function ($query, $keyword) {
+                    $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                })
+                ->filterColumn('status', function ($query, $keyword) {
+                    $query->whereRaw("LOWER(status) LIKE ?", ["%" . strtolower($keyword) . "%"]);
+                })
+
+                ->rawColumns(['jenis', 'status', 'action'])
                 ->make(true);
         }
 

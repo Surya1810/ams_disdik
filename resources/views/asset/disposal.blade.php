@@ -134,32 +134,41 @@
 @push('scripts')
 <script type='text/javascript'>
     $('.asset_id').select2({
-    placeholder: "Pilih Aset",
-    dropdownParent: $("#addDisposal .modal-content"),
-    width: "100%"
+        placeholder: "Pilih Aset",
+        dropdownParent: $("#addDisposal .modal-content"),
+        width: "100%"
     });
-    
+
     $('.jenis').select2({
-    placeholder: "Pilih Jenis",
-    dropdownParent: $("#addDisposal .modal-content"),
-    width: "100%"
+        placeholder: "Pilih Jenis",
+        dropdownParent: $("#addDisposal .modal-content"),
+        width: "100%"
     });
-        $(document).ready(function() {
-            $('#disposalTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: '{{ route('asset.disposal') }}',
-                columns: [
+
+    $(document).ready(function() {
+        $('#disposalTable').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: '{{ route('asset.disposal') }}',
+            columns: [
                 { data: 'id', name: 'id', visible: false },
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-                { data: 'keterangan', name: 'keterangan' },
-                { data: 'jenis', name: 'jenis', orderable: false, searchable: false },
+                {
+                data: 'keterangan',
+                name: 'keterangan',
+                orderable: false,
+                },
+                {
+                data: 'jenis',
+                name: 'jenis',
+                orderable: false,
+                },
                 { data: 'user', name: 'user' },
-                { data: 'status', name: 'status', orderable: false, searchable: false },
+                { data: 'status', name: 'status' },
                 { data: 'created_at', name: 'created_at' },
-                { data: 'action', name: 'action', orderable: false, searchable: false } // posisi terakhir
-                ]
-            });
+                { data: 'action', name: 'action', orderable: false, searchable: false }
+            ]
         });
+    });
 </script>
 @endpush

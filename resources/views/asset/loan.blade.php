@@ -281,7 +281,7 @@
                         orderable: false,
                     },
                     { data: 'requested_at', name: 'requested_at' },
-                    { data: 'status', name: 'status', orderable: false, searchable: false },
+                    { data: 'status', name: 'status'},
                     {
                         data: 'id',
                         name: 'action',
