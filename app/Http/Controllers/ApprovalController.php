@@ -148,6 +148,12 @@ class ApprovalController extends Controller
                 ->filterColumn('to', function ($query, $keyword) {
                     $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
                 })
+                ->filterColumn('status', function ($query, $keyword) {
+                    $query->where('status', 'like', "%{$keyword}%");
+                })
+                ->filterColumn('requested_at', function ($query, $keyword) {
+                    $query->whereRaw("DATE_FORMAT(created_at, '%d-%m-%Y %H:%i') LIKE ?", ["%{$keyword}%"]);
+                })
                 ->rawColumns(['status'])
                 ->make(true);
         }
