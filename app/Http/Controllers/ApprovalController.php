@@ -188,13 +188,13 @@ class ApprovalController extends Controller
                     $sekolah = \App\Models\Sekolah::find($old['sekolah_id'] ?? null);
                     $sekolahName = $sekolah->name ?? '-';
 
-                    return '<div>' .
-                        '<strong>Sekolah:</strong> ' . $sekolahName . '<br>' .
-                        '<strong>Gedung:</strong> ' . ($old['gedung'] ?? '-') . '<br>' .
-                        '<strong>Lantai:</strong> ' . ($old['lantai'] ?? '-') . '<br>' .
-                        '<strong>Ruangan:</strong> ' . ($old['ruangan'] ?? '-') . '<br>' .
-                        '<strong>Detail:</strong> ' . ($old['detail'] ?? '-') .
-                        '</div>';
+                    return implode('#', [
+                        $sekolahName,
+                        $old['gedung'] ?? '-',
+                        $old['lantai'] ?? '-',
+                        $old['ruangan'] ?? '-',
+                        $old['detail'] ?? '-'
+                    ]);
                 })
                 ->addColumn('to', function ($row) {
                     $payload = json_decode($row->payload, true);
@@ -203,13 +203,13 @@ class ApprovalController extends Controller
                     $sekolah = \App\Models\Sekolah::find($new['sekolah_id'] ?? null);
                     $sekolahName = $sekolah->name ?? '-';
 
-                    return '<div>' .
-                        '<strong>Sekolah:</strong> ' . $sekolahName . '<br>' .
-                        '<strong>Gedung:</strong> ' . ($new['gedung'] ?? '-') . '<br>' .
-                        '<strong>Lantai:</strong> ' . ($new['lantai'] ?? '-') . '<br>' .
-                        '<strong>Ruangan:</strong> ' . ($new['ruangan'] ?? '-') . '<br>' .
-                        '<strong>Detail:</strong> ' . ($new['detail'] ?? '-') .
-                        '</div>';
+                    return implode('#', [
+                        $sekolahName,
+                        $new['gedung'] ?? '-',
+                        $new['lantai'] ?? '-',
+                        $new['ruangan'] ?? '-',
+                        $new['detail'] ?? '-'
+                    ]);
                 })
                 ->addColumn('requested_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
                 ->addColumn('status', function ($row) {
@@ -221,7 +221,23 @@ class ApprovalController extends Controller
                     };
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
                 })
-                ->rawColumns(['status', 'from', 'to'])  // Beri rawColumns untuk status karena berupa HTML
+                ->filterColumn('asset_name', function ($query, $keyword) {
+                    $query->whereHas('asset', function ($q) use ($keyword) {
+                        $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                    });
+                })
+                ->filterColumn('requested_by', function ($query, $keyword) {
+                    $query->whereHas('requester', function ($q) use ($keyword) {
+                        $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                    });
+                })
+                ->filterColumn('from', function ($query, $keyword) {
+                    $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                })
+                ->filterColumn('to', function ($query, $keyword) {
+                    $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                })
+                ->rawColumns(['status'])
                 ->make(true);
         }
 
@@ -233,7 +249,6 @@ class ApprovalController extends Controller
 
         return view('asset.loan', compact('assets', 'schools'));
     }
-
 
     public function disposal(Request $request)
     {

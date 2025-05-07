@@ -209,8 +209,8 @@
     @endsection
 
     @push('scripts')
-    <script type='text/javascript'>
-        $('#loan_asset_id').on('change', function() {
+    <script type="text/javascript">
+        $('#loan_asset_id').on('change', function () {
             const selected = $(this).find(':selected');
             $('#old_kecamatan').val(selected.data('kecamatan') || '');
             $('#old_sekolah').val(selected.data('sekolah') || '');
@@ -219,58 +219,85 @@
             $('#old_ruangan').val(selected.data('ruangan') || '');
             $('#old_detail').val(selected.data('detail') || '');
         });
-
+    
         $('.asset_id').select2({
             placeholder: "Pilih Aset",
             dropdownParent: $("#addLoan .modal-content"),
             width: "100%"
         });
-
+    
         $('.sekolah_id').select2({
             placeholder: "Pilih Sekolah",
             dropdownParent: $("#addLoan .modal-content"),
             width: "100%"
         });
-
-        $(function() {
-    $('#loanTable').DataTable({
-    processing: true,
-    serverSide: true,
-    ajax: {
-        url: '{{ route('asset.loan') }}',
-        type: 'GET',
-    },
-    columns: [
-    { data: 'id', name: 'id', visible: false },
-    { data: 'asset_name', name: 'asset_name' },
-    { data: 'requested_by', name: 'requested_by' },
-    {
-    data: 'from',
-    orderable: false,
-    searchable: false
-    },
-    {
-    data: 'to',
-    orderable: false,
-    searchable: false
-    },
-    { data: 'requested_at', name: 'requested_at' },
-    { data: 'status', name: 'status' },
-    {
-    data: function(row) {
-    return `<a href="loan/pdf/${row.id}" title="Download PDF" style="color: #dc3545; text-decoration: none;">
-        <i class="fa-solid fa-file-pdf fa-lg"></i>
-    </a>`;
-    },
-    name: 'action',
-    orderable: false,
-    searchable: false
-    }
-    ],
-    rawColumns: ['from', 'to', 'status', 'action']
-});
-
-});
-
+    
+        $(function () {
+            $('#loanTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '{{ route('asset.loan') }}',
+                    type: 'GET',
+                },
+                columns: [
+                    { data: 'id', name: 'id', visible: false },
+                    { data: 'asset_name', name: 'asset_name' },
+                    { data: 'requested_by', name: 'requested_by' },
+                    {
+                        data: 'from',
+                        name: 'from',
+                        render: function (data) {
+                            if (data && data !== '-') {
+                                const parts = data.split('#');
+                                return `<div>
+                                    <strong>Sekolah:</strong> ${parts[0]}<br>
+                                    <strong>Gedung:</strong> ${parts[1]}<br>
+                                    <strong>Lantai:</strong> ${parts[2]}<br>
+                                    <strong>Ruangan:</strong> ${parts[3]}<br>
+                                    <strong>Detail:</strong> ${parts[4]}
+                                </div>`;
+                            }
+                            return '-';
+                        },
+                        orderable: false,
+                    },
+                    {
+                        data: 'to',
+                        name: 'to',
+                        render: function (data) {
+                            if (data && data !== '-') {
+                                const parts = data.split('#');
+                                return `<div>
+                                    <strong>Sekolah:</strong> ${parts[0]}<br>
+                                    <strong>Gedung:</strong> ${parts[1]}<br>
+                                    <strong>Lantai:</strong> ${parts[2]}<br>
+                                    <strong>Ruangan:</strong> ${parts[3]}<br>
+                                    <strong>Detail:</strong> ${parts[4]}
+                                </div>`;
+                            }
+                            return '-';
+                        },
+                        orderable: false,
+                    },
+                    { data: 'requested_at', name: 'requested_at' },
+                    { data: 'status', name: 'status', orderable: false, searchable: false },
+                    {
+                        data: 'id',
+                        name: 'action',
+                        render: function (data) {
+                            return `<a href="loan/pdf/${data}" title="Download PDF" style="color: #dc3545; text-decoration: none;">
+                                <i class="fa-solid fa-file-pdf fa-lg"></i>
+                            </a>`;
+                        },
+                        orderable: false,
+                        searchable: false
+                    }
+                ],
+                columnDefs: [
+                    { targets: [0], visible: false }
+                ]
+            });
+        });
     </script>
     @endpush
