@@ -187,8 +187,7 @@ class ApprovalController extends Controller
                     $payload = json_decode($row->payload, true);
                     $old = $payload['old_values'] ?? [];
 
-                    $sekolah = \App\Models\Sekolah::find($old['sekolah_id'] ?? null);
-                    $sekolahName = $sekolah->name ?? '-';
+                    $sekolahName = $old['sekolah_name'] ?? '-';
 
                     return implode('#', [
                         $sekolahName,
@@ -202,8 +201,7 @@ class ApprovalController extends Controller
                     $payload = json_decode($row->payload, true);
                     $new = $payload['new_values'] ?? [];
 
-                    $sekolah = \App\Models\Sekolah::find($new['sekolah_id'] ?? null);
-                    $sekolahName = $sekolah->name ?? '-';
+                    $sekolahName = $new['sekolah_name'] ?? '-';
 
                     return implode('#', [
                         $sekolahName,
@@ -234,10 +232,12 @@ class ApprovalController extends Controller
                     });
                 })
                 ->filterColumn('from', function ($query, $keyword) {
-                    $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                    $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%'])
+                        ->orWhereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
                 })
                 ->filterColumn('to', function ($query, $keyword) {
-                    $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                    $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%'])
+                        ->orWhereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
                 })
                 ->filterColumn('status', function ($query, $keyword) {
                     $query->where('status', 'like', "%{$keyword}%");
@@ -419,9 +419,12 @@ class ApprovalController extends Controller
                 'keterangan' => $request->input('keterangan', null),
             ];
         } elseif ($type === 'loan') {
+            $oldSekolah = Sekolah::find($asset->sekolah_id);
+            $newSekolah = Sekolah::find($request->sekolah_id);
             $payload = [
                 'old_values' => [
                     'sekolah_id' => $asset->sekolah_id,
+                    'sekolah_name' => $oldSekolah ? $oldSekolah->name : null,
                     'gedung' => $asset->gedung,
                     'lantai' => $asset->lantai,
                     'ruangan' => $asset->ruangan,
@@ -429,6 +432,7 @@ class ApprovalController extends Controller
                 ],
                 'new_values' => [
                     'sekolah_id' => $request->sekolah_id,
+                    'sekolah_name' => $newSekolah ? $newSekolah->name : null,
                     'gedung' => $request->gedung,
                     'lantai' => $request->lantai,
                     'ruangan' => $request->ruangan,
