@@ -19,7 +19,7 @@ class Asset extends Model
 
     public function tag()
     {
-        return $this->belongsTo(tag::class, 'rfid_number');
+        return $this->belongsTo(Tag::class, 'rfid_number');
     }
 
     public function histories()
