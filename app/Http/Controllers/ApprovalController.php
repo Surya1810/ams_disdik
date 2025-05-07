@@ -23,14 +23,18 @@ class ApprovalController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Approval::with(['asset', 'requester'])->orderBy('approvals.created_at', 'desc');
+            $data = Approval::with(['asset', 'requester'])
+                ->join('assets', 'approvals.asset_id', '=', 'assets.id')
+                ->join('users as u', 'approvals.requested_by', '=', 'u.id')
+                ->select('approvals.*')
+                ->orderBy('approvals.created_at', 'desc');
 
             if ($request->filled('status')) {
-                $data->where('status', $request->status);
+                $data->where('approvals.status', $request->status);
             }
 
             if ($request->filled('type')) {
-                $data->where('type', $request->type);
+                $data->where('approvals.type', $request->type);
             }
 
             return DataTables::of($data)
@@ -42,26 +46,24 @@ class ApprovalController extends Controller
                 })
                 ->addColumn('asset', fn($row) => $row->asset->name ?? '-')
                 ->filterColumn('asset', function ($query, $keyword) {
-                    $query->whereHas('asset', fn($q) => $q->where('name', 'like', "%{$keyword}%"));
+                    $query->where('assets.name', 'like', "%{$keyword}%");
                 })
                 ->orderColumn('asset', function ($query, $order) {
-                    $query->join('assets', 'approvals.asset_id', '=', 'assets.id')
-                        ->orderBy('assets.name', $order)
-                        ->select('approvals.*');
+                    $query->orderBy('assets.name', $order);
                 })
                 ->addColumn('requester', fn($row) => $row->requester->name ?? '-')
                 ->filterColumn('requester', function ($query, $keyword) {
-                    $query->whereHas('requester', fn($q) => $q->where('name', 'like', "%{$keyword}%"));
+                    $query->where('u.name', 'like', "%{$keyword}%");
                 })
                 ->orderColumn('requester', function ($query, $order) {
-                    $query->join('users as u', 'approvals.requester_id', '=', 'u.id')
-                        ->orderBy('u.name', $order)
-                        ->select('approvals.*');
+                    $query->orderBy('u.name', $order);
                 })
                 ->addColumn('keterangan', function ($row) {
-                    // Pastikan payload didecode dengan benar
-                    $payload = json_decode($row->payload, true); // Dekode string JSON ke array
+                    $payload = json_decode($row->payload, true);
                     return $payload['keterangan'] ?? '-';
+                })
+                ->filterColumn('keterangan', function ($query, $keyword) {
+                    $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
                 })
                 ->addColumn('status', function ($row) {
                     $color = match ($row->status) {
@@ -73,16 +75,16 @@ class ApprovalController extends Controller
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
                 })
                 ->addColumn('waktu', function ($row) {
-                    return \Carbon\Carbon::parse($row->created_at)->locale('id')->translatedFormat('d F Y H:i');
+                    return \Carbon\Carbon::parse($row->created_at)
+                        ->locale('id')->translatedFormat('d F Y H:i');
                 })
                 ->addColumn('rejection_note', fn($row) => $row->rejection_note ?? '-')
-                ->rawColumns(['checkbox', 'status', 'waktu']) // Hanya kolom yang mengandung HTML
+                ->rawColumns(['checkbox', 'status', 'waktu'])
                 ->make(true);
         }
 
         return view('approval.index');
     }
-
 
     public function mutation(Request $request)
     {
