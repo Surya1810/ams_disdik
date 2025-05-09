@@ -21,11 +21,13 @@ class HistoryController extends Controller
             $data = History::with(['asset', 'user'])
                 ->where('change_type', 'attribute')
                 ->where('user_id', Auth::user()->id)
-                ->orderBy('created_at', 'desc');
+                ->orderBy('histories.created_at', 'desc');
 
             return DataTables::of($data)
+                ->addColumn('rfid_number', fn($row) => $row->asset?->rfid_number ?? '-')
+                ->addColumn('kode', fn($row) => $row->asset?->kode ?? '-')
                 ->addColumn('asset', fn($row) => $row->asset?->name ?? '-')
-                ->addColumn('user', fn($row) => $row->user?->name ?? 'System')
+                ->addColumn('user', fn($row) => $row->user?->name ?? '-')
                 ->editColumn('perubahan', function ($row) {
                     if ($row->change_type == 'create') {
                         return "<span class='text-success'>Asset telah ditambahkan</span>";
@@ -90,6 +92,8 @@ class HistoryController extends Controller
                 ->select('histories.*', 'assets.name as asset_name');
 
             return DataTables::of($data)
+                ->addColumn('rfid_number', fn($row) => $row->asset->rfid_number ?? '-')
+                ->addColumn('kode', fn($row) => $row->asset->kode ?? '-')
                 ->addColumn('asset', fn($row) => $row->asset->name ?? '-')
                 ->addColumn('user', fn($row) => $row->user->name ?? '-')
                 ->addColumn('dari', function ($row) {
@@ -148,6 +152,8 @@ class HistoryController extends Controller
                 ->select('histories.*', 'assets.name as asset_name');
 
             return DataTables::of($data)
+                ->addColumn('rfid_number', fn($row) => $row->asset->rfid_number ?? '-')
+                ->addColumn('kode', fn($row) => $row->asset->name ?? '-')
                 ->addColumn('asset', fn($row) => $row->asset->name ?? '-')
                 ->addColumn('user', fn($row) => $row->user->name ?? '-')
                 ->addColumn('dari', function ($row) {
@@ -206,32 +212,49 @@ class HistoryController extends Controller
 
     public function disposalHistory(Request $request)
     {
+        // ! Masih dalam perbaikan
         $user = Auth::user();
+        // $data = History::with(['asset', 'user', 'approval']) // ambil relasi asset dan user
+        //     ->where('change_type', 'disposal')
+        //     ->get();
+
+            // dd($data[0]->approval->status);
 
         if ($request->ajax()) {
-            $data = History::with(['asset', 'user']) // ambil relasi asset dan user
+            $data = History::with(['asset', 'user', 'approval']) // ambil relasi asset dan user
                 ->where('change_type', 'disposal')
-                ->where('user_id', $user->id)
-                ->latest();
+                ->where('user_id', $user->id);
 
             return DataTables::of($data)
+                ->addColumn('rfid_number', function ($row) {
+                    return $row->asset?->rfid_number;
+                })
+                ->addColumn('kode', function ($row) {
+                    return $row->asset?->kode;
+                })
                 ->addColumn('keterangan', function ($row) {
                     $newValues = json_decode($row->new_values, true);
-                    return $newValues['keterangan'] ?? '-';
+                    return $newValues['keterangan'] ?? ($row->approval->rejection_note ?? '-');
                 })
                 ->addColumn('user', function ($row) {
                     return $row->user->name ?? '-';
                 })
                 ->addColumn('jenis', function ($row) {
                     $newValues = json_decode($row->new_values, true);
-                    $jenis = $newValues['jenis'] ?? '-';
-                    $badge = $jenis === 'lelang' ? 'warning' : ($jenis === 'hilang' ? 'danger' : 'secondary');
+                    $jenis = $newValues['jenis'] ?? 'lelang';
+                    $badge = $jenis === 'lelang' ? 'warning' : 'secondary';
                     return '<span class="badge bg-' . $badge . '">' . ucfirst($jenis) . '</span>';
+                })
+                ->addColumn('approval', function ($row) {
+                    $statusBadge = isset($row->approval->status)
+                        ? ($row->approval->status == 'rejected' ? 'danger' : 'success')
+                        : '-';
+                    return '<span class="badge bg-' . $statusBadge . '">' . ucfirst($row->approval->status) . '</span>';
                 })
                 ->editColumn('created_at', function ($row) {
                     return $row->created_at->format('d-m-Y H:i');
                 })
-                ->rawColumns(['jenis'])
+                ->rawColumns(['jenis', 'approval'])
                 ->make(true);
         }
 

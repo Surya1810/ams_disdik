@@ -35,6 +35,8 @@
                         <thead class="font-weight-bolder text-uppercase">
                             <tr>
                                 <th hidden>ID</th>
+                                <th>RFID Number</th>
+                                <th>Kode</th>
                                 <th>Nama Barang</th>
                                 <th>Diajukan Oleh</th>
                                 <th>Dari</th>
@@ -73,7 +75,12 @@
                             <option value="{{ $asset->id }}" data-nip="{{ $asset->nip_pic }}"
                                 data-nama="{{ $asset->nama_pic }}" data-jabatan="{{ $asset->jabatan_pic }}"
                                 data-telp="{{ $asset->telp_pic }}">
-                                {{ $asset->name }}
+                                {{
+                                    $asset->kode
+                                    . ' - ' .$asset->name
+                                    . ' - ' . $asset->sekolah->category
+                                    . ' - ' . $asset->sekolah->name
+                                }}
                             </option>
                             @endforeach
                         </select>
@@ -168,6 +175,8 @@
             },
             columns: [
                 { data: 'id', name: 'id', visible: false },
+                { data: 'rfid_number', name: 'rfid_number' },
+                { data: 'kode', name: 'kode' },
                 { data: 'asset_name', name: 'asset_name' },
                 { data: 'requested_by', name: 'requested_by' },
                 {

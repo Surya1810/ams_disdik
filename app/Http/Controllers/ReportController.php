@@ -35,8 +35,8 @@ class ReportController extends Controller
             ? Asset::sum('nilai_perolehan')
             : $assetsQuery->sum('nilai_perolehan');
         $assetsHilangCount = ($roleId === 1 || $roleId === 2)
-            ? Asset::where('kondisi', 'Hilang')->count()
-            : $assetsQuery->where('kondisi', 'Hilang')->count();
+            ? Asset::where('is_there', false)->count()
+            : $assetsQuery->where('is_there', false)->count();
 
         // Hitung perawatan
         $kondisiTidakDirawat = ['Baik', 'Hilang'];
@@ -49,8 +49,8 @@ class ReportController extends Controller
 
         // Hitung kehilangan
         $kehilanganNilai = ($roleId === 1 || $roleId === 2)
-            ? Asset::where('kondisi', 'Hilang')->sum('nilai_perolehan')
-            : $assetsQuery->where('kondisi', 'Hilang')->sum('nilai_perolehan');
+            ? Asset::where('is_there', false)->sum('nilai_perolehan')
+            : $assetsQuery->where('is_there', false)->sum('nilai_perolehan');
 
         // Hitung tag
         $tagsCount = ($roleId === 1 || $roleId === 2)

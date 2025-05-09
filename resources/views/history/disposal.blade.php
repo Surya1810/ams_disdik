@@ -28,9 +28,12 @@
                     <table id="disposalHistoryTable" class="table text-sm mt-3">
                         <thead class="font-weight-bolder">
                             <tr>
+                                <th class="text-uppercase">RFID Number</th>
+                                <th class="text-uppercase">Kode</th>
                                 <th class="text-uppercase">Keterangan</th>
                                 <th class="text-uppercase">Diajukan Oleh</th>
                                 <th class="text-uppercase">Jenis</th>
+                                <th class="text-uppercase">Status</th>
                                 <th class="text-uppercase">Waktu</th>
                             </tr>
                         </thead>
@@ -53,6 +56,14 @@
             ajax: '{{ route('histories.disposal') }}',
             columns: [
                 {
+                    data: 'rfid_number',  // Menampilkan keterangan
+                    name: 'rfid_number',
+                },
+                {
+                    data: 'kode',  // Menampilkan keterangan
+                    name: 'kode',
+                },
+                {
                     data: 'keterangan',  // Menampilkan keterangan
                     name: 'keterangan',
                     orderable: false,
@@ -63,8 +74,12 @@
                     name: 'user.name'
                 },
                 {
-                    data: 'jenis', // Menampilkan jenis (lelang / hilang)
+                    data: 'jenis', // Menampilkan jenis
                     name: 'jenis'
+                },
+                {
+                    data: 'approval', // Menampilkan jenis
+                    name: 'approval.status'
                 },
                 {
                     data: 'created_at', // Menampilkan waktu

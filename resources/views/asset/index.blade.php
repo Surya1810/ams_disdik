@@ -91,20 +91,27 @@
                                             <option value="Rusak Berat">
                                                 Rusak Berat
                                             </option>
-                                            <option value="Hilang">
-                                                Hilang
-                                            </option>
                                         </select>
                                     </div>
                                     {{-- Filter Tempat/Lokasi/Sekolah --}}
                                     <select id="filterTempat" class="form-control w-auto">
                                         <option value="">Semua Tempat </option>
-                                        @foreach ($places as $place)
-                                            <option value="{{ $place->id }}"
-                                                {{ old('sekolah_id') == $place->id ? 'selected' : '' }}>
-                                                {{ $place->category . ' ' . $place->name }}
-                                            </option>
-                                        @endforeach
+                                        @if (auth()->user()->role_id == 2)
+                                        {{-- Untuk role == 2 atau Dispora --}}
+                                            @foreach ($placesForFilter as $place)
+                                                <option value="{{ $place->id }}"
+                                                    {{ old('sekolah_id') == $place->id ? 'selected' : '' }}>
+                                                    {{ $place->category . ' ' . $place->name }}
+                                                </option>
+                                            @endforeach
+                                        @else
+                                            @foreach ($places as $place)
+                                                <option value="{{ $place->id }}"
+                                                    {{ old('sekolah_id') == $place->id ? 'selected' : '' }}>
+                                                    {{ $place->category . ' ' . $place->name }}
+                                                </option>
+                                            @endforeach
+                                        @endif
                                     </select>
                                     {{-- Filter Tahun --}}
                                     <select id="filterTahun" class="form-control w-auto">
@@ -137,6 +144,9 @@
                                     <th class="text-uppercase">Tahun Pembelian</th>
                                     <th class="text-uppercase">Kondisi</th>
                                     <th class="text-uppercase">Tempat</th>
+                                    @if (auth()->user()->role_id == 2)
+                                        <th class="text-uppercase">Kecamatan</th>
+                                    @endif
                                     <th class="text-uppercase">Aksi</th>
                                 </tr>
                             </thead>
@@ -170,7 +180,7 @@
                                     <div class="col-4">
                                         <label for="image">Pilih Foto Awal:</label>
                                         <input type="file" name="image" accept="image/*" class="form-control"
-                                            onchange="previewImage(event)">
+                                            onchange="previewImage(event)" data-edit="0">
 
                                         <div id="preview" style="margin-top: 15px;">
                                             <img id="previewImg" src="" alt="Preview" style="display: none;" />
@@ -470,9 +480,6 @@
                                                 {{ old('kondisi') == 'Rusak Berat' ? 'selected' : '' }}>
                                                 Rusak Berat
                                             </option>
-                                            <option value="Hilang" {{ old('kondisi') == 'Hilang' ? 'selected' : '' }}>
-                                                Hilang
-                                            </option>
                                         </select>
 
                                         @error('kondisi')
@@ -640,12 +647,12 @@
                                     <div class="col-4">
                                         <label for="image">Pilih Foto Awal:</label>
                                         <input type="file" name="image" accept="image/*" class="form-control"
-                                            onchange="previewImage(event)">
+                                            onchange="previewImage(event)" data-edit="1">
 
                                         <div id="preview" style="margin-top: 15px;">
-                                            <img id="previewImg" src="" alt="Preview"
+                                            <img id="previewImgEdit" src="" alt="Preview"
                                                 style="display: none; max-width: 100%; height: auto;" />
-                                            <p id="fileName" style="margin-top: 5px;"></p>
+                                            <p id="fileNameEdit" style="margin-top: 5px;"></p>
                                         </div>
                                     </div>
                                     <div class="col-8">
@@ -653,7 +660,7 @@
                                             <div class="col-12 col-md-6">
                                                 <label>Nomor RFID</label>
                                                 <input type="text"
-                                                    class="form-control @error('tag') is-invalid @enderror"
+                                                    class="form-control muted @error('tag') is-invalid @enderror"
                                                     name="tag" id="tag_edit" readonly placeholder=""
                                                     aria-label="tag">
                                                 @error('tag')
@@ -833,7 +840,7 @@
 
                                     <div class="col-12 col-md-3">
                                         <label>NIP</label>
-                                        <input type="text" class="form-control @error('nip_pic') is-invalid @enderror"
+                                        <input type="text" class="form-control muted @error('nip_pic') is-invalid @enderror"
                                             name="nip_pic" id="nip_pic" readonly placeholder="Tulis NIP PIC Barang"
                                             aria-label="nip_pic">
                                         @error('nip_pic')
@@ -846,7 +853,7 @@
                                     <div class="col-12 col-md-3">
                                         <label>Nama</label>
                                         <input type="text"
-                                            class="form-control @error('nama_pic') is-invalid @enderror" name="nama_pic"
+                                            class="form-control muted @error('nama_pic') is-invalid @enderror" name="nama_pic"
                                             id="nama_pic" readonly placeholder="Tulis Nama PIC Barang"
                                             aria-label="nama_pic">
                                         @error('nama_pic')
@@ -859,7 +866,7 @@
                                     <div class="col-12 col-md-3">
                                         <label>Jabatan</label>
                                         <input type="text"
-                                            class="form-control @error('jabatan_pic') is-invalid @enderror"
+                                            class="form-control muted @error('jabatan_pic') is-invalid @enderror"
                                             name="jabatan_pic" id="jabatan_pic" readonly
                                             placeholder="Tulis Jabatan PIC Barang" aria-label="jabatan_pic">
                                         @error('jabatan_pic')
@@ -872,7 +879,7 @@
                                     <div class="col-12 col-md-3">
                                         <label>No. Telepon</label>
                                         <input type="text"
-                                            class="form-control @error('telp_pic') is-invalid @enderror" name="telp_pic"
+                                            class="form-control muted @error('telp_pic') is-invalid @enderror" name="telp_pic"
                                             id="telp_pic" readonly placeholder="Tulis nomor telepon PIC Barang"
                                             aria-label="nip_pic">
                                         @error('telp_pic')
@@ -937,9 +944,6 @@
                                             <option value="Rusak Berat"
                                                 {{ old('kondisi') == 'Rusak Berat' ? 'selected' : '' }}>
                                                 Rusak Berat
-                                            </option>
-                                            <option value="Hilang" {{ old('kondisi') == 'Hilang' ? 'selected' : '' }}>
-                                                Hilang
                                             </option>
                                         </select>
 
@@ -1013,7 +1017,7 @@
                                     <div class="col-12 col-md-6">
                                         <label>Tempat</label>
                                         <select name="sekolah_id" id="sekolah_id"
-                                            class="form-control place @error('sekolah_id') is-invalid @enderror" readonly>
+                                            class="form-control muted place @error('sekolah_id') is-invalid @enderror" readonly>
                                             <option value=""></option>
                                             @foreach ($places as $place)
                                                 <option value="{{ $place->id }}">{{ $place->name }}</option>
@@ -1028,7 +1032,7 @@
 
                                     <div class="col-12 col-md-3">
                                         <label>Gedung</label>
-                                        <input type="text" class="form-control @error('gedung') is-invalid @enderror"
+                                        <input type="text" class="form-control muted @error('gedung') is-invalid @enderror"
                                             name="gedung" id="gedung" placeholder="Tulis lokasi gedung"
                                             aria-label="gedung" readonly>
                                         @error('gedung')
@@ -1040,7 +1044,7 @@
 
                                     <div class="col-12 col-md-3">
                                         <label>Lantai</label>
-                                        <input type="text" class="form-control @error('lantai') is-invalid @enderror"
+                                        <input type="text" class="form-control muted @error('lantai') is-invalid @enderror"
                                             name="lantai" id="lantai" placeholder="Tulis lokasi lantai"
                                             aria-label="lantai" readonly>
                                         @error('lantai')
@@ -1052,7 +1056,7 @@
 
                                     <div class="col-12 col-md-3">
                                         <label>Ruangan</label>
-                                        <input type="text" class="form-control @error('ruangan') is-invalid @enderror"
+                                        <input type="text" class="form-control muted @error('ruangan') is-invalid @enderror"
                                             name="ruangan" id="ruangan" placeholder="Tulis lokasi ruangan"
                                             aria-label="ruangan" readonly>
                                         @error('ruangan')
@@ -1064,7 +1068,7 @@
 
                                     <div class="col-12 col-md-3">
                                         <label>Detail</label>
-                                        <input type="text" class="form-control @error('detail') is-invalid @enderror"
+                                        <input type="text" class="form-control muted @error('detail') is-invalid @enderror"
                                             name="detail" id="detail" placeholder="Tulis lokasi detail"
                                             aria-label="detail" readonly>
                                         @error('detail')
@@ -1115,39 +1119,39 @@
 
                                         <div class="col-12 col-md-6">
                                             <label>Nomor RFID</label>
-                                            <input type="text" class="form-control" id="tag_show" readonly>
+                                            <input type="text" class="form-control muted" id="tag_show" readonly>
                                         </div>
                                         <div class="col-12 col-md-6">
                                             <label>Kode Barang</label>
-                                            <input type="text" class="form-control" id="kode" readonly>
+                                            <input type="text" class="form-control muted" id="kode" readonly>
                                         </div>
                                         <div class="col-12">
                                             <label>Nama/Jenis Barang</label>
-                                            <input type="text" class="form-control" id="name" readonly>
+                                            <input type="text" class="form-control muted" id="name" readonly>
                                         </div>
                                         <div class="col-12 col-md-4">
                                             <label>Nomor Register</label>
-                                            <input type="text" class="form-control" id="register" readonly>
+                                            <input type="text" class="form-control muted" id="register" readonly>
                                         </div>
                                         <div class="col-12 col-md-4">
                                             <label>Merk</label>
-                                            <input type="text" class="form-control" id="merk" readonly>
+                                            <input type="text" class="form-control muted" id="merk" readonly>
                                         </div>
                                         <div class="col-12 col-md-4">
                                             <label>Ukuran</label>
-                                            <input type="text" class="form-control" id="ukuran" readonly>
+                                            <input type="text" class="form-control muted" id="ukuran" readonly>
                                         </div>
                                         <div class="col-12 col-md-4">
                                             <label>Bahan</label>
-                                            <input type="text" class="form-control" id="bahan" readonly>
+                                            <input type="text" class="form-control muted" id="bahan" readonly>
                                         </div>
                                         <div class="col-12 col-md-4">
                                             <label>Tahun Pembelian</label>
-                                            <input type="text" class="form-control" id="tahun_pembelian" readonly>
+                                            <input type="text" class="form-control muted" id="tahun_pembelian" readonly>
                                         </div>
                                         <div class="col-12 col-md-4">
                                             <label>Pabrik</label>
-                                            <input type="text" class="form-control" id="pabrik" readonly>
+                                            <input type="text" class="form-control muted" id="pabrik" readonly>
                                         </div>
                                     </div>
                                 </div>
@@ -1160,20 +1164,20 @@
                                 </div>
                                 <div class="col-12 col-md-3">
                                     <label>Rangka</label>
-                                    <input type="text" class="form-control" id="rangka" readonly>
+                                    <input type="text" class="form-control muted" id="rangka" readonly>
                                 </div>
 
                                 <div class="col-12 col-md-3">
                                     <label>Mesin</label>
-                                    <input type="text" class="form-control" id="mesin" readonly>
+                                    <input type="text" class="form-control muted" id="mesin" readonly>
                                 </div>
                                 <div class="col-12 col-md-3">
                                     <label>Polisi</label>
-                                    <input type="text" class="form-control" id="polisi" readonly>
+                                    <input type="text" class="form-control muted" id="polisi" readonly>
                                 </div>
                                 <div class="col-12 col-md-3">
                                     <label>BPKB</label>
-                                    <input type="text" class="form-control" id="bpkb" readonly>
+                                    <input type="text" class="form-control muted" id="bpkb" readonly>
                                 </div>
                             </div>
 
@@ -1184,19 +1188,19 @@
                                 </div>
                                 <div class="col-12 col-md-3">
                                     <label>NIP</label>
-                                    <input type="text" class="form-control" id="nip_pic" readonly>
+                                    <input type="text" class="form-control muted" id="nip_pic" readonly>
                                 </div>
                                 <div class="col-12 col-md-3">
                                     <label>Nama</label>
-                                    <input type="text" class="form-control" id="nama_pic" readonly>
+                                    <input type="text" class="form-control muted" id="nama_pic" readonly>
                                 </div>
                                 <div class="col-12 col-md-3">
                                     <label>Jabatan</label>
-                                    <input type="text" class="form-control" id="jabatan_pic" readonly>
+                                    <input type="text" class="form-control muted" id="jabatan_pic" readonly>
                                 </div>
                                 <div class="col-12 col-md-3">
                                     <label>No. Telepon</label>
-                                    <input type="text" class="form-control" id="telp_pic" readonly>
+                                    <input type="text" class="form-control muted" id="telp_pic" readonly>
                                 </div>
                             </div>
 
@@ -1207,35 +1211,34 @@
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <label>Asal-usul Perolehan</label>
-                                    <input type="text" class="form-control" id="asal_perolehan" readonly>
+                                    <input type="text" class="form-control muted" id="asal_perolehan" readonly>
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <label>Nilai Perolehan</label>
-                                    <input type="text" class="form-control price" id="nilai_perolehan" readonly>
+                                    <input type="text" class="form-control price muted" id="nilai_perolehan" readonly>
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <label>Kondisi</label>
-                                    <select id="kondisi" class="form-select kondisi" readonly>
+                                    <select id="kondisi" class="form-select kondisi muted" disabled readonly>
                                         <option value="">Pilih Kondisi</option>
                                         <option value="Baik">Baik</option>
                                         <option value="Perlu Perbaikan">Perlu Perbaikan</option>
                                         <option value="Rusak Ringan">Rusak Ringan</option>
                                         <option value="Rusak Sedang">Rusak Sedang</option>
                                         <option value="Rusak Berat">Rusak Berat</option>
-                                        <option value="Hilang">Hilang</option>
                                     </select>
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <label>Tanggal Perawatan</label>
-                                    <input type="date" class="form-control" id="tanggal_perawatan_show" readonly>
+                                    <input type="date" class="form-control muted" id="tanggal_perawatan_show" readonly>
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <label>Harga Perawatan</label>
-                                    <input type="text" class="form-control price" id="harga_perawatan" readonly>
+                                    <input type="text" class="form-control muted price" id="harga_perawatan" readonly>
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <label>Jangka Waktu Perawatan</label>
-                                    <select id="waktu_perawatan_show" class="form-control waktu_perawatan" readonly>
+                                    <select id="waktu_perawatan_show" class="form-control waktu_perawatan muted" disabled readonly>
                                         <option value="">Pilih Jangka Waktu</option>
                                         <option value="3">3 Bulan</option>
                                         <option value="6">6 Bulan</option>
@@ -1262,7 +1265,7 @@
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label>Tempat</label>
-                                    <select id="sekolah_id" class="form-control place" readonly>
+                                    <select id="sekolah_id" class="form-control place muted" disabled readonly>
                                         <option value=""></option>
                                         @foreach ($places as $place)
                                             <option value="{{ $place->id }}">{{ $place->name }}</option>
@@ -1271,19 +1274,19 @@
                                 </div>
                                 <div class="col-12 col-md-3">
                                     <label>Gedung</label>
-                                    <input type="text" class="form-control" id="gedung" readonly>
+                                    <input type="text" class="form-control muted" id="gedung" readonly>
                                 </div>
                                 <div class="col-12 col-md-3">
                                     <label>Lantai</label>
-                                    <input type="text" class="form-control" id="lantai" readonly>
+                                    <input type="text" class="form-control muted" id="lantai" readonly>
                                 </div>
                                 <div class="col-12 col-md-3">
                                     <label>Ruangan</label>
-                                    <input type="text" class="form-control" id="ruangan" readonly>
+                                    <input type="text" class="form-control muted" id="ruangan" readonly>
                                 </div>
                                 <div class="col-12 col-md-3">
                                     <label>Detail</label>
-                                    <input type="text" class="form-control" id="detail" readonly>
+                                    <input type="text" class="form-control muted" id="detail" readonly>
                                 </div>
                             </div>
                         </div>
@@ -1388,6 +1391,8 @@
 
 @push('scripts')
     <script>
+        const roleId = "{{ auth()->user()->role_id }}";
+
         $(function() {
             const modalAdd = $("#addAset .modal-content");
             const modalEdit = $("#editAset .modal-content");
@@ -1422,8 +1427,13 @@
             // Preview gambar sebelum upload
             window.previewImage = function(event) {
                 const input = event.target;
-                const preview = document.getElementById('previewImg');
-                const fileName = document.getElementById('fileName');
+                const isEdit = event.target.dataset.edit;
+                const preview = isEdit === 0
+                    ? document.getElementById('previewImg')
+                    : document.getElementById('previewImgEdit');
+                const fileName = isEdit === 0
+                    ? document.getElementById('fileName')
+                    : document.getElementById('fileNameEdit');
 
                 if (input.files && input.files[0]) {
                     const reader = new FileReader();
@@ -1437,6 +1447,32 @@
             };
 
             // DataTables
+            let baseColumns = [
+                { data: 'rfid_number', name: 'rfid_number', className: "text-start" },
+                { data: 'kode', name: 'kode', className: "text-start" },
+                { data: 'name', name: 'name', className: "text-start" },
+                { data: 'merk', name: 'merk', className: "text-start" },
+                { data: 'tahun_pembelian', name: 'tahun_pembelian', className: "text-start" },
+                { data: 'kondisi_badge', name: 'kondisi', className: "text-start" },
+                { data: 'sekolah_name', name: 'sekolah_name' }
+            ];
+
+            // Tambahkan kolom kecamatan jika roleId == 2
+            if (roleId == 2) {
+                baseColumns.push({
+                    data: 'kecamatan_name',
+                    name: 'kecamatan_name',
+                    className: "text-start"
+                });
+            }
+
+            baseColumns.push({
+                data: 'action',
+                name: 'action',
+                orderable: false,
+                searchable: false
+            });
+
             const table = $('#asetTable').DataTable({
                 processing: true,
                 serverSide: true,
@@ -1448,47 +1484,7 @@
                         d.tahun_pembelian = $('#filterTahun').find(':selected').val();
                     }
                 },
-                columns: [{
-                        data: 'rfid_number',
-                        name: 'rfid_number',
-                        className: "text-start"
-                    },
-                    {
-                        data: 'kode',
-                        name: 'kode',
-                        className: "text-start"
-                    },
-                    {
-                        data: 'name',
-                        name: 'name',
-                        className: "text-start"
-                    },
-                    {
-                        data: 'merk',
-                        name: 'merk',
-                        className: "text-start"
-                    },
-                    {
-                        data: 'tahun_pembelian',
-                        name: 'tahun_pembelian',
-                        className: "text-start"
-                    },
-                    {
-                        data: 'kondisi_badge',
-                        name: 'kondisi',
-                        className: "text-start"
-                    },
-                    {
-                        data: 'sekolah_name',
-                        name: 'sekolah_name'
-                    },
-                    {
-                        data: 'action',
-                        name: 'action',
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
+                columns: baseColumns,
                 drawCallback: function() {
                     $('[data-bs-toggle="tooltip"]').each(function() {
                         new bootstrap.Tooltip(this);
@@ -1583,7 +1579,7 @@
                 // Preview gambar
                 const $previewImg = $(`${selector} #previewImg`);
                 if (asset.foto_awal) {
-                    $previewImg.attr('src', `/storage/public/assets/${asset.foto_awal}`).show();
+                    $previewImg.attr('src', `${asset.foto_awal}`).show();
                 } else {
                     $previewImg.hide();
                 }

@@ -29,6 +29,8 @@
                         <table id="mutationTable" class="table text-sm mt-3">
                             <thead class="font-weight-bolder">
                                 <tr>
+                                    <th class="text-uppercase">RFID Number</th>
+                                    <th class="text-uppercase">Kode</th>
                                     <th class="text-uppercase">Nama Barang</th>
                                     <th class="text-uppercase">Diubah Oleh</th>
                                     <th class="text-uppercase">Dari</th>
@@ -54,7 +56,16 @@
                 processing: true,
                 serverSide: true,
                 ajax: "{{ route('histories.mutation') }}",
-                columns: [{
+                columns: [
+                    {
+                        data: 'rfid_number',
+                        name: 'asset.rfid_number'
+                    },
+                    {
+                        data: 'kode',
+                        name: 'asset.rfid_number'
+                    },
+                    {
                         data: 'asset',
                         name: 'asset.name'
                     },

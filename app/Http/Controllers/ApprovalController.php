@@ -44,6 +44,8 @@ class ApprovalController extends Controller
                     }
                     return '';
                 })
+                ->addColumn('rfid_number', fn($row) => $row->asset?->rfid_number ?? '-')
+                ->addColumn('kode', fn($row) => $row->asset?->kode ?? '-')
                 ->addColumn('asset', fn($row) => $row->asset->name ?? '-')
                 ->filterColumn('asset', function ($query, $keyword) {
                     $query->where('assets.name', 'like', "%{$keyword}%");
@@ -95,6 +97,9 @@ class ApprovalController extends Controller
                 ->latest();
 
             return DataTables::of($approvals)
+                ->addColumn('id', fn($row) => $row->id)
+                ->addColumn('rfid_number', fn($row) => $row->asset->rfid_number)
+                ->addColumn('kode', fn($row) => $row->asset->kode)
                 ->addColumn('id', fn($row) => $row->id)
                 ->addColumn('asset_name', fn($row) => $row->asset->name ?? '-')
                 ->addColumn('requested_by', fn($row) => $row->requester->name ?? '-')
@@ -161,11 +166,9 @@ class ApprovalController extends Controller
         }
 
         $user = Auth::user();
-        $assets = $user->role == 'admin'
-            ? Asset::all()
-            : Asset::whereHas('sekolah', function ($query) use ($user) {
-                $query->where('kecamatan_id', $user->kecamatan_id);
-            })->get();
+        $assets = Asset::whereHas('sekolah', function ($query) use ($user) {
+            $query->where('kecamatan_id', $user->kecamatan_id);
+        })->with('sekolah')->get();
 
         return view('asset.mutation', compact('assets'));
     }
@@ -181,6 +184,8 @@ class ApprovalController extends Controller
 
             return DataTables::of($approvals)
                 ->addColumn('id', fn($row) => $row->id)
+                ->addColumn('rfid_number', fn($row) => $row->asset->rfid_number ?? '-')
+                ->addColumn('kode', fn($row) => $row->asset->kode ?? '-')
                 ->addColumn('asset_name', fn($row) => $row->asset->name ?? '-')
                 ->addColumn('requested_by', fn($row) => $row->requester->name ?? '-')
                 ->addColumn('from', function ($row) {
@@ -251,7 +256,7 @@ class ApprovalController extends Controller
 
         $assets = Asset::whereHas('sekolah', function ($query) use ($user) {
             $query->where('kecamatan_id', $user->kecamatan_id);
-        })->get();
+        })->with('sekolah')->get();
 
         $schools = Sekolah::where('kecamatan_id', $user->kecamatan_id)->get();
 
@@ -273,6 +278,12 @@ class ApprovalController extends Controller
             return DataTables::of($data)
                 ->addColumn('id', fn($row) => $row->id)
                 ->addIndexColumn()
+                ->addColumn('rfid_number', function ($row) {
+                    return $row->asset->rfid_number;
+                })
+                ->addColumn('kode', function ($row) {
+                    return $row->asset->kode;
+                })
                 ->addColumn('keterangan', function ($row) {
                     $payload = json_decode($row->payload, true);
                     return $payload['keterangan'] ?? '-';
@@ -280,7 +291,7 @@ class ApprovalController extends Controller
                 ->addColumn('jenis', function ($row) {
                     $payload = json_decode($row->payload, true);
                     $jenis = $payload['jenis'] ?? '-';
-                    $badge = $jenis === 'lelang' ? 'warning' : ($jenis === 'hilang' ? 'danger' : 'secondary');
+                    $badge = 'warning';
                     return '<span class="badge bg-' . $badge . '">' . ucfirst($jenis) . '</span>';
                 })
                 ->addColumn('user', function ($row) {
@@ -321,7 +332,7 @@ class ApprovalController extends Controller
 
         $assets = Asset::whereHas('sekolah', function ($query) use ($user) {
             $query->where('kecamatan_id', $user->kecamatan_id);
-        })->get();
+        })->with('sekolah')->get();
 
         return view('asset.disposal', compact('assets'));
     }
@@ -376,7 +387,7 @@ class ApprovalController extends Controller
         }
 
         if ($request->type === 'disposal') {
-            $rules['jenis'] = 'required|in:lelang,hilang'; // <- perbaiki disini
+            $rules['jenis'] = 'required|in:lelang';
             $rules['keterangan'] = 'nullable';
         } elseif ($request->type === 'loan') {
             $rules['sekolah_id'] = 'required|exists:sekolahs,id';
@@ -384,7 +395,7 @@ class ApprovalController extends Controller
             $rules['lantai'] = 'required';
             $rules['ruangan'] = 'required';
             $rules['detail'] = 'required';
-            $rules['keterangan'] = 'nullable'; // Tidak wajib
+            $rules['keterangan'] = 'nullable';
         } else { // mutation
             $rules['keterangan'] = 'nullable';
         }
@@ -476,6 +487,7 @@ class ApprovalController extends Controller
 
     public function approve(Request $request)
     {
+        // ! Masih dalam perbaikan yang berkaitan dengan history reject
         $request->validate([
             'ids' => 'required|array',
             'ids.*' => 'exists:approvals,id',
@@ -539,7 +551,7 @@ class ApprovalController extends Controller
                         $changedFields = array_keys($oldValues); // Ambil semua key sebagai field yang berubah
 
                         History::create([
-                            'asset_id' => null, // Tidak menampilkan asset_id
+                            'asset_id' => $asset->id,
                             'user_id' => $userId,
                             'change_type' => 'disposal',
                             'changed_fields' => json_encode($changedFields), // Semua data aset dimasukkan ke changed_fields
@@ -550,26 +562,26 @@ class ApprovalController extends Controller
                             ]),
                         ]);
 
-                        if ($asset->tag) {
-                            $tag = Tag::where('rfid_number', $asset->rfid_number)->first();
-                            if ($tag) {
-                                $tag->update(['status' => 'available']);
-                            }
-                        }
+                        // if ($asset->tag) {
+                        //     $tag = Tag::where('rfid_number', $asset->rfid_number)->first();
+                        //     if ($tag) {
+                        //         $tag->update(['status' => 'available']);
+                        //     }
+                        // }
 
-                        if ($asset->foto_awal) {
-                            Storage::disk('public')->delete('assets/' . $asset->foto_awal);
-                        }
+                        // if ($asset->foto_awal) {
+                        //     Storage::disk('public')->delete('assets/' . $asset->foto_awal);
+                        // }
 
-                        if ($asset->foto_kondisi) {
-                            Storage::disk('public')->delete('assets/' . $asset->foto_kondisi);
-                        }
+                        // if ($asset->foto_kondisi) {
+                        //     Storage::disk('public')->delete('assets/' . $asset->foto_kondisi);
+                        // }
 
-                        $asset->delete();
+                        // $asset->delete();
                         break;
                 }
 
-                $approval->update(['status' => 'approved']);
+                // $approval->update(['status' => 'approved']);
             } catch (\Exception $e) {
                 Log::error("Approval failed for ID {$id}: {$e->getMessage()}");
             }
@@ -585,12 +597,63 @@ class ApprovalController extends Controller
             'rejection_note' => 'required|string'
         ]);
 
-        Approval::whereIn('id', $request->ids)
-            ->where('status', 'pending')
-            ->update([
-                'status' => 'rejected',
-                'rejection_note' => $request->rejection_note
-            ]);
+        foreach ($request->ids as $id) {
+            $approval = Approval::with('asset')->find($id);
+            if (!$approval || $approval->status !== 'pending') continue;
+
+            $payload = json_decode($approval->payload, true);
+            $userId = Auth::id();
+            $asset = $approval->asset;
+
+            try {
+                switch ($approval->type) {
+                    case 'mutation':
+                        $fields = ['nip_pic', 'nama_pic', 'jabatan_pic', 'telp_pic'];
+                        $newValues = array_intersect_key($payload['to'], array_flip($fields)); // Ambil nilai dari 'to'
+
+                        History::create([
+                            'asset_id' => $asset->id,
+                            'user_id' => $userId,
+                            'is_rejected' => true,
+                            'change_type' => 'mutation',
+                            'changed_fields' => json_encode(array_keys($newValues))
+                        ]);
+                        break;
+                    case 'loan':
+                        $fields = ['sekolah_id', 'gedung', 'lantai', 'ruangan', 'detail'];
+                        $newValues = array_intersect_key($payload['new_values'], array_flip($fields));
+
+                        History::create([
+                            'asset_id' => $asset->id,
+                            'user_id' => $userId,
+                            'is_rejected' => true,
+                            'change_type' => 'location',
+                            'changed_fields' => json_encode(array_keys($newValues))
+                        ]);
+                        break;
+
+                    case 'disposal':
+                        $oldValues = $asset->toArray();
+                        $changedFields = array_keys($oldValues); // Ambil semua key sebagai field yang berubah
+
+                        History::create([
+                            'asset_id' => $asset->id,
+                            'user_id' => $userId,
+                            'is_rejected' => true,
+                            'change_type' => 'disposal',
+                            'changed_fields' => json_encode($changedFields),
+                        ]);
+                        break;
+                }
+
+                $approval->update([
+                    'status' => 'rejected',
+                    'rejection_note' => $request->rejection_note
+                ]);
+            } catch (\Exception $e) {
+                Log::error("Approval failed for ID {$id}: {$e->getMessage()}");
+            }
+        }
 
         return response()->json(['message' => 'Semua permintaan telah ditolak.']);
     }

@@ -36,7 +36,7 @@ return new class extends Migration
 
             $table->string('asal_perolehan');
             $table->decimal('nilai_perolehan', 15, 2);
-            $table->enum('kondisi', ['Baik', 'Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat', 'Hilang']);
+            $table->enum('kondisi', ['Baik', 'Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat']);
             $table->date('tanggal_perawatan');
             $table->decimal('harga_perawatan', 15, 2);
             $table->integer('waktu_perawatan');

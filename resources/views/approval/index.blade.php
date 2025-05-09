@@ -63,6 +63,8 @@
                             <thead class="font-weight-bolder">
                                 <tr>
                                     <th><input type="checkbox" id="select-all"></th>
+                                    <th>RFID Number</th>
+                                    <th>Kode</th>
                                     <th>Nama Barang</th>
                                     <th>Pengaju</th>
                                     <th>Jenis</th>
@@ -100,6 +102,14 @@
       data: 'checkbox',
       orderable: false,
       searchable: false,
+     },
+     {
+      data: 'rfid_number', // data
+      name: 'assets.rfid_number' // name sesuai kolom join
+     },
+     {
+      data: 'kode', // data
+      name: 'assets.kode' // name sesuai kolom join
      },
      {
       data: 'asset', // data
@@ -155,10 +165,8 @@
     Swal.fire({
      title: 'Approve semua terpilih?',
      icon: 'warning',
-     confirmButtonColor: '#b6d7a8',
      confirmButtonText: 'Ya',
      showCancelButton: true,
-     cancelButtonColor: '#d33',
      cancelButtonText: 'Batal'
     }).then(result => {
      if (result.isConfirmed) approveRequest(ids);
@@ -183,8 +191,6 @@
       }
      },
      showCancelButton: true,
-     cancelButtonColor: '#d33',
-     confirmButtonColor: '#ea9999',
      confirmButtonText: 'Reject',
      cancelButtonText: 'Batal'
     }).then(result => {

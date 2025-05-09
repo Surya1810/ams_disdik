@@ -12,6 +12,8 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 
+use Carbon\Carbon;
+
 class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
 {
     protected $errors = [];
@@ -33,6 +35,7 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
     {
         return 100; // Proses per 100 baris
     }
+
 
     public function collection(Collection $rows)
     {
@@ -59,6 +62,9 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
                     continue;
                 }
 
+                // Mengonversi tanggal perawatan menjadi format yang benar
+                $tanggalPerawatan = Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['tanggal_perawatan']));
+
                 $data = [
                     'rfid_number' => $row['tag'],
                     'sekolah_id' => $this->sekolahId,
@@ -81,7 +87,7 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
                     'asal_perolehan' => $row['asal_perolehan'],
                     'nilai_perolehan' => $row['nilai_perolehan'],
                     'kondisi' => $row['kondisi'],
-                    'tanggal_perawatan' => $row['tanggal_perawatan'],
+                    'tanggal_perawatan' => $tanggalPerawatan,
                     'harga_perawatan' => $row['harga_perawatan'],
                     'waktu_perawatan' => $row['waktu_perawatan'],
                     'gedung' => $row['gedung'],

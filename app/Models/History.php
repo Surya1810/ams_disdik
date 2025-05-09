@@ -13,6 +13,7 @@ class History extends Model
         'changed_fields',
         'old_values',
         'new_values',
+        'is_rejected'
     ];
 
     protected $casts = [
@@ -35,7 +36,6 @@ class History extends Model
     {
         return $this->belongsTo(User::class);
     }
-
 
     public function approval()
     {

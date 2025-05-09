@@ -3,10 +3,17 @@
 use App\Http\Controllers\ApprovalController;
 
 Route::controller(ApprovalController::class)->group(function () {
-// Approval
-    Route::resource('approval', ApprovalController::class);
-    Route::post('/approve', 'approve')->name('approval.approve');
-    Route::post('/reject', 'reject')->name('approval.reject');
+    // Approval
+    Route::resource('approval', ApprovalController::class)->except(['index']);
+
+    // dispora only
+    Route::middleware('auth.only.operator')
+        ->group(function () {
+            Route::get('/approval', 'index')->name('approval.index');
+            Route::post('/approve', 'approve')->name('approval.approve');
+            Route::post('/reject', 'reject')->name('approval.reject');
+        });
+
     Route::get('/mutation', 'mutation')->name('asset.mutation');
     Route::get('/loan', 'loan')->name('asset.loan');
     Route::get('/disposal', 'disposal')->name('asset.disposal');

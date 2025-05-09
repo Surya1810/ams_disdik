@@ -28,6 +28,8 @@
                     <table id="changesTable" class="table text-sm mt-3">
                         <thead class="font-weight-bolder">
                             <tr>
+                                <th class="text-uppercase">RFID Number</th>
+                                <th class="text-uppercase">Kode</th>
                                 <th class="text-uppercase">Nama Barang</th>
                                 <th class="text-uppercase">Diubah Oleh</th>
                                 <th class="text-uppercase">Perubahan</th>
@@ -53,6 +55,8 @@
                 serverSide: true,
                 ajax: "{{ route('histories.changes') }}",
                 columns: [
+                    { data: 'rfid_number', name: 'asset.rfid_number' },
+                    { data: 'kode', name: 'asset.kode' },
                     { data: 'asset', name: 'asset.name' },
                     { data: 'user', name: 'user.name' },
                     { data: 'perubahan', name: 'perubahan', orderable: false, searchable: false },

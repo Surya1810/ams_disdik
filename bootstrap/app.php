@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\NotForAdmin;
+use App\Http\Middleware\OnlyOperator;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,7 +13,18 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->appendToGroup('auth.not.admin', [NotForAdmin::class]);
+        $middleware->appendToGroup('auth.only.operator', [OnlyOperator::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->renderable(function (\Exception $e) {
+            // handle when page expiry
+            if (method_exists($e, 'getStatusCode')) {
+                if ($e->getStatusCode() == 419) {
+                    return redirect()->route('login')->with([
+                        'pesan' => 'Sesi browser Anda telah berakhir. Mohon login kembali.',
+                        'level-alert' => 'alert-warning'
+                    ]);
+                }
+            }
+        });
     })->create();

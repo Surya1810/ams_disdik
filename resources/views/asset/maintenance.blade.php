@@ -62,6 +62,8 @@
                             <thead class="font-weight-bolder text-uppercase">
                                 <tr>
                                     <th></th> <!-- Kolom checkbox -->
+                                    <th>RFID Number</th>
+                                    <th>Kode</th>
                                     <th>Nama Barang</th>
                                     <th>Kondisi</th>
                                     <th>Tanggal Perawatan</th>
@@ -129,6 +131,8 @@
                 return '';
                 }
             },
+            { data: 'rfid_number', name: 'rfid_number' },
+            { data: 'kode', name: 'kode' },
             { data: 'name', name: 'name' },
             { data: 'kondisi', name: 'kondisi' },
             { data: 'tanggal_perawatan', name: 'tanggal_perawatan' },

@@ -12,9 +12,7 @@ $jenis = $payload['jenis'] ?? null;
 <head>
     <meta charset="UTF-8">
     <title>
-        @if($jenis === 'hilang')
-        Berita Acara Kehilangan Barang
-        @elseif($jenis === 'lelang')
+        @if($jenis === 'lelang')
         Berita Acara Lelang Barang
         @else
         Berita Acara Disposal Aset
@@ -74,9 +72,7 @@ $jenis = $payload['jenis'] ?? null;
 <body>
 
     <h2 class="center">
-        @if($jenis === 'hilang')
-        BERITA ACARA KEHILANGAN BARANG
-        @elseif($jenis === 'lelang')
+        @if($jenis === 'lelang')
         BERITA ACARA LELANG BARANG
         @else
         BERITA ACARA DISPOSAL ASET
@@ -90,9 +86,7 @@ $jenis = $payload['jenis'] ?? null;
 
     <p>
         Pada hari {{ $hari }} tanggal {{ $tanggal }}, telah dilakukan
-        @if($jenis === 'hilang')
-        pencatatan dan pelaporan kehilangan aset milik instansi sebagai berikut:
-        @elseif($jenis === 'lelang')
+        @if($jenis === 'lelang')
         kegiatan lelang terhadap aset milik instansi sebagaimana rincian berikut:
         @else
         proses pemusnahan atau penghapusan aset sebagai berikut:

@@ -33,6 +33,8 @@
                         <thead class="font-weight-bolder">
                             <tr>
                                 <th class="hidden">ID</th>
+                                <th class="text-uppercase">RFID Number</th>
+                                <th class="text-uppercase">Kode</th>
                                 <th class="text-uppercase">Nama Barang</th>
                                 <th class="text-uppercase">Diajukan Oleh</th>
                                 <th class="text-uppercase">Dari</th>
@@ -77,7 +79,12 @@
                                             data-kecamatan="{{ $asset->sekolah->kecamatan->name }}"
                                             data-gedung="{{ $asset->gedung }}" data-lantai="{{ $asset->lantai }}"
                                             data-ruangan="{{ $asset->ruangan }}" data-detail="{{ $asset->detail }}">
-                                            {{ $asset->name }}
+                                            {{
+                                                $asset->kode
+                                                . ' - ' . $asset->name
+                                                . ' - ' . $asset->sekolah->category
+                                                . ' ' . $asset->sekolah->name
+                                            }}
                                         </option>
                                         @endforeach
                                     </select>
@@ -131,7 +138,7 @@
                                                 @foreach ($schools as $school)
                                                 <option value="{{ $school->id }}" {{ old('sekolah_id')==$asset->id ?
                                                     'selected' : '' }}>
-                                                    {{ $school->kecamatan->name }} - {{ $school->name }}
+                                                    {{ $school->kecamatan->name }} - {{ $school->category . ' ' . $school->name }}
                                                 </option>
                                                 @endforeach
                                             </select>
@@ -219,19 +226,19 @@
             $('#old_ruangan').val(selected.data('ruangan') || '');
             $('#old_detail').val(selected.data('detail') || '');
         });
-    
+
         $('.asset_id').select2({
             placeholder: "Pilih Aset",
             dropdownParent: $("#addLoan .modal-content"),
             width: "100%"
         });
-    
+
         $('.sekolah_id').select2({
             placeholder: "Pilih Sekolah",
             dropdownParent: $("#addLoan .modal-content"),
             width: "100%"
         });
-    
+
         $(function () {
             $('#loanTable').DataTable({
                 processing: true,
@@ -242,6 +249,8 @@
                 },
                 columns: [
                     { data: 'id', name: 'id', visible: false },
+                    { data: 'rfid_number', name: 'rfid_number' },
+                    { data: 'kode', name: 'kode' },
                     { data: 'asset_name', name: 'asset_name' },
                     { data: 'requested_by', name: 'requested_by' },
                     {

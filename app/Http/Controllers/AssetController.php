@@ -10,6 +10,7 @@ use App\Models\Asset;
 use App\Models\Sekolah;
 use App\Models\Tag;
 use App\Models\History;
+use App\Models\Kecamatan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
@@ -38,26 +39,28 @@ class AssetController extends Controller
             ->pluck('rfid_number');
 
         // Ambil data sekolah yang sesuai dengan kecamatan user
-        $places = Sekolah::where('kecamatan_id', $kecamatanId)->get();
-
-        // Untuk role 1, bisa melihat semua aset
-        if ($roleId == 1) {
-            $asset = Asset::all();
-        } else {
-            // Untuk role 2 dan 3, hanya dapat melihat aset di kecamatan dan sekolah mereka
-            $asset = Asset::whereHas('sekolah', function ($query) use ($kecamatanId) {
-                $query->where('kecamatan_id', $kecamatanId);
-            })->with('sekolah')->get();
+        if ($roleId == 2) {
+            $placesForFilter = Kecamatan::whereNot('id', 1)->get();
+            $places = Sekolah::where('kecamatan_id', $kecamatanId)->get();
+        } else if ($roleId == 3)  {
+            $places = Sekolah::where('kecamatan_id', $kecamatanId)->get();
         }
+
+        // Untuk role 2 dan 3, hanya dapat melihat aset di kecamatan dan sekolah atau kantor mereka
+        $asset = Asset::whereHas('sekolah', function ($query) use ($kecamatanId) {
+            $query->where('kecamatan_id', $kecamatanId);
+        })->with('sekolah')->get();
 
         if ($request->ajax()) {
             // Query untuk DataTables
-            $assetsQuery = Asset::with('sekolah');
+            $assetsQuery = Asset::with('sekolah.kecamatan');
 
             // Filter berdasarkan kecamatan untuk role 2 dan 3
             if ($roleId != 1) {
-                $assetsQuery->whereHas('sekolah', function ($query) use ($kecamatanId) {
-                    $query->where('kecamatan_id', $kecamatanId);
+                $assetsQuery->whereHas('sekolah', function ($query) use ($kecamatanId, $roleId) {
+                    if ($roleId == 3) {
+                        $query->where('kecamatan_id', $kecamatanId);
+                    }
                 });
             }
 
@@ -67,39 +70,82 @@ class AssetController extends Controller
             }
 
             if ($request->filled('tempat')) {
-                $assetsQuery->where('sekolah_id', $request->tempat);
+                if ($roleId == 2) {
+                    $assetsQuery = Asset::whereHas('sekolah.kecamatan', function ($query) use ($request) {
+                        $query->where('id', $request->tempat);
+                    });
+                } else {
+                    $assetsQuery->where('sekolah_id', $request->tempat);
+                }
             }
 
             if ($request->filled('tahun_pembelian')) {
                 $assetsQuery->where('tahun_pembelian', $request->tahun_pembelian);
             }
 
-            return DataTables::of($assetsQuery)
-                ->addColumn('sekolah_name', function ($row) {
-                    return $row->sekolah->category . ' ' . $row->sekolah->name;
-                })
-                ->addColumn('kondisi_badge', function ($row) {
-                    $badge = match ($row->kondisi) {
-                        'Baik' => '<span class="badge bg-success">Baik</span>',
-                        'Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang' => '<span class="badge bg-warning">' . $row->kondisi . '</span>',
-                        'Rusak Berat', 'Hilang' => '<span class="badge bg-danger">' . $row->kondisi . '</span>',
-                        default => '<span class="badge bg-secondary">' . $row->kondisi . '</span>',
-                    };
-                    return $badge;
-                })
-                ->addColumn('action', function ($row) {
-                    return '
-                <a href="javascript:void(0)" class="btn btn-link p-0 show-asset" data-asset-id="' . $row->id . '">
-                    <i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail"></i>
-                </a>
-                &nbsp;
-                <a href="javascript:void(0)" class="btn btn-link p-0 edit-asset" data-asset-id="' . $row->id . '">
-                    <i class="fa-solid fa-pencil" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
-                </a>
-            ';
-                })
-                ->rawColumns(['kondisi_badge', 'action'])
-                ->make(true);
+            if ($roleId == 2) {
+                $dataTable = DataTables::of($assetsQuery)
+                    ->addColumn('sekolah_name', function ($row) {
+                        return $row->sekolah->category . ' ' . $row->sekolah->name;
+                    })
+                    ->addColumn('kecamatan_name', function ($row) {
+                        return optional($row->sekolah->kecamatan)->name ?? '-';
+                    })
+                    ->addColumn('kondisi_badge', function ($row) {
+                        $badge = match ($row->kondisi) {
+                            'Baik' => '<span class="badge bg-success">Baik</span>',
+                            'Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang' => '<span class="badge bg-warning">' . $row->kondisi . '</span>',
+                            'Rusak Berat' => '<span class="badge bg-danger">' . $row->kondisi . '</span>',
+                            default => '<span class="badge bg-secondary">' . $row->kondisi . '</span>',
+                        };
+                        return $badge;
+                    })
+                    ->addColumn('action', function ($row) {
+                        $showButton = '<a href="javascript:void(0)" class="btn btn-link p-0 show-asset" data-asset-id="' . $row->id . '">
+                                <i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail"></i>
+                            </a>';
+                        $editButton = '&nbsp;
+                            <a href="javascript:void(0)" class="btn btn-link p-0 edit-asset" data-asset-id="' . $row->id . '">
+                                <i class="fa-solid fa-pencil" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
+                            </a>
+                        ';
+                        $assetKecamatanId = $row->load('sekolah')->sekolah->kecamatan_id;
+                        $buttons = Auth::user()->kecamatan_id != $assetKecamatanId
+                            ? $showButton
+                            : $showButton . $editButton;
+
+                        return $buttons;
+                    })
+                    ->rawColumns(['kondisi_badge', 'action']);
+            } else {
+                $dataTable = DataTables::of($assetsQuery)
+                    ->addColumn('sekolah_name', function ($row) {
+                        return $row->sekolah->category . ' ' . $row->sekolah->name;
+                    })
+                    ->addColumn('kondisi_badge', function ($row) {
+                        $badge = match ($row->kondisi) {
+                            'Baik' => '<span class="badge bg-success">Baik</span>',
+                            'Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang' => '<span class="badge bg-warning">' . $row->kondisi . '</span>',
+                            'Rusak Berat' => '<span class="badge bg-danger">' . $row->kondisi . '</span>',
+                            default => '<span class="badge bg-secondary">' . $row->kondisi . '</span>',
+                        };
+                        return $badge;
+                    })
+                    ->addColumn('action', function ($row) {
+                        return '
+                            <a href="javascript:void(0)" class="btn btn-link p-0 show-asset" data-asset-id="' . $row->id . '">
+                                <i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail"></i>
+                            </a>
+                            &nbsp;
+                            <a href="javascript:void(0)" class="btn btn-link p-0 edit-asset" data-asset-id="' . $row->id . '">
+                                <i class="fa-solid fa-pencil" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
+                            </a>
+                        ';
+                    })
+                    ->rawColumns(['kondisi_badge', 'action']);
+            }
+
+            return $dataTable->make(true);
         }
 
         // Untuk pilihan di filter tahun pembelian
@@ -119,13 +165,11 @@ class AssetController extends Controller
             'lastTagAvailable' => $lastTagAvailable
         ];
 
-        return view('asset.index', compact(
-            'tags',
-            'places',
-            'asset',
-            'tahunPembelianArr',
-            'availableTags'
-        ));
+        $compactedData = isset($placesForFilter)
+            ? compact('tags', 'places', 'asset', 'tahunPembelianArr', 'availableTags', 'placesForFilter')
+            : compact('tags', 'places', 'asset', 'tahunPembelianArr', 'availableTags');
+
+        return view('asset.index', $compactedData);
     }
 
     /**
@@ -194,6 +238,18 @@ class AssetController extends Controller
 
     public function update(Request $request, Asset $asset)
     {
+        // cegah user selain pemiliknya agar tidak bisa update asset
+        $kecamatanId = $asset->load('sekolah')->sekolah->kecamatan_id;
+
+        if (Auth::user()->kecamatan_id != $kecamatanId) {
+            return redirect()
+                ->route('asset.index')
+                ->with([
+                    'pesan' => 'Hanya pemilik/kecamatan terkait yang dapat mengubah data aset',
+                    'level-alert' => 'alert-warning'
+                ]);
+        }
+
         $validated = $request->validate([
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'tag' => 'required|exists:tags,rfid_number',
@@ -296,6 +352,9 @@ class AssetController extends Controller
             ->pluck('rfid_number');
 
         $places = Sekolah::where('kecamatan_id', Auth::user()->kecamatan_id)->get();
+        $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
+            ? asset('assets/Image/no_image.png')
+            : asset(Storage::url('/public/assets/' . $asset->foto_awal));
 
         return response()->json([
             'asset' => $asset,
@@ -345,7 +404,12 @@ class AssetController extends Controller
                     }
                     return '';
                 })
-
+                ->addColumn('rfid_number', function ($row) {
+                    return $row->rfid_number;
+                })
+                ->addColumn('kode', function ($row) {
+                    return $row->kode;
+                })
                 ->editColumn('tanggal_perawatan', function ($row) {
                     return $row->tanggal_perawatan
                         ? \Carbon\Carbon::parse($row->tanggal_perawatan)->format('d-m-Y')
@@ -456,6 +520,17 @@ class AssetController extends Controller
 
         $date = date('Y-m-d');
         $fileName = "List Data Aset - $date.xlsx";
+
+        if (Auth::user()->role_id == 2) {
+            if (is_null($tempat)) {
+                return redirect()
+                    ->route('asset.index')
+                    ->with([
+                        'pesan' => 'Mohon pilih satu kecamatan saja untuk di export!',
+                        'level-alert' => 'alert-warning'
+                    ]);
+            }
+        }
 
         return Excel::download(
             new AssetsExport($kondisi, $tempat, $tahun),

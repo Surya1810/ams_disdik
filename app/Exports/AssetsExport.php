@@ -8,12 +8,14 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Asset;
 
 // Excel
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
-class AssetsExport implements FromCollection, WithEvents, WithTitle
+class AssetsExport implements FromQuery, WithEvents, WithTitle, WithMapping, ShouldAutoSize
 {
     protected $kondisi;
     protected $sekolahId; // tempat
@@ -26,50 +28,55 @@ class AssetsExport implements FromCollection, WithEvents, WithTitle
         $this->tahunPembelian = $tahunPembelian;
     }
 
-    public function collection()
+    public function query()
     {
         $kecamatanId = Auth::user()->kecamatan_id;
         $roleId = Auth::user()->role_id;
 
-        if ($roleId == 1) {
-            $asset = Asset::with('sekolah.kecamatan');
+        if ($roleId == 2) {
+            $asset = Asset::whereHas('sekolah.kecamatan', function ($query) {
+                if (!is_null($this->sekolahId)) {
+                    $query->where('id', $this->sekolahId);
+                }
+            })->with('sekolah.kecamatan');
         } else {
             $asset = Asset::whereHas('sekolah', function ($query) use ($kecamatanId) {
                 $query->where('kecamatan_id', $kecamatanId);
             })->with('sekolah.kecamatan');
         }
 
-        // Filter jika ada
         if ($this->kondisi) {
             $asset->where('kondisi', $this->kondisi);
         }
 
-        if ($this->sekolahId) {
-            $asset->where('tempat', $this->sekolahId);
+        if ($roleId == 3) {
+            if ($this->sekolahId) {
+                $asset->where('tempat', $this->sekolahId);
+            }
         }
 
         if ($this->tahunPembelian) {
             $asset->where('tahun_pembelian', $this->tahunPembelian);
         }
 
-        $asset = $asset->get();
-        $asset = $asset->map(function ($row) {
-            return [
-                // Informasi Barang
-                $row->rfid_number, $row->kode, $row->name, $row->register, $row->merk, $row->ukuran ?? '-', $row->bahan ?? '-', $row->tahun_pembelian, $row->pabrik ?? '-',
-
-                // Nomor Barang
-                $row->rangka ?? '-', $row->mesin ?? '-', $row->polisi ?? '-', $row->bpkb ?? '-',
-
-                // Perawatan Barang
-                $row->asal_perolehan, formatRupiah($row->nilai_perolehan), $row->kondisi, $row->tanggal_perawatan->format('Y-m-d'), formatRupiah($row->harga_perawatan), ($row->waktu_perawatan . ' Bulan'),
-
-                // Lokasi
-                $row->sekolah ? $row->sekolah->kecamatan->name : '-', $row->sekolah ? $row->sekolah->name : '-', $row->gedung, $row->lantai, $row->ruangan, $row->detail
-            ];
-        });
-
         return $asset;
+    }
+
+    public function map($asset): array
+    {
+        return [
+            // Informasi Barang
+            $asset->rfid_number, $asset->kode, $asset->name, $asset->register, $asset->merk, $asset->ukuran ?? '-', $asset->bahan ?? '-', $asset->tahun_pembelian, $asset->pabrik ?? '-',
+
+            // Nomor Barang
+            $asset->rangka ?? '-', $asset->mesin ?? '-', $asset->polisi ?? '-', $asset->bpkb ?? '-',
+
+            // Perawatan Barang
+            $asset->asal_perolehan, formatRupiah($asset->nilai_perolehan), $asset->kondisi, $asset->tanggal_perawatan->format('Y-m-d'), formatRupiah($asset->harga_perawatan), ($asset->waktu_perawatan . ' Bulan'),
+
+            // Lokasi
+            $asset->sekolah ? $asset->sekolah->kecamatan->name : '-', $asset->sekolah ? $asset->sekolah->name : '-', $asset->gedung, $asset->lantai, $asset->ruangan, $asset->detail
+        ];
     }
 
     public function title(): string
@@ -81,7 +88,6 @@ class AssetsExport implements FromCollection, WithEvents, WithTitle
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-
                 $sheet = $event->sheet->getDelegate();
                 $lastColumn = 'Y'; // Sampai kolom Y, kolom terakhir
 

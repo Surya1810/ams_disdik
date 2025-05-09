@@ -34,6 +34,8 @@
                             <tr>
                                 <th hidden>ID</th>
                                 <th>No</th>
+                                <th>RFID Number</th>
+                                <th>Kode</th>
                                 <th>Keterangan</th>
                                 <th>Jenis</th>
                                 <th>User</th>
@@ -73,7 +75,12 @@
                                     @foreach ($assets as $asset)
                                     <option value="{{ $asset->id }}" {{ old('asset_id')==$asset->id ? 'selected' : ''
                                         }}>
-                                        {{ $asset->name }}
+                                        {{
+                                            $asset->kode
+                                            . ' - ' . $asset->name
+                                            . ' - ' . $asset->sekolah->category
+                                            . ' ' . $asset->sekolah->name
+                                        }}
                                     </option>
                                     @endforeach
                                 </select>
@@ -87,15 +94,8 @@
 
                             <!-- Pilih Jenis -->
                             <div class="mb-3">
-                                <label for="jenis" class="form-label">Pilih Jenis</label>
-                                <select class="form-control jenis @error('jenis') is-invalid @enderror" id="jenis"
-                                    name="jenis" required>
-                                    <option value="">Pilih Jenis</option>
-                                    <option value="Lelang" {{ old('jenis')=='Lelang' ? 'selected' : '' }}>Lelang
-                                    </option>
-                                    <option value="Hilang" {{ old('jenis')=='Hilang' ? 'selected' : '' }}>Hilang
-                                    </option>
-                                </select>
+                                <label for="jenis" class="form-label">Jenis</label>
+                                <input type="text" id="jenis" name="jenis" class="form-control muted" value="Lelang" readonly>
 
                                 @error('jenis')
                                 <span class="invalid-feedback" role="alert">
@@ -154,9 +154,19 @@
                 { data: 'id', name: 'id', visible: false },
                 { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
                 {
-                data: 'keterangan',
-                name: 'keterangan',
-                orderable: false,
+                    data: 'rfid_number',
+                    name: 'rfid_number',
+                    orderable: false,
+                },
+                {
+                    data: 'kode',
+                    name: 'kode',
+                    orderable: false,
+                },
+                {
+                    data: 'keterangan',
+                    name: 'keterangan',
+                    orderable: false,
                 },
                 {
                 data: 'jenis',
