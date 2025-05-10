@@ -32,7 +32,11 @@
                                     <th class="text-uppercase">RFID Number</th>
                                     <th class="text-uppercase">Kode</th>
                                     <th class="text-uppercase">Nama Barang</th>
-                                    <th class="text-uppercase">Diubah Oleh</th>
+                                    @if(auth()->user()->role_id == 2)
+                                        <th class="text-uppercase">Diajukan Oleh</th>
+                                    @else
+                                        <th class="text-uppercase">Disetujui/Ditolak Oleh</th>
+                                    @endif
                                     <th class="text-uppercase">Dari</th>
                                     <th class="text-uppercase">ke</th>
                                     <th class="text-uppercase">Waktu</th>

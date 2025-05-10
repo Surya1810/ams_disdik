@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\History;
-use App\Models\Sekolah;
+
 use Carbon\Carbon;
 use Yajra\DataTables\DataTables;
 use Illuminate\Http\Request;
@@ -18,12 +18,15 @@ class HistoryController extends Controller
     public function changesHistory(Request $request)
     {
         if ($request->ajax()) {
-            $data = History::with(['asset', 'user'])
+            $baseQuery = History::with(['asset', 'user'])
                 ->where('change_type', 'attribute')
-                ->where('user_id', Auth::user()->id)
                 ->orderBy('histories.created_at', 'desc');
 
-            return DataTables::of($data)
+            $query = Auth::user()->role_id == 2
+                ? $baseQuery
+                : $baseQuery->where('requester_id', Auth::user()->id);
+
+            return DataTables::of($query)
                 ->addColumn('rfid_number', fn($row) => $row->asset?->rfid_number ?? '-')
                 ->addColumn('kode', fn($row) => $row->asset?->kode ?? '-')
                 ->addColumn('asset', fn($row) => $row->asset?->name ?? '-')
@@ -85,17 +88,27 @@ class HistoryController extends Controller
     public function mutationHistory(Request $request)
     {
         if ($request->ajax()) {
-            $data = History::with(['asset', 'user', 'approval'])
+            $baseQuery = History::with(['asset', 'user', 'approval'])
                 ->where('change_type', 'mutation')
                 ->leftJoin('assets', 'histories.asset_id', '=', 'assets.id')
                 ->orderBy('histories.created_at', 'desc')
                 ->select('histories.*', 'assets.name as asset_name');
 
-            return DataTables::of($data)
+            $query = Auth::user()->role_id == 2
+                ? $baseQuery
+                : $baseQuery->where('requester_id', Auth::user()->id);
+
+            return DataTables::of($query)
                 ->addColumn('rfid_number', fn($row) => $row->asset->rfid_number ?? '-')
                 ->addColumn('kode', fn($row) => $row->asset->kode ?? '-')
                 ->addColumn('asset', fn($row) => $row->asset->name ?? '-')
-                ->addColumn('user', fn($row) => $row->user->name ?? '-')
+                ->addColumn('user', function ($row) {
+                    if (Auth::user()->role_id == 2) {
+                        $user = json_decode($row->requester_payload, true)['name'];
+                        return $user;
+                    }
+                    return $row->user->name ?? '-';
+                })
                 ->addColumn('dari', function ($row) {
                     $oldValues = json_decode($row->old_values, true);
 
@@ -145,13 +158,17 @@ class HistoryController extends Controller
     public function locationHistory(Request $request)
     {
         if ($request->ajax()) {
-            $data = History::with(['asset', 'user'])
+            $baseQuery = History::with(['asset', 'user'])
                 ->where('change_type', 'location')
                 ->leftJoin('assets', 'histories.asset_id', '=', 'assets.id')
                 ->orderBy('histories.created_at', 'desc')
                 ->select('histories.*', 'assets.name as asset_name');
 
-            return DataTables::of($data)
+            $query = Auth::user()->role_id == 2
+                ? $baseQuery
+                : $baseQuery->where('requester_id', Auth::user()->id);
+
+            return DataTables::of($query)
                 ->addColumn('rfid_number', fn($row) => $row->asset->rfid_number ?? '-')
                 ->addColumn('kode', fn($row) => $row->asset->name ?? '-')
                 ->addColumn('asset', fn($row) => $row->asset->name ?? '-')
@@ -212,32 +229,52 @@ class HistoryController extends Controller
 
     public function disposalHistory(Request $request)
     {
-        // ! Masih dalam perbaikan
         $user = Auth::user();
-        // $data = History::with(['asset', 'user', 'approval']) // ambil relasi asset dan user
-        //     ->where('change_type', 'disposal')
-        //     ->get();
-
-            // dd($data[0]->approval->status);
 
         if ($request->ajax()) {
-            $data = History::with(['asset', 'user', 'approval']) // ambil relasi asset dan user
-                ->where('change_type', 'disposal')
-                ->where('user_id', $user->id);
+            $baseQuery = History::with(['asset', 'user', 'approval']) // ambil relasi asset dan user
+                ->where('change_type', 'disposal');
 
-            return DataTables::of($data)
+            $query = $user->role_id == 2
+                ? $baseQuery
+                : $baseQuery->where('requester_id', $user->id);
+
+            return DataTables::of($query)
                 ->addColumn('rfid_number', function ($row) {
-                    return $row->asset?->rfid_number;
+                    if ($row->asset) {
+                        return $row->asset?->rfid_number;
+                    }
+                    /**
+                     * ngambil dari old values karena
+                     * aset sudah dihapus dari tabel (disposal diterima)
+                     */
+                    $oldValues = json_decode($row->old_values, true);
+                    $rfidNumber = $oldValues['rfid_number'];
+                    return $rfidNumber;
                 })
                 ->addColumn('kode', function ($row) {
-                    return $row->asset?->kode;
+                    if ($row->asset) {
+                        return $row->asset?->kode;
+                    }
+                    /**
+                     * ngambil dari old values karena
+                     * aset sudah dihapus dari tabel (disposal diterima)
+                     */
+                    $oldValues = json_decode($row->old_values, true);
+                    $kode = $oldValues['kode'];
+                    return $kode;
                 })
                 ->addColumn('keterangan', function ($row) {
                     $newValues = json_decode($row->new_values, true);
                     return $newValues['keterangan'] ?? ($row->approval->rejection_note ?? '-');
                 })
                 ->addColumn('user', function ($row) {
-                    return $row->user->name ?? '-';
+                    /**
+                     * User sebelumnya yang diambil malah user yang approve atau tolak
+                     * Karena di tabel kolomnya diajukan, maka diubah ke requester_payload
+                     */
+                    $requester = json_decode($row->requester_payload, true);
+                    return isset($requester['name']) ? $requester['name'] : '-';
                 })
                 ->addColumn('jenis', function ($row) {
                     $newValues = json_decode($row->new_values, true);
@@ -246,13 +283,22 @@ class HistoryController extends Controller
                     return '<span class="badge bg-' . $badge . '">' . ucfirst($jenis) . '</span>';
                 })
                 ->addColumn('approval', function ($row) {
-                    $statusBadge = isset($row->approval->status)
-                        ? ($row->approval->status == 'rejected' ? 'danger' : 'success')
-                        : '-';
-                    return '<span class="badge bg-' . $statusBadge . '">' . ucfirst($row->approval->status) . '</span>';
+                    /**
+                     * Jika status tidak ditemukan di approval
+                     * itu berarti disposal diterima dan aset dihapus
+                     */
+                    $statusBadge = isset($row->approval->status) ? 'danger' : 'success';
+                    $statusText = isset($row->approval->status) ? 'Rejected' : 'Approved';
+                    return '<span class="badge bg-' . $statusBadge . '">' . $statusText . '</span>';
                 })
                 ->editColumn('created_at', function ($row) {
                     return $row->created_at->format('d-m-Y H:i');
+                })
+                ->filterColumn('rfid_number', function ($query, $keyword) {
+                    $query->where('old_values', 'like', "%{$keyword}%");
+                })
+                ->filterColumn('kode', function ($query, $keyword) {
+                    $query->where('old_values', 'like', "%{$keyword}%");
                 })
                 ->rawColumns(['jenis', 'approval'])
                 ->make(true);

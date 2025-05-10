@@ -6,16 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class History extends Model
 {
-    protected $fillable = [
-        'asset_id',
-        'user_id',
-        'change_type',
-        'changed_fields',
-        'old_values',
-        'new_values',
-        'is_rejected'
-    ];
-
+    protected $guarded = ['id'];
     protected $casts = [
         'old_values' => 'array',
         'new_values' => 'array',
