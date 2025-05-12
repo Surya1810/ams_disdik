@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('scanned_tags', function (Blueprint $table) {
             $table->id();
             $table->foreignId('scan_id')->constrained('scans')->onDelete('cascade');
-            $table->string('rfid_number');
             $table->string('kode');
             $table->string('name');
             $table->string('register');
