@@ -6,5 +6,7 @@ Route::controller(ScanController::class)->group(function () {
     Route::resource('/scan', ScanController::class);
     Route::get('/scan/export/found', 'exportFound');
     Route::get('/scan/export/missing', 'exportMissing');
-    Route::get('/api/scanned/assets', 'scannedAssets')->name('scanned.assets');
+    Route::get('/scan/detail/{scan:id}', 'scannedDetail')->name('scanned.detail');
+    Route::get('/scan/assets/json', 'scannedAssets')->name('scanned.assets');
+    Route::get('/scan/assets/{rfid}/json', 'scannedAssetDetail')->name('scanned.asset.detail');
 });

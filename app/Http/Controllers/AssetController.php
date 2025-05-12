@@ -327,6 +327,11 @@ class AssetController extends Controller
                 'asset_id' => $asset->id,
                 'user_id' => Auth::id(),
                 'change_type' => 'attribute',
+                'requester_id' => Auth::user()->kecamatan_id,
+                'requester_payload' => json_encode([
+                        'id' => Auth::id(),
+                        'name' => Auth::user()->name
+                    ], true),
                 'old_values' => json_encode($oldValues),
                 'new_values' => json_encode($newValues),
                 'changed_fields' => json_encode($changedFields),
@@ -483,7 +488,6 @@ class AssetController extends Controller
     public function maintenancePdf(Request $request)
     {
         $user = Auth::user();
-
         $query = \App\Models\Asset::query()
             ->whereIn('kondisi', ['Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat']);
 
@@ -506,7 +510,6 @@ class AssetController extends Controller
         $pdf = PDF::loadView('asset.maintenance_pdf', compact('maintenanceList'));
         return $pdf->download('berita_acara_barang_rusak.pdf');
     }
-
 
     /**
      * Date: 28-04-2025

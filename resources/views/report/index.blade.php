@@ -171,7 +171,7 @@
             <div class="col-md-6 mt-4">
                 <div class="card">
                     <div class="card-header pb-0 px-3">
-                        <h6 class="mb-0">Nilai dan Jumlah Aset Per Tahun</h6>
+                        <h6 class="mb-0">Nilai Aset Per Tahun</h6>
                     </div>
                     <div class="card-body pt-4 p-3">
                         <div class="d-flex justify-content-between">
@@ -184,7 +184,7 @@
                                 </select>
                             </div>
                             <div class="mt-2 text-end fw-bold small" id="totalNilaiKeseluruhanPerTahun">
-                                Total Keseluruhan: <span class="text-primary">Rp0</span>
+                                Nilai: <span class="text-primary">Rp0</span>
                             </div>
                         </div>
                         <div class="p-2 mb-3 overflow-x-scroll">
@@ -209,7 +209,7 @@
             <div class="col-md-6 mt-4">
                 <div class="card">
                     <div class="card-header pb-0 px-3">
-                        <h6 class="mb-0">Nilai dan Jumlah Aset Per Sekolah</h6>
+                        <h6 class="mb-0">Nilai Aset Per Sekolah</h6>
                     </div>
                     <div class="card-body pt-4 p-3">
                         <div class="d-flex justify-content-between">
@@ -222,7 +222,7 @@
                                 </select>
                             </div>
                             <div class="mt-2 text-end fw-bold small" id="totalNilaiKeseluruhanPerSekolah">
-                                Total Keseluruhan: <span class="text-primary">Rp0</span>
+                                Nilai: <span class="text-primary">Rp0</span>
                             </div>
                         </div>
                         <div class="p-2 mb-3 overflow-x-scroll">
@@ -254,6 +254,8 @@
                 $('.select2').select2();
 
                 let tableAsetPerTahun = $('#tableAsetPerTahun').DataTable({
+                    pageLength: 5,
+                    lengthMenu: [[5], [5]],
                     processing: true,
                     serverSide: true,
                     ajax: {
@@ -296,6 +298,8 @@
         <script type="text/javascript">
             $(document).ready(function() {
                 let tableAsetPerSekolah = $('#tableAsetPerSekolah').DataTable({
+                    pageLength: 5,
+                    lengthMenu: [[5], [5]],
                     processing: true,
                     serverSide: true,
                     ajax: {

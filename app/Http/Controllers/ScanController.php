@@ -5,12 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Asset;
 use App\Models\Scan;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ScanExport;
-
+use App\Models\ScannedTag;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 
 class ScanController extends Controller
@@ -22,143 +21,104 @@ class ScanController extends Controller
     {
         $kecamatanId = Auth::user()->kecamatan_id;
         $roleId = Auth::user()->role_id;
+        $scansCount = Auth::user()->role_id == 2
+            ? Scan::whereNot('user_id', 1)->sum('total')
+            : Scan::where('user_id', Auth::user()->id)->sum('total');
+        $lastScan = Auth::user()->role_id == 2
+            ? Scan::whereNot('user_id', 1)->latest()->first()
+            : Scan::where('user_id', Auth::user()->id)
+            ->latest()
+            ->first();
 
-        // Hitung status missing and found
-        $statusMissingCount = $roleId == 1
-            ? Asset::where('is_there', 0)->count()
-            : Asset::whereHas('sekolah', function ($query) use ($kecamatanId) {
-                $query->where('kecamatan_id', $kecamatanId);
-            })->where('is_there', 0)->get()->count();
-        $statusFoundCount = $roleId == 1
-            ? Asset::where('is_there', 1)->count()
-            : Asset::whereHas('sekolah', function ($query) use ($kecamatanId) {
-                $query->where('kecamatan_id', $kecamatanId);
-            })->where('is_there', 1)->get()->count();
-        $status = [
-            'foundCount' => $statusFoundCount,
-            'missingCount' => $statusMissingCount
-        ];
+        return view('scan.index', compact('scansCount', 'lastScan'));
+    }
 
-        // Untuk role 1, bisa melihat semua aset
-        if ($roleId == 1) {
-            $assets = Asset::all();
-        } else {
-            // Untuk role 2 dan 3, hanya dapat melihat aset di kecamatan dan sekolah mereka
-            $assets = Asset::whereHas('sekolah', function ($query) use ($kecamatanId) {
-                $query->where('kecamatan_id', $kecamatanId);
-            })->with('sekolah')->get();
+    public function scannedAssets(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = Auth::user()->role_id == 2
+                ? Scan::whereNot('user_id', 1)->latest()
+                : Scan::where('user_id', Auth::user()->id)->latest();
+
+            return DataTables::of($query)
+                ->addColumn('created_at', function ($scan) {
+                    return $scan->created_at->format('Y-m-d H:i');
+                })
+                ->addColumn('actions', function ($row) {
+                    $button = '<a href="' . route('scanned.detail', $row->id) . '" class="btn btn-link p-0 edit-asset"><i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Detail"></i></a>';
+
+                    return $button;
+                })
+                ->rawColumns(['actions'])
+                ->make(true);
+        }
+    }
+
+    public function scannedDetail(Request $request, Scan $scan)
+    {
+        $user = Auth::user();
+
+        // Validasi akses user
+        if ($user->role_id !== 2 && $scan->user_id !== $user->id) {
+            abort(404, 'History Stock Opname Tidak Ditemukan');
         }
 
+        $query = ScannedTag::where('scan_id', $scan->id);
+
+        // Jika request ajax (DataTables)
         if ($request->ajax()) {
-            // Query untuk DataTables
-            $assetsQuery = Asset::with('sekolah');
-
-            // Filter berdasarkan kecamatan untuk role 2 dan 3
-            if ($roleId != 1) {
-                $assetsQuery->whereHas('sekolah', function ($query) use ($kecamatanId) {
-                    $query->where('kecamatan_id', $kecamatanId);
-                });
-            }
-
-            // Filter
             if ($request->filled('is_there')) {
-                $assetsQuery->where('is_there', $request->is_there);
+                $query->where('is_there', $request->is_there);
             }
 
-            return DataTables::of($assetsQuery)
+            return DataTables::of($query)
                 ->addColumn('is_there', fn($row) => $row->is_there ? '<strong>FOUND</strong>' : '<strong>MISSING</strong>')
-                ->rawColumns(['is_there'])
+                ->addColumn('actions', function ($row) {
+                    $assetExists = Asset::where('rfid_number', $row->rfid_number)->exists();
+
+                    if ($assetExists) {
+                        return '<button type="button" class="badge bg-primary border-0 edit-asset" data-rfid="'. $row->rfid_number .'" onclick="buttonModalShowAset(this)"><i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Detail"></i></button>';
+                    }
+                    return '<small class="badge bg-danger">Aset Sudah Tidak Terdaftar</small>';
+                })
+                ->rawColumns(['is_there', 'actions'])
                 ->make(true);
         }
 
-        // Hitung Scan
-        if ($roleId == 1) {
-            $scansCount = Scan::sum('total');
-            $lastScan = Scan::orderBy('id', 'DESC')->first();
-        } else {
-            $scansCount = Scan::where('user_id', Auth::user()->id)->sum('total');
-            $lastScan = Scan::orderBy('id', 'DESC')
-                ->where('user_id', Auth::user()->id)
-                ->first();
-        }
+        // Hitung status ditemukan dan hilang
+        $statusCounts = [
+            'foundCount' => (clone $query)->where('is_there', true)->count(),
+            'missingCount' => (clone $query)->where('is_there', false)->count(),
+        ];
 
-        return view('scan.index', compact('status', 'scansCount', 'lastScan'));
+        return view('scan.detail', compact('scan', 'statusCounts'));
     }
 
-    public function scannedAssets(Request $request) {
-        $roleId = Auth::user()->role_id;
-
+    public function scannedAssetDetail(Request $request, $rfid) {
         if ($request->ajax()) {
-            if ($roleId == 1) {
-                $scans = Scan::orderBy('id', 'DESC')->get();
-            } else {
-                $scans = Scan::where('user_id', Auth::user()->id)
-                    ->orderBy('id', 'DESC')->get();
+            $asset = Asset::where('rfid_number', $rfid)
+                ->with('sekolah')
+                ->first();
+
+            if ($asset->exists()) {
+                $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
+                    ? asset('assets/Image/no_image.png')
+                    : asset(Storage::url('/public/assets/' . $asset->foto_awal));
+                $asset->nilai_perolehan = formatRupiah($asset->nilai_perolehan);
+                $asset->harga_perawatan = formatRupiah($asset->harga_perawatan);
+
+                return response()->json([
+                    'asset' => $asset
+                ]);
             }
 
-            return DataTables::of($scans)
-                ->addColumn('created_at', function ($scan) {
-                    return $scan->created_at->format('Y-m-d');
-                })->make(true);
-        }
-    }
-
-    /**
-     * Proses scan RFID untuk Dokumen.
-     */
-    public function scanAsset(Request $request)
-    {
-        // Ambil data RFID dari request (harus dalam bentuk array)
-        $tags = $request->input('data');
-
-        // Validasi: Pastikan data adalah array dan tidak kosong
-        if (!is_array($tags) || empty($tags)) {
             return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid RFID data received'
-            ], 400);
+                'status' => 'fail',
+                'message' => 'Asset tidak ditemukan'
+            ], 404);
         }
 
-        // Simpan log scan ke database
-        $scan = new Scan();
-        $scan->total = count($tags);
-        $scan->user_id = Auth::user()->id;
-        $scan->save();
-
-        // Update status asset berdasarkan RFID
-        $this->updateRFIDStatus(Asset::class, $tags);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'RFID scanned successfully',
-            'total_scanned' => count($tags),
-        ]);
-    }
-
-    public function getLatestScansAsset(Request $request)
-    {
-        $scans = Cache::get('latest_scan_asset', [
-            'total' => 0,
-            'category' => 'dokumen',
-            'tags' => []
-        ]);
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $scans
-        ]);
-    }
-
-    /**
-     * Memperbarui status `is_there` dalam model.
-     */
-    private function updateRFIDStatus($model, $tags)
-    {
-        // Reset semua status `is_there` ke false terlebih dahulu
-        $model::query()->update(['is_there' => false]);
-
-        // Hanya update data yang ada dalam $tags
-        $model::whereIn('rfid_number', $tags)->update(['is_there' => true]);
+        abort(403);
     }
 
     public function exportFound()

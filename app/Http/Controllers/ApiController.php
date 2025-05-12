@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
+use App\Models\ScannedTag;
 
 class ApiController extends Controller
 {
@@ -111,7 +112,7 @@ class ApiController extends Controller
         $result = $sekolahs->map(function ($sekolah) {
             return [
                 'id' => $sekolah->id,
-                'schoolName' => $sekolah->name,
+                'schoolName' => $sekolah->category . ' ' . $sekolah->name,
                 'lastStockOpname' => optional($sekolah->last_stock_opname)->format('d/m/Y') ?? '-',
                 'totalAset' => $sekolah->assets()->count(),
             ];
@@ -134,7 +135,7 @@ class ApiController extends Controller
             return [
                 'id' => $asset->id,
                 'itemName' => $asset->name,
-                'school' => $asset->sekolah->name ?? '-',
+                'school' => $asset->sekolah->category . ' ' . $asset->sekolah->name ?? '-',
                 'rfid' => $asset->rfid_number,
                 'room' => $asset->ruangan ?? '-',
                 'isThere' => false,
@@ -151,47 +152,99 @@ class ApiController extends Controller
         ]);
     }
 
-    public function PostStockOpname(Request $request, $idSchool)
-    {
-        $validated = $request->validate([
-            'stockOpname' => 'required|array',
-            'stockOpname.*.id' => 'required|integer|exists:assets,id',
-            'stockOpname.*.isThere' => 'required|boolean',
-        ]);
-        $query = Asset::with('sekolah')->where('sekolah_id', $idSchool);
-        $assets = $this->filterAssetByRole($query)->get();
+        public function postStockOpname(Request $request, $idSchool)
+        {
+            $validated = $request->validate([
+                'stockOpname' => 'required|array',
+                'stockOpname.*.id' => 'required|integer|exists:assets,id',
+                'stockOpname.*.isThere' => 'required|boolean',
+            ]);
 
-        foreach ($validated['stockOpname'] as $item) {
-            $asset = Asset::where('id', $item['id'])
+            // Ambil semua ID dari request
+            $ids = collect($validated['stockOpname'])->pluck('id');
+
+            // Ambil semua asset yang relevan dalam satu query
+            $assets = Asset::with('sekolah')
+                ->whereIn('id', $ids)
                 ->where('sekolah_id', $idSchool)
-                ->first();
+                ->get()
+                ->keyBy('id');
 
-            if ($asset) {
-                $asset->is_there = $item['isThere'];
-                // $asset->kondisi = $item['condition'];
-                $asset->save();
+            foreach ($validated['stockOpname'] as $item) {
+                if (isset($assets[$item['id']])) {
+                    $asset = $assets[$item['id']];
+                    $asset->is_there = $item['isThere'];
+                    $asset->save();
+                }
             }
+
+            // Ambil nama sekolah dari salah satu asset
+            $school = optional($assets->first()->sekolah);
+            $disctrictName = optional($school->kecamatan)->name;
+            $schoolName = $school->category . ' ' . $school->name;
+
+            $scan = Scan::create([
+                'total' => count($validated['stockOpname']),
+                'user_id' => Auth::id(),
+                'place_name' => $schoolName,
+                'district_name' => $disctrictName
+            ]);
+
+            // Simpan ke tabel scanned tags
+            $scannedTags = [];
+            $isThereMap = collect($validated['stockOpname'])->pluck('isThere', 'id');
+
+            foreach ($assets as $asset) {
+                $scannedTags[] = [
+                    'scan_id' => $scan->id,
+                    'rfid_number' => $asset->rfid_number,
+                    'kode' => $asset->kode,
+                    'name' => $asset->name,
+                    'register' => $asset->register,
+                    'merk' => $asset->merk,
+                    'ukuran' => $asset->ukuran,
+                    'bahan' => $asset->bahan,
+                    'tahun_pembelian' => $asset->tahun_pembelian,
+                    'tanggal_pembelian' => $asset->tanggal_pembelian ?? null,
+                    'pabrik' => $asset->pabrik,
+                    'rangka' => $asset->rangka,
+                    'mesin' => $asset->mesin,
+                    'polisi' => $asset->polisi,
+                    'bpkb' => $asset->bpkb,
+                    'nip_pic' => $asset->nip_pic,
+                    'nama_pic' => $asset->nama_pic,
+                    'jabatan_pic' => $asset->jabatan_pic,
+                    'telp_pic' => $asset->telp_pic,
+                    'asal_perolehan' => $asset->asal_perolehan,
+                    'nilai_perolehan' => $asset->nilai_perolehan,
+                    'kondisi' => $asset->kondisi,
+                    'tanggal_perawatan' => $asset->tanggal_perawatan,
+                    'harga_perawatan' => $asset->harga_perawatan,
+                    'waktu_perawatan' => $asset->waktu_perawatan,
+                    'gedung' => $asset->gedung,
+                    'lantai' => $asset->lantai,
+                    'ruangan' => $asset->ruangan,
+                    'detail' => $asset->detail,
+                    'foto_awal' => $asset->foto_awal,
+                    'foto_kondisi' => $asset->foto_kondisi,
+                    'status' => $asset->status,
+                    'desc' => $asset->desc,
+                    'is_there' => $isThereMap[$asset->id],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+
+            ScannedTag::insert($scannedTags);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Stock opname berhasil diperbarui.'
+            ]);
         }
-
-        Scan::create([
-            'total' => count($request->stockOpname),
-            'user_id' => Auth::user()->id
-        ]);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Stock opname berhasil diperbarui.'
-        ]);
-    }
 
     public function getSearchFilter(Request $request)
     {
-        $sekolahs = $this->filterSekolahByRole(Sekolah::query())->get();
-
-        $query = Asset::with('sekolah');
-        $assets = $this->filterAssetByRole($query)->get();
-
-        // << Ini diperbaiki: filter juga sekolah sesuai role
         $schools = $this->filterSekolahByRole(Sekolah::select('id', 'name as schoolName'))->get();
 
         // Ambil semua tahun pembelian unik dari tabel assets
