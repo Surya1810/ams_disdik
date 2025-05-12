@@ -22,9 +22,12 @@ class HistoryController extends Controller
                 ->where('change_type', 'attribute')
                 ->orderBy('histories.created_at', 'desc');
 
+            /**
+             * requester_id diisi oleh kecamatan_id
+             */
             $query = Auth::user()->role_id == 2
                 ? $baseQuery
-                : $baseQuery->where('requester_id', Auth::user()->id);
+                : $baseQuery->where('requester_id', Auth::user()->kecamatan_id);
 
             return DataTables::of($query)
                 ->addColumn('rfid_number', fn($row) => $row->asset?->rfid_number ?? '-')
@@ -94,19 +97,22 @@ class HistoryController extends Controller
                 ->orderBy('histories.created_at', 'desc')
                 ->select('histories.*', 'assets.name as asset_name');
 
+            /**
+             * requester_id diisi oleh kecamatan_id
+             */
             $query = Auth::user()->role_id == 2
                 ? $baseQuery
-                : $baseQuery->where('requester_id', Auth::user()->id);
+                : $baseQuery->where('requester_id', Auth::user()->kecamatan_id);
 
             return DataTables::of($query)
                 ->addColumn('rfid_number', fn($row) => $row->asset->rfid_number ?? '-')
                 ->addColumn('kode', fn($row) => $row->asset->kode ?? '-')
                 ->addColumn('asset', fn($row) => $row->asset->name ?? '-')
-                ->addColumn('user', function ($row) {
-                    if (Auth::user()->role_id == 2) {
-                        $user = json_decode($row->requester_payload, true)['name'];
-                        return $user;
-                    }
+                ->addColumn('requested_by', function ($row) {
+                    $user = json_decode($row->requester_payload, true)['name'];
+                    return $user;
+                })
+                ->addColumn('approved_by', function ($row) {
                     return $row->user->name ?? '-';
                 })
                 ->addColumn('dari', function ($row) {
@@ -164,15 +170,24 @@ class HistoryController extends Controller
                 ->orderBy('histories.created_at', 'desc')
                 ->select('histories.*', 'assets.name as asset_name');
 
+            /**
+             * requester_id diisi oleh kecamatan_id
+             */
             $query = Auth::user()->role_id == 2
                 ? $baseQuery
-                : $baseQuery->where('requester_id', Auth::user()->id);
+                : $baseQuery->where('requester_id', Auth::user()->kecamatan_id);
 
             return DataTables::of($query)
                 ->addColumn('rfid_number', fn($row) => $row->asset->rfid_number ?? '-')
                 ->addColumn('kode', fn($row) => $row->asset->name ?? '-')
                 ->addColumn('asset', fn($row) => $row->asset->name ?? '-')
-                ->addColumn('user', fn($row) => $row->user->name ?? '-')
+                ->addColumn('requested_by', function ($row) {
+                    $user = json_decode($row->requester_payload, true)['name'];
+                    return $user;
+                })
+                ->addColumn('approved_by', function ($row) {
+                    return $row->user->name ?? '-';
+                })
                 ->addColumn('dari', function ($row) {
                     $oldValues = json_decode($row->old_values, true);
 
@@ -233,11 +248,15 @@ class HistoryController extends Controller
 
         if ($request->ajax()) {
             $baseQuery = History::with(['asset', 'user', 'approval']) // ambil relasi asset dan user
-                ->where('change_type', 'disposal');
+                ->where('change_type', 'disposal')
+                ->orderBy('created_at', 'DESC');
 
+            /**
+             * requester_id diisi oleh kecamatan_id
+             */
             $query = $user->role_id == 2
                 ? $baseQuery
-                : $baseQuery->where('requester_id', $user->id);
+                : $baseQuery->where('requester_id', $user->kecamatan_id);
 
             return DataTables::of($query)
                 ->addColumn('rfid_number', function ($row) {
@@ -266,15 +285,21 @@ class HistoryController extends Controller
                 })
                 ->addColumn('keterangan', function ($row) {
                     $newValues = json_decode($row->new_values, true);
+
+                    /**
+                     * ! Note: perlu diperbaiki
+                     * Karena relasi antar history dan approval kurang tepat
+                     * jadi ada bug saat memunculkan alasan penolakan
+                     */
+
                     return $newValues['keterangan'] ?? ($row->approval->rejection_note ?? '-');
                 })
-                ->addColumn('user', function ($row) {
-                    /**
-                     * User sebelumnya yang diambil malah user yang approve atau tolak
-                     * Karena di tabel kolomnya diajukan, maka diubah ke requester_payload
-                     */
-                    $requester = json_decode($row->requester_payload, true);
-                    return isset($requester['name']) ? $requester['name'] : '-';
+                ->addColumn('requested_by', function ($row) {
+                    $user = json_decode($row->requester_payload, true)['name'];
+                    return $user;
+                })
+                ->addColumn('approved_by', function ($row) {
+                    return $row->user->name ?? '-';
                 })
                 ->addColumn('jenis', function ($row) {
                     $newValues = json_decode($row->new_values, true);

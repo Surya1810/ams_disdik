@@ -32,11 +32,8 @@
                                     <th class="text-uppercase">RFID Number</th>
                                     <th class="text-uppercase">Kode</th>
                                     <th class="text-uppercase">Nama Barang</th>
-                                    @if(auth()->user()->role_id == 2)
-                                        <th class="text-uppercase">Diajukan Oleh</th>
-                                    @else
-                                        <th class="text-uppercase">Disetujui/Ditolak Oleh</th>
-                                    @endif
+                                    <th class="text-uppercase">Diajukan Oleh</th>
+                                    <th class="text-uppercase">Disetujui/Ditolak Oleh</th>
                                     <th class="text-uppercase">Dari</th>
                                     <th class="text-uppercase">ke</th>
                                     <th class="text-uppercase">Waktu</th>
@@ -67,15 +64,23 @@
                     },
                     {
                         data: 'kode',
-                        name: 'asset.rfid_number'
+                        name: 'asset.rfid_number',
+                        orderable: false
                     },
                     {
                         data: 'asset',
-                        name: 'asset.name'
+                        name: 'asset.name',
+                        orderable: false
                     },
                     {
-                        data: 'user',
-                        name: 'user.name'
+                        data: 'requested_by',
+                        name: 'requested_by',
+                        orderable: false
+                    },
+                    {
+                        data: 'approved_by',
+                        name: 'approved_by',
+                        orderable: false
                     },
                     {
                         data: 'dari',
@@ -91,7 +96,8 @@
                     },
                     {
                         data: 'created_at',
-                        name: 'created_at'
+                        name: 'created_at',
+                        orderable: false
                     },
                 ]
             });

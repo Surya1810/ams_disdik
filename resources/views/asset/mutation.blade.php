@@ -79,7 +79,7 @@
                                     $asset->kode
                                     . ' - ' .$asset->name
                                     . ' - ' . $asset->sekolah->category
-                                    . ' - ' . $asset->sekolah->name
+                                    . ' ' . $asset->sekolah->name
                                 }}
                             </option>
                             @endforeach

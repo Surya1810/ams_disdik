@@ -93,7 +93,7 @@ class ApprovalController extends Controller
         if ($request->ajax()) {
             $approvals = Approval::with(['asset', 'requester'])
                 ->where('type', 'mutation')
-                ->where('requested_by', Auth::id())
+                ->where('requested_by', Auth::id()) // jika di approval, requested_by adalah yang mengajukannya
                 ->latest();
 
             return DataTables::of($approvals)
@@ -463,7 +463,7 @@ class ApprovalController extends Controller
             'type' => $type,
             'payload' => json_encode($payload),
             'status' => 'pending',
-            'requested_by' => $user->id,
+            'requested_by' => $user->id // kalau ke tabel approval user id
         ]);
 
         // Redirect sesuai type
@@ -524,8 +524,8 @@ class ApprovalController extends Controller
                             'asset_id' => $asset->id,
                             'user_id' => $userId,
                             'change_type' => 'mutation',
-                            'requester_id' => $approval->requested_by,
-                            'requester_payload' => json_encode($requester),
+                            'requester_id' => $approval->requester?->kecamatan_id, // kecamatan_id
+                            'requester_payload' => json_encode($requester), // user yang request
                             'changed_fields' => json_encode(array_keys($newValues)),
                             'old_values' => json_encode($oldValues),
                             'new_values' => json_encode($newValues),
@@ -543,8 +543,8 @@ class ApprovalController extends Controller
                             'asset_id' => $asset->id,
                             'user_id' => $userId,
                             'change_type' => 'location',
-                            'requester_id' => $approval->requested_by,
-                            'requester_payload' => json_encode($requester),
+                            'requester_id' => $approval->requester?->kecamatan_id, // kecamatan_id
+                            'requester_payload' => json_encode($requester), // user yang request
                             'changed_fields' => json_encode(array_keys($newValues)),
                             'old_values' => json_encode($oldValues),
                             'new_values' => json_encode($newValues),
@@ -561,8 +561,8 @@ class ApprovalController extends Controller
                             'asset_id' => null,
                             'user_id' => $userId,
                             'change_type' => 'disposal',
-                            'requester_id' => $approval->requested_by,
-                            'requester_payload' => json_encode($requester),
+                            'requester_id' => $approval->requester?->kecamatan_id, // kecamatan_id
+                            'requester_payload' => json_encode($requester), // user yang request
                             'changed_fields' => json_encode($changedFields), // Semua data aset dimasukkan ke changed_fields
                             'old_values' => json_encode($oldValues),
                             'new_values' => json_encode([
@@ -639,10 +639,14 @@ class ApprovalController extends Controller
                             'asset_id' => $asset->id,
                             'user_id' => $userId,
                             'change_type' => 'mutation',
-                            'requester_id' => $approval->requested_by,
-                            'requester_payload' => json_encode($requester),
+                            'requester_id' => $approval->requester?->kecamatan_id, // kecamatan_id
+                            'requester_payload' => json_encode($requester), // user yang request
                             'changed_fields' => json_encode(array_keys($newValues)),
-                            'old_values' => json_encode($oldValues)
+                            'old_values' => json_encode($oldValues),
+                            'new_values' => json_encode([
+                                'jenis' => $payload['jenis'] ?? '-',
+                                'keterangan' => $request->rejection_note,
+                            ]),
                         ]);
                         break;
                     case 'loan':
@@ -654,10 +658,14 @@ class ApprovalController extends Controller
                             'user_id' => $userId,
                             'is_rejected' => true,
                             'change_type' => 'location',
-                            'requester_id' => $approval->requested_by,
-                            'requester_payload' => json_encode($requester),
+                            'requester_id' => $approval->requester?->kecamatan_id, // kecamatan_id
+                            'requester_payload' => json_encode($requester), // user yang request
                             'changed_fields' => json_encode(array_keys($newValues)),
-                            'old_values' => json_encode($oldValues)
+                            'old_values' => json_encode($oldValues),
+                            'new_values' => json_encode([
+                                'jenis' => $payload['jenis'] ?? '-',
+                                'keterangan' => $request->rejection_note,
+                            ]),
                         ]);
                         break;
                     case 'disposal':
@@ -669,10 +677,14 @@ class ApprovalController extends Controller
                             'user_id' => $userId,
                             'is_rejected' => true,
                             'change_type' => 'disposal',
-                            'requester_id' => $approval->requested_by,
-                            'requester_payload' => json_encode($requester),
+                            'requester_id' => $approval->requester?->kecamatan_id, // kecamatan_id
+                            'requester_payload' => json_encode($requester), // user yang request
                             'changed_fields' => json_encode($changedFields),
-                            'old_values' => json_encode($oldValues)
+                            'old_values' => json_encode($oldValues),
+                            'new_values' => json_encode([
+                                'jenis' => $payload['jenis'] ?? '-',
+                                'keterangan' => $request->rejection_note,
+                            ]),
                         ]);
                         break;
                 }

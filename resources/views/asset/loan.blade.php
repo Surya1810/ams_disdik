@@ -74,7 +74,7 @@
                                         @foreach ($assets as $asset)
                                         <option value="{{ $asset->id }}" {{ old('asset_id')==$asset->id ? 'selected' :
                                             '' }}
-                                            data-sekolah="{{ $asset->sekolah->name }}"
+                                            data-sekolah="{{ $asset->sekolah->category . ' ' . $asset->sekolah->name }}"
                                             data-sekolah_id="{{ $asset->sekolah_id }}"
                                             data-kecamatan="{{ $asset->sekolah->kecamatan->name }}"
                                             data-gedung="{{ $asset->gedung }}" data-lantai="{{ $asset->lantai }}"

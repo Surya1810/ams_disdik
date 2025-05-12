@@ -32,6 +32,7 @@
                                 <th class="text-uppercase">Kode</th>
                                 <th class="text-uppercase">Keterangan</th>
                                 <th class="text-uppercase">Diajukan Oleh</th>
+                                <th class="text-uppercase">Disetujui/Ditolak Oleh</th>
                                 <th class="text-uppercase">Jenis</th>
                                 <th class="text-uppercase">Status</th>
                                 <th class="text-uppercase">Waktu</th>
@@ -70,8 +71,12 @@
                     searchable: false
                 },
                 {
-                    data: 'user', // Menampilkan nama user
-                    name: 'user.name'
+                    data: 'requested_by', // Menampilkan nama user
+                    name: 'requested_by'
+                },
+                {
+                    data: 'approved_by', // Menampilkan nama user
+                    name: 'approved_by'
                 },
                 {
                     data: 'jenis', // Menampilkan jenis
