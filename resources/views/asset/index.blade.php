@@ -162,7 +162,7 @@
 
     <!-- Modal Add Aset -->
     <div class="modal fade" id="addAset" aria-labelledby="addAset" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">
@@ -629,7 +629,7 @@
 
     <!-- Modal Edit Aset -->
     <div class="modal fade" id="editAset" aria-labelledby="editAsetLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">
@@ -1091,7 +1091,7 @@
 
     <!-- Modal Show Aset -->
     <div class="modal fade" id="showAset" aria-labelledby="showAsetLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">
@@ -1302,7 +1302,7 @@
 
     {{-- Modal Import From Excel --}}
     <div class="modal fade" id="showImportModal" aria-labelledby="showImportModal" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">
@@ -1428,10 +1428,10 @@
             window.previewImage = function(event) {
                 const input = event.target;
                 const isEdit = event.target.dataset.edit;
-                const preview = isEdit === 0
+                const preview = isEdit == '0'
                     ? document.getElementById('previewImg')
                     : document.getElementById('previewImgEdit');
-                const fileName = isEdit === 0
+                const fileName = isEdit == '0'
                     ? document.getElementById('fileName')
                     : document.getElementById('fileNameEdit');
 
@@ -1551,9 +1551,27 @@
                 // Isi Jangka Waktu Perawatan (select)
                 if (prefix === 'editAset') {
                     $(`${selector} #waktu_perawatan_edit`).val(asset.waktu_perawatan ?? '').trigger('change');
+
+                    // Preview gambar
+                    const $previewImg = $(`${selector} #previewImgEdit`);
+
+                    if (asset.foto_awal) {
+                        $previewImg.attr('src', `${asset.foto_awal}`).show();
+                    } else {
+                        $previewImg.hide();
+                    }
                 }
                 if (prefix === 'showAset') {
                     $(`${selector} #waktu_perawatan_show`).val(asset.waktu_perawatan ?? '').trigger('change');
+
+                    // Preview gambar
+                    const $previewImg = $(`${selector} #previewImg`);
+
+                    if (asset.foto_awal) {
+                        $previewImg.attr('src', `${asset.foto_awal}`).show();
+                    } else {
+                        $previewImg.hide();
+                    }
                 }
 
                 // Isi kondisi select2
@@ -1574,14 +1592,6 @@
                     if ($kecamatan.length) {
                         $kecamatan.val(asset.sekolah.kecamatan.nama_kecamatan).trigger('change');
                     }
-                }
-
-                // Preview gambar
-                const $previewImg = $(`${selector} #previewImg`);
-                if (asset.foto_awal) {
-                    $previewImg.attr('src', `${asset.foto_awal}`).show();
-                } else {
-                    $previewImg.hide();
                 }
             }
 
