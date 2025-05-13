@@ -43,7 +43,7 @@ class AssetController extends Controller
         if ($roleId == 2) {
             $placesForFilter = Kecamatan::whereNot('id', 1)->get();
             $places = Sekolah::where('kecamatan_id', $kecamatanId)->get();
-        } else if ($roleId == 3)  {
+        } else if ($roleId == 3) {
             $places = Sekolah::where('kecamatan_id', $kecamatanId)->get();
         }
 
@@ -103,17 +103,24 @@ class AssetController extends Controller
                     })
                     ->addColumn('action', function ($row) {
                         $showButton = '<a href="javascript:void(0)" class="btn btn-link p-0 show-asset" data-asset-id="' . $row->id . '">
-                                <i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail"></i>
-                            </a>';
+                            <i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Lihat Detail"></i>
+                        </a>';
+
                         $editButton = '&nbsp;
                             <a href="javascript:void(0)" class="btn btn-link p-0 edit-asset" data-asset-id="' . $row->id . '">
                                 <i class="fa-solid fa-pencil" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
-                            </a>
-                        ';
+                            </a>';
+
+                        $downloadButton = '&nbsp;
+                            <a href="' . route('asset.download', $row->id) . '" class="btn btn-link p-0 download-pdf">
+                                <i class="fa-solid fa-file-pdf text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Unduh PDF"></i>
+                            </a>';
+
                         $assetKecamatanId = $row->load('sekolah')->sekolah->kecamatan_id;
+
                         $buttons = Auth::user()->kecamatan_id != $assetKecamatanId
                             ? $showButton
-                            : $showButton . $editButton;
+                            : $showButton . $editButton . $downloadButton;
 
                         return $buttons;
                     })
@@ -334,9 +341,9 @@ class AssetController extends Controller
                 'change_type' => 'attribute',
                 'requester_id' => Auth::user()->kecamatan_id,
                 'requester_payload' => json_encode([
-                        'id' => Auth::id(),
-                        'name' => Auth::user()->name
-                    ], true),
+                    'id' => Auth::id(),
+                    'name' => Auth::user()->name
+                ], true),
                 'old_values' => json_encode($oldValues),
                 'new_values' => json_encode($newValues),
                 'changed_fields' => json_encode($changedFields),
@@ -373,6 +380,19 @@ class AssetController extends Controller
             'places' => $places,
         ]);
     }
+
+    public function download($id)
+    {
+        $kecamatanId = Auth::user()->kecamatan_id;
+        $asset = Asset::findOrFail($id);
+
+        $places = Sekolah::where('kecamatan_id', $kecamatanId)->get();
+        $pdf = Pdf::loadView('asset.download_pdf', compact('asset', 'places'))
+            ->setPaper('A4', 'portrait');
+
+        return $pdf->download('Detail-Aset-' . $asset->rfid_number . '.pdf');
+    }
+
 
     public function maintenance(Request $request)
     {

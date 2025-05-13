@@ -134,7 +134,7 @@ class ScanController extends Controller
                 $q->where('kecamatan_id', $kecamatanId);
             })->with('sekolah')->get();
 
-        $pdf = Pdf::loadView('scan_pdf', [
+        $pdf = Pdf::loadView('scan.scan_pdf', [
             'assets' => $assets,
             'status' => 'found'
         ]);
@@ -153,7 +153,7 @@ class ScanController extends Controller
                 $q->where('kecamatan_id', $kecamatanId);
             })->with('sekolah')->get();
 
-        $pdf = Pdf::loadView('scan_pdf', [
+        $pdf = Pdf::loadView('scan.scan_pdf', [
             'assets' => $assets,
             'status' => 'missing'
         ]);
