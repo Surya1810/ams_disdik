@@ -2,6 +2,15 @@
 
 @section('title', 'Mutation History')
 
+@push('css')
+<style>
+    div.dt-search input {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+@endpush
+
 @section('navbar')
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
@@ -57,30 +66,37 @@
                 processing: true,
                 serverSide: true,
                 ajax: "{{ route('histories.mutation') }}",
+                language: {
+                    searchPlaceholder: "Input RFID Number"
+                },
                 columns: [
                     {
                         data: 'rfid_number',
-                        name: 'asset.rfid_number'
+                        name: 'rfid_number',
+                        orderable: false,
                     },
                     {
                         data: 'kode',
-                        name: 'asset.rfid_number',
+                        name: 'rfid_number',
                         orderable: false
                     },
                     {
                         data: 'asset',
-                        name: 'asset.name',
-                        orderable: false
+                        name: 'asset',
+                        orderable: false,
+                        searchable: false
                     },
                     {
                         data: 'requested_by',
                         name: 'requested_by',
-                        orderable: false
+                        orderable: false,
+                        searchable: false
                     },
                     {
                         data: 'approved_by',
                         name: 'approved_by',
-                        orderable: false
+                        orderable: false,
+                        searchable: false
                     },
                     {
                         data: 'dari',

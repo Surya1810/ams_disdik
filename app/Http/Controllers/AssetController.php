@@ -335,6 +335,7 @@ class AssetController extends Controller
                 'old_values' => json_encode($oldValues),
                 'new_values' => json_encode($newValues),
                 'changed_fields' => json_encode($changedFields),
+                'old_asset' => json_encode($asset)
             ]);
 
             return redirect()->route('asset.index')->with(['pesan' => 'Aset berhasil diperbarui', 'level-alert' => 'alert-success']);

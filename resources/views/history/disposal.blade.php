@@ -2,6 +2,15 @@
 
 @section('title', 'Disposal History')
 
+@push('css')
+<style>
+    div.dt-search input {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+@endpush
+
 @section('navbar')
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
@@ -30,6 +39,7 @@
                             <tr>
                                 <th class="text-uppercase">RFID Number</th>
                                 <th class="text-uppercase">Kode</th>
+                                <th class="text-uppercase">Asset</th>
                                 <th class="text-uppercase">Keterangan</th>
                                 <th class="text-uppercase">Diajukan Oleh</th>
                                 <th class="text-uppercase">Disetujui/Ditolak Oleh</th>
@@ -55,14 +65,27 @@
             processing: true,
             serverSide: true,
             ajax: '{{ route('histories.disposal') }}',
+            language: {
+                    searchPlaceholder: "Input RFID Number"
+            },
             columns: [
                 {
                     data: 'rfid_number',  // Menampilkan keterangan
                     name: 'rfid_number',
+                    orderable: false,
+                    searchable: true
                 },
                 {
                     data: 'kode',  // Menampilkan keterangan
                     name: 'kode',
+                    orderable: false,
+                    searchable: false
+                },
+                {
+                    data: 'asset',
+                    name: 'asset',
+                    orderable: false,
+                    searchable: false
                 },
                 {
                     data: 'keterangan',  // Menampilkan keterangan
@@ -72,23 +95,33 @@
                 },
                 {
                     data: 'requested_by', // Menampilkan nama user
-                    name: 'requested_by'
+                    name: 'requested_by',
+                    orderable: false,
+                    searchable: false
                 },
                 {
                     data: 'approved_by', // Menampilkan nama user
-                    name: 'approved_by'
+                    name: 'approved_by',
+                    orderable: false,
+                    searchable: false
                 },
                 {
                     data: 'jenis', // Menampilkan jenis
-                    name: 'jenis'
+                    name: 'jenis',
+                    orderable: false,
+                    searchable: false
                 },
                 {
                     data: 'approval', // Menampilkan jenis
-                    name: 'approval.status'
+                    name: 'approval.status',
+                    orderable: false,
+                    searchable: false
                 },
                 {
                     data: 'created_at', // Menampilkan waktu
-                    name: 'histories.created_at'
+                    name: 'histories.created_at',
+                    orderable: false,
+                    searchable: false
                 },
             ],
             rawColumns: ['status', 'from', 'to']

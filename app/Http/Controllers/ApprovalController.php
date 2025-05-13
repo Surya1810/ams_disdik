@@ -492,43 +492,47 @@ class ApprovalController extends Controller
             'ids.*' => 'exists:approvals,id',
         ]);
 
-        foreach ($request->ids as $id) {
-            $approval = Approval::with('asset')->find($id);
-            if (!$approval || $approval->status !== 'pending') continue;
+        $userId = Auth::id();
+        $approvals = Approval::with('asset')
+            ->whereIn('id', $request->ids)
+            ->where('status', 'pending')
+            ->get();
 
+        /**
+         * Untuk menghindari bug saat mutasi dan loan
+         * adalah aset yang sama, kemudian dilakukan
+         * disposal dan diterima. Agar data asset tidak hilang
+         * maka eksekusi type disposal di bagian akhir
+         */
+        $disposals = $approvals->where('type', 'disposal');
+        $others = $approvals->where('type', '!=', 'disposal');
+        $orderedApprovals = $others->concat($disposals);
+
+        foreach ($orderedApprovals as $approval) {
             $payload = json_decode($approval->payload, true);
-            $userId = Auth::id();
             $asset = $approval->asset;
             $requester = $approval->requester->only(['id', 'name']);
-
-            /**
-             * * Note:
-             * $userId yang ada di sini
-             * masuk ke history sebagai pihak yang meng-approve / reject
-             */
 
             try {
                 switch ($approval->type) {
                     case 'mutation':
                         $fields = ['nip_pic', 'nama_pic', 'jabatan_pic', 'telp_pic'];
-
-                        // Convert payload ke array jika perlu
                         $oldValues = $asset->only($fields);
-                        $newValues = array_intersect_key($payload['to'], array_flip($fields)); // Ambil nilai dari 'to'
-
-                        // Update data asset
+                        $newValues = array_intersect_key($payload['to'], array_flip($fields));
                         $asset->fill($newValues);
                         $asset->save();
 
                         History::create([
                             'asset_id' => $asset->id,
                             'user_id' => $userId,
+                            'approval_id' => $approval->id,
                             'change_type' => 'mutation',
-                            'requester_id' => $approval->requester?->kecamatan_id, // kecamatan_id
-                            'requester_payload' => json_encode($requester), // user yang request
+                            'requester_id' => $approval->requester?->kecamatan_id,
+                            'requester_payload' => json_encode($requester),
                             'changed_fields' => json_encode(array_keys($newValues)),
                             'old_values' => json_encode($oldValues),
                             'new_values' => json_encode($newValues),
+                            'old_asset' => json_encode($asset)
                         ]);
                         break;
 
@@ -542,12 +546,14 @@ class ApprovalController extends Controller
                         History::create([
                             'asset_id' => $asset->id,
                             'user_id' => $userId,
+                            'approval_id' => $approval->id,
                             'change_type' => 'location',
-                            'requester_id' => $approval->requester?->kecamatan_id, // kecamatan_id
-                            'requester_payload' => json_encode($requester), // user yang request
+                            'requester_id' => $approval->requester?->kecamatan_id,
+                            'requester_payload' => json_encode($requester),
                             'changed_fields' => json_encode(array_keys($newValues)),
                             'old_values' => json_encode($oldValues),
                             'new_values' => json_encode($newValues),
+                            'old_asset' => json_encode($asset)
                         ]);
                         break;
 
@@ -555,20 +561,22 @@ class ApprovalController extends Controller
                         $keterangan = $payload['keterangan'] ?? '-';
                         $jenis = $payload['jenis'] ?? '-';
                         $oldValues = $asset->toArray();
-                        $changedFields = array_keys($oldValues); // Ambil semua key sebagai field yang berubah
+                        $changedFields = array_keys($oldValues);
 
                         History::create([
                             'asset_id' => null,
                             'user_id' => $userId,
+                            'approval_id' => $approval->id,
                             'change_type' => 'disposal',
-                            'requester_id' => $approval->requester?->kecamatan_id, // kecamatan_id
-                            'requester_payload' => json_encode($requester), // user yang request
-                            'changed_fields' => json_encode($changedFields), // Semua data aset dimasukkan ke changed_fields
+                            'requester_id' => $approval->requester?->kecamatan_id,
+                            'requester_payload' => json_encode($requester),
+                            'changed_fields' => json_encode($changedFields),
                             'old_values' => json_encode($oldValues),
                             'new_values' => json_encode([
                                 'jenis' => $jenis,
                                 'keterangan' => $keterangan,
                             ]),
+                            'old_asset' => json_encode($asset)
                         ]);
 
                         if ($asset->tag) {
@@ -592,12 +600,15 @@ class ApprovalController extends Controller
 
                 $approval->update(['status' => 'approved']);
             } catch (\Exception $e) {
-                Log::error("Approval failed for ID {$id}: {$e->getMessage()}");
+                Log::error("Approval failed for ID {$approval->id}: {$e->getMessage()}");
             }
         }
 
-        return response()->json(['message' => 'Semua permintaan berhasil disetujui dan dicatat dalam history.']);
+        return response()->json([
+            'message' => 'Semua permintaan berhasil disetujui dan dicatat dalam history.'
+        ]);
     }
+
 
     public function reject(Request $request)
     {
@@ -638,15 +649,13 @@ class ApprovalController extends Controller
                         History::create([
                             'asset_id' => $asset->id,
                             'user_id' => $userId,
+                            'approval_id' => $approval->id,
                             'change_type' => 'mutation',
                             'requester_id' => $approval->requester?->kecamatan_id, // kecamatan_id
                             'requester_payload' => json_encode($requester), // user yang request
                             'changed_fields' => json_encode(array_keys($newValues)),
                             'old_values' => json_encode($oldValues),
-                            'new_values' => json_encode([
-                                'jenis' => $payload['jenis'] ?? '-',
-                                'keterangan' => $request->rejection_note,
-                            ]),
+                            'old_asset' => json_encode($asset)
                         ]);
                         break;
                     case 'loan':
@@ -656,18 +665,17 @@ class ApprovalController extends Controller
                         History::create([
                             'asset_id' => $asset->id,
                             'user_id' => $userId,
+                            'approval_id' => $approval->id,
                             'is_rejected' => true,
                             'change_type' => 'location',
                             'requester_id' => $approval->requester?->kecamatan_id, // kecamatan_id
                             'requester_payload' => json_encode($requester), // user yang request
                             'changed_fields' => json_encode(array_keys($newValues)),
                             'old_values' => json_encode($oldValues),
-                            'new_values' => json_encode([
-                                'jenis' => $payload['jenis'] ?? '-',
-                                'keterangan' => $request->rejection_note,
-                            ]),
+                            'old_asset' => json_encode($asset)
                         ]);
                         break;
+
                     case 'disposal':
                         $oldValues = $asset->toArray();
                         $changedFields = array_keys($oldValues); // Ambil semua key sebagai field yang berubah
@@ -675,6 +683,7 @@ class ApprovalController extends Controller
                         History::create([
                             'asset_id' => $asset->id,
                             'user_id' => $userId,
+                            'approval_id' => $approval->id,
                             'is_rejected' => true,
                             'change_type' => 'disposal',
                             'requester_id' => $approval->requester?->kecamatan_id, // kecamatan_id
@@ -685,6 +694,7 @@ class ApprovalController extends Controller
                                 'jenis' => $payload['jenis'] ?? '-',
                                 'keterangan' => $request->rejection_note,
                             ]),
+                            'old_asset' => json_encode($asset)
                         ]);
                         break;
                 }

@@ -2,6 +2,15 @@
 
 @section('title', 'Changes History')
 
+@push('css')
+<style>
+    div.dt-search input {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.5rem;
+    }
+</style>
+@endpush
+
 @section('navbar')
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
@@ -54,13 +63,45 @@
                 processing: true,
                 serverSide: true,
                 ajax: "{{ route('histories.changes') }}",
+                language: {
+                    searchPlaceholder: "Input RFID Number"
+                },
                 columns: [
-                    { data: 'rfid_number', name: 'asset.rfid_number' },
-                    { data: 'kode', name: 'asset.kode' },
-                    { data: 'asset', name: 'asset.name' },
-                    { data: 'user', name: 'user.name' },
-                    { data: 'perubahan', name: 'perubahan', orderable: false, searchable: false },
-                    { data: 'created_at', name: 'created_at' },
+                    {
+                        data: 'rfid_number',
+                        name: 'rfid_number',
+                        orderable: false
+                    },
+                    {
+                        data: 'kode',
+                        name: 'kode',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'asset',
+                        name: 'name',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'user',
+                        name: 'user.name',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'perubahan',
+                        name: 'perubahan',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'created_at',
+                        name: 'created_at',
+                        orderable: false,
+                        searchable: false
+                    },
                 ],
                 order: [[3, 'desc']],
             });
