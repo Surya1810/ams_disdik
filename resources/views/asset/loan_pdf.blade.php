@@ -6,10 +6,11 @@
     <title>Berita Acara Peminjaman Aset</title>
     <style>
         body {
-            font-family: "Times New Roman", serif;
-            font-size: 12pt;
-            line-height: 1.5;
-            margin: 40px;
+        font-family: "Times New Roman", serif;
+        font-size: 12pt;
+        line-height: 1.6;
+        margin: 25px;
+        color: #222;
         }
 
         h2,
@@ -24,7 +25,7 @@
         }
 
         .mt-2 {
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         .mt-4 {
@@ -44,7 +45,7 @@
         }
 
         .signature {
-            margin-top: 50px;
+            margin-top: 20px;
             width: 100%;
         }
 
@@ -70,8 +71,8 @@
             }}</em></p>
 
     <p>Pada hari ini, {{ \Carbon\Carbon::parse($loan->created_at)->translatedFormat('l') }} tanggal
-        {{ \Carbon\Carbon::parse($loan->created_at)->translatedFormat('d F Y') }}, telah dilakukan proses peminjaman
-        aset sebagai berikut:</p>
+        {{ \Carbon\Carbon::parse($loan->created_at)->translatedFormat('d F Y') }}, telah diajukan permohonan peminjaman
+        aset dengan rincian sebagai berikut:</p>
 
     <table>
         <tr>
@@ -115,8 +116,9 @@
         </tr>
     </table>
 
-    <p class="mt-2">Demikian berita acara ini dibuat dan ditandatangani oleh pihak yang terkait untuk dapat dipergunakan
-        sebagaimana mestinya.</p>
+    <p class="mt-2">Sebagai pihak yang bertanggung jawab, kami mengajukan permohonan peminjaman aset ini dengan penuh
+        keseriusan untuk mengikuti semua prosedur yang berlaku. Berita acara ini dibuat dan ditandatangani oleh pihak
+        yang terkait untuk dapat dipergunakan sebagaimana mestinya.</p>
 
     <table class="signature">
         <tr>

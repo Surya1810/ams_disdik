@@ -3,197 +3,201 @@
 @section('title', 'Tag RFID')
 
 @push('css')
-    <style>
-        #filterStatus:hover {
-            cursor: pointer;
-        }
-    </style>
+<style>
+    #filterStatus:hover {
+        cursor: pointer;
+    }
+</style>
 @endpush
 
 @section('navbar')
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-            <li class="breadcrumb-item text-sm"><a class="text-white opacity-5" href="javascript:;">Halaman</a></li>
-            <li class="breadcrumb-item text-sm text-white active" aria-current="page">Tag RFID</li>
-        </ol>
-        <h6 class="nav-breadcrumb font-weight-bolder text-white mb-0">Tag RFID</h6>
-    </nav>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
+        <li class="breadcrumb-item text-sm"><a class="text-white opacity-5" href="javascript:;">Halaman</a></li>
+        <li class="breadcrumb-item text-sm text-white active" aria-current="page">Tag RFID</li>
+    </ol>
+    <h6 class="nav-breadcrumb font-weight-bolder text-white mb-0">Tag RFID</h6>
+</nav>
 @endsection
 
 @section('content')
-    <div class="container-fluid py-2">
-        <div class="row">
-            <div class="col-12">
-                <div class="card my-4">
-                    <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
-                        <div class="bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3">
-                            <h6 class="text-white text-capitalize ps-3">List Tag RFID</h6>
+<div class="container-fluid py-2">
+    <div class="row">
+        <div class="col-12">
+            <div class="card my-4">
+                <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                    <div class="bg-gradient-primary shadow-dark border-radius-lg pt-4 pb-3">
+                        <h6 class="text-white text-capitalize ps-3">List Tag RFID</h6>
+                    </div>
+                </div>
+                <div class="card-body table-responsive pb-2">
+                    <div class="d-flex gap-2" id="buttonWrapper">
+                        @if (Auth::user()->role_id == 1)
+                        <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
+                            data-bs-target="#addTagModal">
+                            <i class="fa-solid fa-plus"></i> Inject
+                        </button>
+                        @elseif (Auth::user()->role_id == 2)
+                        <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
+                            data-bs-target="#distributeTagModal">
+                            <i class="fa-solid fa-share-nodes"></i> Distribusi
+                        </button>
+                        @endif
+                        <div class="col-auto">
+                            <div class="input-group">
+                                <span class="input-group-text bg-primary text-white border-0">
+                                    <i class="fa-solid fa-filter"></i>
+                                </span>
+                                {{-- Filter Kondisi --}}
+                                <select id="filterStatus" class="form-control w-auto ps-2">
+                                    <option value="">Semua Status</option>
+                                    <option value="used">
+                                        USED
+                                    </option>
+                                    <option value="available">
+                                        AVAILABLE
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="buttonExportWrapper" class="ms-auto">
+                            <button type="button" class="btn bg-gradient-success rounded-partner" id="buttonExport">
+                                <i class="fa-solid fa-download"></i> Export
+                            </button>
                         </div>
                     </div>
-                    <div class="card-body table-responsive pb-2">
-                        <div class="d-flex gap-2" id="buttonWrapper">
-                            @if (Auth::user()->role_id == 1)
-                                <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
-                                    data-bs-target="#addTagModal">
-                                    <i class="fa-solid fa-plus"></i> Inject
-                                </button>
-                            @elseif (Auth::user()->role_id == 2)
-                                <button type="button" class="btn bg-gradient-primary rounded-partner" data-bs-toggle="modal"
-                                    data-bs-target="#distributeTagModal">
-                                    <i class="fa-solid fa-share-nodes"></i> Distribusi
-                                </button>
-                            @endif
-                            <div class="col-auto">
-                                <div class="input-group">
-                                    <span class="input-group-text bg-primary text-white border-0">
-                                        <i class="fa-solid fa-filter"></i>
-                                    </span>
-                                    {{-- Filter Kondisi --}}
-                                    <select id="filterStatus" class="form-control w-auto ps-2">
-                                        <option value="">Semua Status</option>
-                                        <option value="used">
-                                            USED
-                                        </option>
-                                        <option value="available">
-                                            AVAILABLE
-                                        </option>
+
+                    <table id="tagTable" class="table text-sm mt-3">
+                        <thead class="font-weight-bolder">
+                            <tr>
+                                <th class="text-uppercase">RFID Number</th>
+                                <th class="text-uppercase">Status</th>
+                                <th class="text-uppercase">Kecamatan</th>
+                                @if (in_array(Auth::user()->role_id, [1,2]))
+                                <th class="text-uppercase">Aksi</th>
+                                @endif
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal Inject (role 1) --}}
+<div class="modal fade" id="addTagModal" aria-labelledby="addTagModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-body py-0">
+                <div class="card card-plain">
+                    <form id="addTagForm" method="POST">
+                        @csrf
+                        <div class="card-header pb-0 text-left">
+                            <h4 class="text-primary text-gradient">Tambah <strong>Tag RFID</strong></h4>
+                        </div>
+                        <div class="card-body mb-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label>Dari Nomor RFID</label>
+                                    <input type="number" name="from" class="form-control" required
+                                        placeholder="Nomor awal RFID">
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Sampai Nomor RFID</label>
+                                    <input type="number" name="until" class="form-control" required
+                                        placeholder="Nomor akhir RFID">
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <label>Kecamatan</label>
+                                <input type="text" class="form-control" value="Dispora" disabled>
+                                <input type="hidden" name="kecamatan_id" value="2">
+                            </div>
+                        </div>
+                        <div class="card-footer text-center pt-0 px-lg-2 px-1">
+                            <button type="submit" class="btn btn-primary rounded-partner m-0">Simpan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal Distribusi (role 2) --}}
+<div class="modal fade" id="distributeTagModal" aria-labelledby="distributeTagModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-body py-0">
+                <div class="card card-plain">
+                    <form id="distributeTagForm" method="POST">
+                        @csrf
+                        <div class="card-header pb-0 text-left">
+                            <h4 class="text-primary text-gradient">Distribusi <strong>Tag RFID</strong></h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label for="kecamatan_id" class="form-label">Pilih Kecamatan</label>
+                                    <select name="kecamatan_id" id="kecamatan_id"
+                                        class="form-select kecamatan_id @error('kecamatan_id') is-invalid @enderror"
+                                        required>
+                                        <option></option>
+                                        @foreach ($kecamatan as $k)
+                                        @if ($k->id != 1)
+                                        <option value="{{ $k->id }}">{{ $k->name }}</option>
+                                        @endif
+                                        @endforeach
                                     </select>
+                                    @error('kecamatan_id')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                    @enderror
                                 </div>
-                            </div>
-                            <div id="buttonExportWrapper" class="ms-auto">
-                                <button type="button" class="btn bg-gradient-success rounded-partner" id="buttonExport">
-                                    <i class="fa-solid fa-download"></i> Export
-                                </button>
+                                <div class="col-md-6">
+                                    <label>Dari Nomor RFID</label>
+                                    <input type="number" name="from" class="form-control" required
+                                        placeholder="Nomor awal RFID">
+                                </div>
+                                <div class="col-md-6">
+                                    <label>Sampai Nomor RFID</label>
+                                    <input type="number" name="until" class="form-control" required
+                                        placeholder="Nomor akhir RFID">
+                                </div>
                             </div>
                         </div>
-
-                        <table id="tagTable" class="table text-sm mt-3">
-                            <thead class="font-weight-bolder">
-                                <tr>
-                                    <th class="text-uppercase">RFID Number</th>
-                                    <th class="text-uppercase">Status</th>
-                                    <th class="text-uppercase">Kecamatan</th>
-                                    <th class="text-uppercase">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
+                        <div class="card-footer text-center pt-0 px-lg-2 px-1 mb-3">
+                            <button type="submit" class="btn btn-primary rounded-partner">Distribusikan</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
-
-    {{-- Modal Inject (role 1) --}}
-    <div class="modal fade" id="addTagModal" aria-labelledby="addTagModal" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-md" role="document">
-            <div class="modal-content">
-                <div class="modal-body py-0">
-                    <div class="card card-plain">
-                        <form id="addTagForm" method="POST">
-                            @csrf
-                            <div class="card-header pb-0 text-left">
-                                <h4 class="text-primary text-gradient">Tambah <strong>Tag RFID</strong></h4>
-                            </div>
-                            <div class="card-body mb-3">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <label>Dari Nomor RFID</label>
-                                        <input type="number" name="from" class="form-control" required
-                                            placeholder="Nomor awal RFID">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label>Sampai Nomor RFID</label>
-                                        <input type="number" name="until" class="form-control" required
-                                            placeholder="Nomor akhir RFID">
-                                    </div>
-                                </div>
-                                <div class="mt-3">
-                                    <label>Kecamatan</label>
-                                    <input type="text" class="form-control" value="Dispora" disabled>
-                                    <input type="hidden" name="kecamatan_id" value="2">
-                                </div>
-                            </div>
-                            <div class="card-footer text-center pt-0 px-lg-2 px-1">
-                                <button type="submit" class="btn btn-primary rounded-partner m-0">Simpan</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Modal Distribusi (role 2) --}}
-    <div class="modal fade" id="distributeTagModal" aria-labelledby="distributeTagModal" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-md" role="document">
-            <div class="modal-content">
-                <div class="modal-body py-0">
-                    <div class="card card-plain">
-                        <form id="distributeTagForm" method="POST">
-                            @csrf
-                            <div class="card-header pb-0 text-left">
-                                <h4 class="text-primary text-gradient">Distribusi <strong>Tag RFID</strong></h4>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-12 mb-3">
-                                        <label for="kecamatan_id" class="form-label">Pilih Kecamatan</label>
-                                        <select name="kecamatan_id" id="kecamatan_id"
-                                            class="form-select kecamatan_id @error('kecamatan_id') is-invalid @enderror"
-                                            required>
-                                            <option></option>
-                                            @foreach ($kecamatan as $k)
-                                            @if ($k->id != 1)
-                                            <option value="{{ $k->id }}">{{ $k->name }}</option>
-                                            @endif
-                                            @endforeach
-                                        </select>
-                                        @error('kecamatan_id')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                        @enderror
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label>Dari Nomor RFID</label>
-                                        <input type="number" name="from" class="form-control" required placeholder="Nomor awal RFID">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label>Sampai Nomor RFID</label>
-                                        <input type="number" name="until" class="form-control" required placeholder="Nomor akhir RFID">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-footer text-center pt-0 px-lg-2 px-1 mb-3">
-                                <button type="submit" class="btn btn-primary rounded-partner">Distribusikan</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+</div>
 @endsection
 
 @push('css')
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <style>
-        .select2-container .select2-selection--single {
-            height: 38px;
-            padding: 5px 10px;
-        }
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .select2-container .select2-selection--single {
+        height: 38px;
+        padding: 5px 10px;
+    }
 
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 28px;
-        }
-    </style>
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 28px;
+    }
+</style>
 @endpush
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script type="text/javascript">
-        $(document).ready(function() {
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
             const table = $('#tagTable').DataTable({
                 processing: true,
                 serverSide: true,
@@ -218,6 +222,7 @@
                         name: 'kecamatan.name',
                         className: "text-start"
                     },
+                    @if (in_array(Auth::user()->role_id, [1,2]))
                     {
                         data: 'action',
                         name: 'action',
@@ -225,6 +230,7 @@
                         searchable: false,
                         className: "text-start"
                     }
+                    @endif
                 ],
                 drawCallback: function() {
                     const tooltipTriggerList = [].slice.call(document.querySelectorAll(
@@ -284,7 +290,7 @@
                         table.ajax.reload();
                     })
                     .fail(function() {
-                        Swal.fire('Gagal!', 'Terjadi kesalahan saat distribusi!', 'error');
+                        Swal.fire('Gagal!', 'Tag telah terdaftar pada kecamatan lain!', 'error');
                     });
             });
 
@@ -336,5 +342,5 @@
             const url = '/export/tag' + (params.toString() ? '?' + params.toString() : '');
             window.location.href = url;
         });
-    </script>
+</script>
 @endpush

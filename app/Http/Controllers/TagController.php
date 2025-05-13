@@ -29,7 +29,7 @@ class TagController extends Controller
                 $tags = $tags->where('status', $request->status);
             }
 
-            return DataTables::of($tags)
+            $dataTables = DataTables::of($tags)
                 ->filter(function ($query) use ($request) {
                     if ($request->filled('search.value')) {
                         $search = $request->input('search.value');
@@ -53,26 +53,35 @@ class TagController extends Controller
                     } else {
                         return '<span class="badge bg-secondary text-white">' . ucfirst($tag->status) . '</span>';
                     }
-                })
-                ->addColumn('action', function ($tag) {
+                });
+
+            // Tambahkan kolom action hanya jika role 1 atau 2
+            if (in_array($roleId, [1, 2])) {
+                $dataTables = $dataTables->addColumn('action', function ($tag) {
                     if (strtolower($tag->status) !== 'available') {
                         return '';
                     }
                     return '
-                <a role="button" class="text-danger px-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus"
-                    onclick="deleteTag(\'' . $tag->rfid_number . '\')">
-                <i class="fa-solid fa-trash"></i>
-                </a>
+                    <a role="button" class="text-danger px-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus"
+                        onclick="deleteTag(\'' . $tag->rfid_number . '\')">
+                    <i class="fa-solid fa-trash"></i>
+                    </a>
                 ';
                 })
-                ->rawColumns(['status', 'action'])
-                ->make(true);
+                    ->rawColumns(['status', 'action']);
+            } else {
+                // Jika role bukan 1 atau 2, hanya rawColumns status saja
+                $dataTables = $dataTables->rawColumns(['status']);
+            }
+
+            return $dataTables->make(true);
         }
 
         $kecamatan = Kecamatan::all();
         $availableTags = Tag::where('status', 'available')->orderBy('rfid_number')->get();
         return view('tag.index', compact('kecamatan', 'availableTags'));
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -148,27 +157,28 @@ class TagController extends Controller
         $until = $request->until;
         $kecamatanId = $request->kecamatan_id;
 
-        // Ambil semua tag dalam range
-        $tags = Tag::whereBetween('rfid_number', [$from, $until])->get();
+        // Validasi tag Dispora yang tersedia
+        $availableDisporaTags = Tag::whereBetween('rfid_number', [$from, $until])
+            ->where('status', 'available')
+            ->where('kecamatan_id', 2)
+            ->count();
 
-        $availableTags = $tags->where('status', 'available');
-        $totalAvailable = $availableTags->count();
-
-        if ($totalAvailable === 0) {
+        if ($availableDisporaTags === 0) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Distribusi gagal: Terdapat RFID yang sudah digunakan dalam rentang tersebut.'
+                'message' => 'Tidak ada tag Dispora yang tersedia dalam rentang ini'
             ], 422);
         }
 
-        // Update hanya yang available
+        // Update distribusi
         Tag::whereBetween('rfid_number', [$from, $until])
             ->where('status', 'available')
+            ->where('kecamatan_id', 2)
             ->update(['kecamatan_id' => $kecamatanId]);
 
         return response()->json([
             'status' => 'success',
-            'message' => "Sebanyak {$totalAvailable} tag berhasil didistribusikan."
+            'message' => "Sebanyak {$availableDisporaTags} tag berhasil didistribusikan."
         ]);
     }
 }
