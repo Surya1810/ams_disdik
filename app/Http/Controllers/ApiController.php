@@ -113,7 +113,8 @@ class ApiController extends Controller
             return [
                 'id' => $sekolah->id,
                 'schoolName' => $sekolah->category . ' ' . $sekolah->name,
-                'lastStockOpname' => optional($sekolah->last_stock_opname)->format('d/m/Y') ?? '-',
+                'lastStockOpname' => Scan::where('place_name', $sekolah->category . ' ' . $sekolah->name,)
+                    ->orderBy('created_at', 'desc')->first()?->created_at->format('Y-m-d H:i'),
                 'totalAset' => $sekolah->assets()->count(),
             ];
         });
