@@ -514,26 +514,20 @@
                                     <div class="col-12 col-md-4">
                                         <label>Jangka Waktu Perawatan</label>
                                         <select name="waktu_perawatan" id="waktu_perawatan"
-                                            class="form-control waktu_perawatan @error('waktu_perawatan') is-invalid @enderror"
-                                            required>
-                                            <option></option>
-                                            <option value="3" {{ old('waktu_perawatan') == 3 ? 'selected' : '' }}>
-                                                3 Bulan
-                                            </option>
-                                            <option value="6" {{ old('waktu_perawatan') == 6 ? 'selected' : '' }}>
-                                                6 Bulan
-                                            </option>
-                                            <option value="12" {{ old('waktu_perawatan') == 12 ? 'selected' : '' }}>
-                                                12 Bulan
-                                            </option>
+                                            class="form-control waktu_perawatan @error('waktu_perawatan') is-invalid @enderror" required>
+                                            <option value="">Pilih Jangka Waktu</option>
+                                            @for ($i = 1; $i <= 48; $i++) <option value="{{ $i }}" {{ old('waktu_perawatan')==$i ? 'selected' : '' }}>
+                                                {{ $i }} Minggu
+                                                </option>
+                                                @endfor
                                         </select>
-
+                                    
                                         @error('waktu_perawatan')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
                                         @enderror
-                                    </div>
+                                    </div>                                                                    
 
                                     <hr class="horizontal dark my-3">
                                     <div class="col-12 text-center">
@@ -981,19 +975,20 @@
                                     <div class="col-12 col-md-4">
                                         <label>Jangka Waktu Perawatan</label>
                                         <select name="waktu_perawatan" id="waktu_perawatan_edit"
-                                            class="form-control waktu_perawatan @error('waktu_perawatan') is-invalid @enderror"
-                                            required>
-                                            <option value=""></option>
-                                            <option value="3">3 Bulan</option>
-                                            <option value="6">6 Bulan</option>
-                                            <option value="12">12 Bulan</option>
+                                            class="form-control waktu_perawatan @error('waktu_perawatan') is-invalid @enderror" required>
+                                            <option value="">Pilih Jangka Waktu</option>
+                                            @for ($i = 1; $i <= 48; $i++) <option value="{{ $i }}" {{ old('waktu_perawatan')==$i ? 'selected' : '' }}>
+                                                {{ $i }} Minggu
+                                                </option>
+                                                @endfor
                                         </select>
+                                    
                                         @error('waktu_perawatan')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
                                         @enderror
-                                    </div>
+                                    </div>                                    
 
                                     <hr class="horizontal dark my-3">
                                     <div class="col-12 text-center">
@@ -1587,6 +1582,7 @@
                 // Isi Jangka Waktu Perawatan (select)
                 if (prefix === 'editAset') {
                     $(`${selector} #waktu_perawatan_edit`).val(asset.waktu_perawatan ?? '').trigger('change');
+            
 
                     // Preview gambar
                     const $previewImg = $(`${selector} #previewImgEdit`);
@@ -1596,6 +1592,7 @@
                     } else {
                         $previewImg.hide();
                     }
+                    
                 }
                 if (prefix === 'showAset') {
                     $(`${selector} #waktu_perawatan_show`).val(asset.waktu_perawatan ?? '').trigger('change');

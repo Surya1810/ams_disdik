@@ -119,7 +119,7 @@ class AssetController extends Controller
                         $assetKecamatanId = $row->load('sekolah')->sekolah->kecamatan_id;
 
                         $buttons = Auth::user()->kecamatan_id != $assetKecamatanId
-                            ? $showButton
+                            ? $showButton . $downloadButton
                             : $showButton . $editButton . $downloadButton;
 
                         return $buttons;
@@ -148,7 +148,9 @@ class AssetController extends Controller
                             <a href="javascript:void(0)" class="btn btn-link p-0 edit-asset" data-asset-id="' . $row->id . '">
                                 <i class="fa-solid fa-pencil" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"></i>
                             </a>
-                        ';
+                            <a href="' . route('asset.download', $row->id) . '" class="btn btn-link p-0 download-pdf">
+                                <i class="fa-solid fa-file-pdf text-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Unduh PDF"></i>
+                            </a>';
                     })
                     ->rawColumns(['kondisi_badge', 'action']);
             }
