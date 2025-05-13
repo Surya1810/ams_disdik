@@ -244,6 +244,46 @@
                 </div>
             </div>
             @endif
+
+            @if (auth()->user()->role_id == 2)
+            <div class="col-md-6 mt-4">
+                <div class="card">
+                    <div class="card-header pb-0 px-3">
+                        <h6 class="mb-0">Nilai Aset Per Kecamatan</h6>
+                    </div>
+                    <div class="card-body pt-4 p-3">
+                        <div class="d-flex justify-content-between">
+                            <div class="col-md-4">
+                                <select id="filterKecamatan" class="form-select select2">
+                                    <option value="">Semua Kecamatan</option>
+                                    @foreach ($data['sekolahOrKecamatanArr'] as $item)
+                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mt-2 text-end fw-bold small" id="totalNilaiKeseluruhanPerKecamatan">
+                                Nilai: <span class="text-primary">Rp0</span>
+                            </div>
+                        </div>
+                        <div class="p-2 mb-3 overflow-x-scroll">
+                            <table id="tableAsetPerKecamatan" class="table text-sm mt-3">
+                                <thead class="font-weight-bolder">
+                                    <tr>
+                                        <th class="text-uppercase">Kecamatan</th>
+                                        <th class="text-uppercase">Total Aset</th>
+                                        <th class="text-uppercase">Total Sekolah</th>
+                                        <th class="text-uppercase">Nilai</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{-- Data Aset Per Tahun --}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
     @endsection
 
@@ -339,6 +379,56 @@
                 // Trigger change filter sekolah
                 $('#filterSekolah').on('change', function() {
                     tableAsetPerSekolah.ajax.reload();
+                });
+            });
+        </script>
+        @endif
+
+        @if (auth()->user()->role_id == 2)
+        <script type="text/javascript">
+            $(document).ready(function() {
+                let tableAsetPerKecamatan = $('#tableAsetPerKecamatan').DataTable({
+                    pageLength: 5,
+                    lengthMenu: [[5], [5]],
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "{{ route('report.json.aset-per-kecamatan') }}",
+                        data: function (d) {
+                            d.kecamatan = $('#filterKecamatan').find(':selected').val();
+                        },
+                        dataSrc: function (json) {
+                            $('#totalNilaiKeseluruhanPerKecamatan span').text(json.total_all_nilai || 'Rp0');
+                            return json.data;
+                        }
+                    },
+                    columns: [
+                        {
+                            data: 'kecamatan',
+                            name: 'kecamatan',
+                            className: "text-start"
+                        },
+                        {
+                            data: 'total_assets',
+                            name: 'total_assets',
+                            className: "text-start"
+                        },
+                        {
+                            data: 'total_sekolah',
+                            name: 'total_sekolah',
+                            className: "text-start"
+                        },
+                        {
+                            data: 'total_nilai_perolehan',
+                            name: 'total_nilai_perolehan',
+                            className: "text-start",
+                        }
+                    ]
+                });
+
+                // Trigger change filter sekolah
+                $('#filterKecamatan').on('change', function() {
+                    tableAsetPerKecamatan.ajax.reload();
                 });
             });
         </script>

@@ -21,6 +21,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon as CarbonCarbon;
 
 class AssetController extends Controller
 {
@@ -186,7 +187,7 @@ class AssetController extends Controller
             'register' => 'required|string|max:255',
             'merk' => 'required|string|max:255',
             'bahan' => 'required|string|max:255',
-            'tahun_pembelian' => 'required|integer',
+            'tanggal_pembelian' => 'required|date',
             'nip_pic' => 'required|string|max:255',
             'nama_pic' => 'required|string|max:255',
             'jabatan_pic' => 'required|string|max:255',
@@ -220,6 +221,8 @@ class AssetController extends Controller
                 Storage::disk('public')->put($path, (string) $image);
                 $validated['foto_awal'] = $filename;
             }
+
+            $validated['tahun_pembelian'] = Carbon::parse($request->tanggal_pembelian)->year;
 
             // Simpan asset
             $asset = Asset::create($validated);
@@ -259,7 +262,7 @@ class AssetController extends Controller
             'register' => 'required|string|max:255',
             'merk' => 'required|string|max:255',
             'bahan' => 'required|string|max:255',
-            'tahun_pembelian' => 'required|integer',
+            'tanggal_pembelian' => 'required|date',
             'nip_pic' => 'required|string|max:255',
             'nama_pic' => 'required|string|max:255',
             'jabatan_pic' => 'required|string|max:255',
@@ -305,6 +308,8 @@ class AssetController extends Controller
 
                 $validated['foto_awal'] = $filename;
             }
+
+            $validated['tahun_pembelian'] = Carbon::parse($request->tanggal_pembelian)->year;
 
             $asset->update($validated);
 
@@ -449,7 +454,6 @@ class AssetController extends Controller
         $assets = Asset::all();
         return view('asset.maintenance', compact('assets'));
     }
-
 
     public function markAsMaintained(Request $request)
     {

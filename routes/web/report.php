@@ -8,6 +8,7 @@ Route::controller(ReportController::class)->group(function () {
        Route::prefix('/json')->group(function () {
            Route::get('/aset-per-tahun', 'getNilaiPerTahunJSON')->name('report.json.aset-per-tahun');
            Route::get('/aset-per-sekolah', 'getNilaiPerSekolahJSON')->name('report.json.aset-per-sekolah');
+           Route::get('/aset-per-kecamatan', 'getNilaiPerKecamatanJSON')->name('report.json.aset-per-kecamatan');
        });
     });
 });
