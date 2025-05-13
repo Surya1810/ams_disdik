@@ -218,8 +218,14 @@ class HistoryController extends Controller
                         unset($oldValues['sekolah_id']);
                     }
 
+                    if (isset($oldValues['kecamatan_id'])) {
+                        $kecamatan = \App\Models\Kecamatan::find($oldValues['kecamatan_id']);
+                        $oldValues['kecamatan'] = $kecamatan->name ?? '-';
+                        unset($oldValues['kecamatan_id']);
+                    }
+
                     // Urutan field yang diinginkan
-                    $orderedKeys = ['sekolah', 'gedung', 'lantai', 'ruangan', 'detail'];
+                    $orderedKeys = ['kecamatan', 'sekolah', 'gedung', 'lantai', 'ruangan', 'detail'];
 
                     $output = '<ul>';
                     foreach ($orderedKeys as $key) {
@@ -241,7 +247,13 @@ class HistoryController extends Controller
                         unset($newValues['sekolah_id']);
                     }
 
-                    $orderedKeys = ['sekolah', 'gedung', 'lantai', 'ruangan', 'detail'];
+                    if (isset($newValues['kecamatan_id'])) {
+                        $kecamatan = \App\Models\Kecamatan::find($newValues['kecamatan_id']);
+                        $newValues['kecamatan'] = $kecamatan->name ?? '-';
+                        unset($newValues['kecamatan_id']);
+                    }
+
+                    $orderedKeys = ['kecamatan', 'sekolah', 'gedung', 'lantai', 'ruangan', 'detail'];
 
                     $output = '<ul>';
                     foreach ($orderedKeys as $key) {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Approval;
 use App\Models\Asset;
 use App\Models\History;
+use App\Models\Kecamatan;
 use App\Models\Sekolah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -180,6 +181,7 @@ class ApprovalController extends Controller
         if ($request->ajax()) {
             $approvals = Approval::with(['asset', 'requester'])
                 ->where('type', 'loan')
+                ->orderBy('created_at', 'desc')
                 ->where('requested_by', Auth::id());
 
             return DataTables::of($approvals)
@@ -193,13 +195,15 @@ class ApprovalController extends Controller
                     $old = $payload['old_values'] ?? [];
 
                     $sekolahName = $old['sekolah_name'] ?? '-';
+                    $kecamatanName = $old['kecamatan_name'] ?? '-';
 
                     return implode('#', [
                         $sekolahName,
                         $old['gedung'] ?? '-',
                         $old['lantai'] ?? '-',
                         $old['ruangan'] ?? '-',
-                        $old['detail'] ?? '-'
+                        $old['detail'] ?? '-',
+                        $kecamatanName
                     ]);
                 })
                 ->addColumn('to', function ($row) {
@@ -207,13 +211,15 @@ class ApprovalController extends Controller
                     $new = $payload['new_values'] ?? [];
 
                     $sekolahName = $new['sekolah_name'] ?? '-';
+                    $kecamatanName = $new['kecamatan_name'] ?? '-';
 
                     return implode('#', [
                         $sekolahName,
                         $new['gedung'] ?? '-',
                         $new['lantai'] ?? '-',
                         $new['ruangan'] ?? '-',
-                        $new['detail'] ?? '-'
+                        $new['detail'] ?? '-',
+                        $kecamatanName
                     ]);
                 })
                 ->addColumn('requested_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
@@ -257,10 +263,11 @@ class ApprovalController extends Controller
         $assets = Asset::whereHas('sekolah', function ($query) use ($user) {
             $query->where('kecamatan_id', $user->kecamatan_id);
         })->with('sekolah')->get();
+        $districts = Kecamatan::whereNot('id', 1)->get();
 
         $schools = Sekolah::where('kecamatan_id', $user->kecamatan_id)->get();
 
-        return view('asset.loan', compact('assets', 'schools'));
+        return view('asset.loan', compact('assets', 'schools', 'districts'));
     }
 
     public function disposal(Request $request)
@@ -390,6 +397,7 @@ class ApprovalController extends Controller
             $rules['jenis'] = 'required|in:lelang';
             $rules['keterangan'] = 'nullable';
         } elseif ($request->type === 'loan') {
+            $rules['kecamatan_id'] = 'required|exists:kecamatans,id';
             $rules['sekolah_id'] = 'required|exists:sekolahs,id';
             $rules['gedung'] = 'required';
             $rules['lantai'] = 'required';
@@ -430,11 +438,14 @@ class ApprovalController extends Controller
                 'keterangan' => $request->input('keterangan', null),
             ];
         } elseif ($type === 'loan') {
-            $oldSekolah = Sekolah::find($asset->sekolah_id);
-            $newSekolah = Sekolah::find($request->sekolah_id);
+            $oldSekolah = Sekolah::with('kecamatan')->find($asset->sekolah_id);
+            $newSekolah = Sekolah::with('kecamatan')->find($request->sekolah_id);
+
             $payload = [
                 'old_values' => [
+                    'kecamatan_id' => $oldSekolah->kecamatan_id,
                     'sekolah_id' => $asset->sekolah_id,
+                    'kecamatan_name' => $oldSekolah ? $oldSekolah->kecamatan?->name : null,
                     'sekolah_name' => $oldSekolah ? $oldSekolah->name : null,
                     'gedung' => $asset->gedung,
                     'lantai' => $asset->lantai,
@@ -442,7 +453,9 @@ class ApprovalController extends Controller
                     'detail' => $asset->detail,
                 ],
                 'new_values' => [
+                    'kecamatan_id' => $request->kecamatan_id,
                     'sekolah_id' => $request->sekolah_id,
+                    'kecamatan_name' => $newSekolah ? $newSekolah->kecamatan?->name : null,
                     'sekolah_name' => $newSekolah ? $newSekolah->name : null,
                     'gedung' => $request->gedung,
                     'lantai' => $request->lantai,
@@ -537,8 +550,8 @@ class ApprovalController extends Controller
                         break;
 
                     case 'loan':
-                        $fields = ['sekolah_id', 'gedung', 'lantai', 'ruangan', 'detail'];
-                        $oldValues = $asset->only($fields);
+                        $fields = ['kecamatan_id', 'sekolah_id', 'gedung', 'lantai', 'ruangan', 'detail'];
+                        $oldValues = array_intersect_key($payload['old_values'], array_flip($fields));
                         $newValues = array_intersect_key($payload['new_values'], array_flip($fields));
                         $asset->fill($newValues);
                         $asset->save();
@@ -609,7 +622,6 @@ class ApprovalController extends Controller
         ]);
     }
 
-
     public function reject(Request $request)
     {
         $request->validate([
@@ -659,7 +671,8 @@ class ApprovalController extends Controller
                         ]);
                         break;
                     case 'loan':
-                        $fields = ['sekolah_id', 'gedung', 'lantai', 'ruangan', 'detail'];
+                        $fields = ['kecamatan_id', 'sekolah_id', 'gedung', 'lantai', 'ruangan', 'detail'];
+                        $oldValues = array_intersect_key($payload['old_values'], array_flip($fields));
                         $newValues = array_intersect_key($payload['new_values'], array_flip($fields));
 
                         History::create([
@@ -709,5 +722,24 @@ class ApprovalController extends Controller
         }
 
         return response()->json(['message' => 'Semua permintaan telah ditolak dan dicatat dalam history']);
+    }
+
+    /**
+     * Get list sekolah by kecamatan_id via request ajax
+     */
+    public function getSchoolsByDistrictJSON(Kecamatan $kecamatan) {
+        if (!$kecamatan) {
+            return response()->json([
+                'status' => 'fail',
+                'message' => 'Kecamatan tidak ditemukan'
+            ], 404);
+        }
+
+        $schools = $kecamatan->sekolahs;
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $schools
+        ]);
     }
 }
