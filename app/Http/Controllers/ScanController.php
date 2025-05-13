@@ -7,6 +7,7 @@ use App\Models\Scan;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ScanExport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\ScannedTag;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -77,7 +78,7 @@ class ScanController extends Controller
                     $assetExists = Asset::where('rfid_number', $row->rfid_number)->exists();
 
                     if ($assetExists) {
-                        return '<button type="button" class="badge bg-primary border-0 edit-asset" data-rfid="'. $row->rfid_number .'" onclick="buttonModalShowAset(this)"><i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Detail"></i></button>';
+                        return '<button type="button" class="badge bg-primary border-0 edit-asset" data-rfid="' . $row->rfid_number . '" onclick="buttonModalShowAset(this)"><i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Detail"></i></button>';
                     }
                     return '<small class="badge bg-danger">Aset Sudah Tidak Terdaftar</small>';
                 })
@@ -94,7 +95,8 @@ class ScanController extends Controller
         return view('scan.detail', compact('scan', 'statusCounts'));
     }
 
-    public function scannedAssetDetail(Request $request, $rfid) {
+    public function scannedAssetDetail(Request $request, $rfid)
+    {
         if ($request->ajax()) {
             $asset = Asset::where('rfid_number', $rfid)
                 ->with('sekolah')
@@ -123,11 +125,39 @@ class ScanController extends Controller
 
     public function exportFound()
     {
-        return Excel::download(new ScanExport('found'), 'Berita_Acara_Penemuan.xlsx');
+        $kecamatanId = Auth::user()->kecamatan_id;
+        $roleId = Auth::user()->role_id;
+
+        $assets = $roleId == 1
+            ? Asset::where('is_there', true)->with('sekolah')->get()
+            : Asset::where('is_there', true)->whereHas('sekolah', function ($q) use ($kecamatanId) {
+                $q->where('kecamatan_id', $kecamatanId);
+            })->with('sekolah')->get();
+
+        $pdf = Pdf::loadView('scan_pdf', [
+            'assets' => $assets,
+            'status' => 'found'
+        ]);
+
+        return $pdf->download('Berita_Acara_Penemuan.pdf');
     }
 
     public function exportMissing()
     {
-        return Excel::download(new ScanExport('missing'), 'Berita_Acara_Kehilangan.xlsx');
+        $kecamatanId = Auth::user()->kecamatan_id;
+        $roleId = Auth::user()->role_id;
+
+        $assets = $roleId == 1
+            ? Asset::where('is_there', false)->with('sekolah')->get()
+            : Asset::where('is_there', false)->whereHas('sekolah', function ($q) use ($kecamatanId) {
+                $q->where('kecamatan_id', $kecamatanId);
+            })->with('sekolah')->get();
+
+        $pdf = Pdf::loadView('scan_pdf', [
+            'assets' => $assets,
+            'status' => 'missing'
+        ]);
+
+        return $pdf->download('Berita_Acara_Kehilangan.pdf');
     }
 }
