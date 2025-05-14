@@ -108,13 +108,13 @@
                         </div>
                     </div>
                     <div class="col-12 mb-3 text-center">
-                        <button class="btn btn-primary rounded-partner" id="exportFound">
+                        <button class="btn btn-primary rounded-partner" id="exportFound" data-scan-id="{{ $scan->id }}">
                             <i class="fa-solid fa-download"></i> Export Found
                         </button>
-                        <button class="btn btn-primary rounded-partner" id="exportMissing">
+                        <button class="btn btn-primary rounded-partner" id="exportMissing" data-scan-id="{{ $scan->id }}">
                             <i class="fa-solid fa-download"></i> Export Missing
                         </button>
-                    </div>
+                    </div>                    
                 </div>
             </div>
         </div>
@@ -424,13 +424,14 @@
         });
 
         // Tombol untuk mengekspor data Found
-        $('#exportFound').on('click', function() {
-            window.location.href = '/scan/export/found';
+        document.getElementById('exportFound').addEventListener('click', function () {
+        const scanId = this.getAttribute('data-scan-id');
+        window.location.href = `/scan/export-found/${scanId}`;
         });
-
-        // Tombol untuk mengekspor data Missing
-        $('#exportMissing').on('click', function() {
-            window.location.href = '/scan/export/missing';
+        
+        document.getElementById('exportMissing').addEventListener('click', function () {
+        const scanId = this.getAttribute('data-scan-id');
+        window.location.href = `/scan/export-missing/${scanId}`;
         });
 
         $('#filterStatus').on('change', function() {
