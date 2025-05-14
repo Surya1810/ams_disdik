@@ -388,6 +388,10 @@ class AssetController extends Controller
         $kecamatanId = Auth::user()->kecamatan_id;
         $asset = Asset::findOrFail($id);
 
+        $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
+            ? public_path('assets/Image/no_image.png')
+            : public_path('storage/assets/' . $asset->foto_awal);
+
         $places = Sekolah::where('kecamatan_id', $kecamatanId)->get();
         $pdf = Pdf::loadView('asset.download_pdf', compact('asset', 'places'))
             ->setPaper('A4', 'portrait');

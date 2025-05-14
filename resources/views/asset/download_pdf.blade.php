@@ -83,7 +83,7 @@
     <div class="image-container">
         <h4>Foto Aset</h4>
         @if ($asset->foto_awal)
-        <img src="{{ $asset->foto_awal }}" alt="Foto Aset" width="300">
+        <img src="{{ $asset->foto_awal }}" alt="Foto Aset" width="300"/>
         @else
         <p><em>Gambar tidak tersedia</em></p>
         @endif
@@ -202,7 +202,7 @@
         <tr>
             <th>Tempat</th>
             <td>{{ $asset->sekolah->name ?? '-' }}</td>
-        </tr>        
+        </tr>
         <tr>
             <th>Lokasi</th>
             <td>Gedung: {{ $asset->gedung }}, Lantai: {{ $asset->lantai }}, Ruangan: {{ $asset->ruangan }}</td>
