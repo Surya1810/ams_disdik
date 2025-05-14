@@ -1241,11 +1241,10 @@
                                     <label>Jangka Waktu Perawatan</label>
                                     <select id="waktu_perawatan_show" class="form-control waktu_perawatan muted" disabled readonly>
                                         <option value="">Pilih Jangka Waktu</option>
-                                        <option value="3">3 Bulan</option>
-                                        <option value="6">6 Bulan</option>
-                                        <option value="12">12 Bulan</option>
+                                        @for ($i = 1; $i <= 48; $i++) <option value="{{ $i }}">{{ $i }} Minggu</option>
+                                            @endfor
                                     </select>
-                                </div>
+                                </div>                                
                             </div>
 
                             <hr class="horizontal dark my-3">

@@ -404,26 +404,28 @@ class AssetController extends Controller
             $query = \App\Models\Asset::query()
                 ->whereIn('kondisi', ['Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat']);
 
-            if ($user->role != 'admin') {
+            // Filtering berdasarkan role
+            if ($user->role->id == 3) {
                 $query->whereHas('sekolah', function ($q) use ($user) {
                     $q->where('kecamatan_id', $user->kecamatan_id);
                 });
             }
 
+            // Filter berdasarkan waktu perawatan (1-48 minggu)
             if ($request->filled('waktu')) {
                 $selected = (int) $request->waktu;
-                $allowed = [];
 
-                if ($selected === 3) {
-                    $allowed = [3];
-                } elseif ($selected === 6) {
-                    $allowed = [3, 6];
-                } elseif ($selected === 12) {
-                    $allowed = [3, 6, 12];
+                // Konversi ke array rentang minggu
+                $allowed = [];
+                for ($i = 1; $i <= $selected; $i++) {
+                    $allowed[] = $i;
                 }
 
                 $query->whereIn('waktu_perawatan', $allowed);
             }
+
+            // Hitung total seluruh harga perawatan aset sesuai filter yang aktif
+            $totalSeluruhHarga = (clone $query)->sum('harga_perawatan');
 
             return DataTables::of($query)
                 ->addColumn('checkbox', function ($row) {
@@ -437,38 +439,34 @@ class AssetController extends Controller
                     }
                     return '';
                 })
-                ->addColumn('rfid_number', function ($row) {
-                    return $row->rfid_number;
-                })
-                ->addColumn('kode', function ($row) {
-                    return $row->kode;
-                })
-                ->editColumn('tanggal_perawatan', function ($row) {
-                    return $row->tanggal_perawatan
-                        ? \Carbon\Carbon::parse($row->tanggal_perawatan)->format('d-m-Y')
-                        : '-';
-                })
-                ->editColumn('waktu_perawatan', function ($row) {
-                    return $row->waktu_perawatan ? $row->waktu_perawatan . ' Bulan' : '-';
-                })
-                ->editColumn('waktu_perawatan', function ($row) {
-                    return $row->waktu_perawatan ?? '-';
-                })
-                ->setRowClass(function ($row) {
-                    $waktuPerawatan = 0;
-
-                    if (!empty($row->waktu_perawatan) && is_numeric(trim($row->waktu_perawatan))) {
-                        $waktuPerawatan = (int) trim($row->waktu_perawatan);
+                ->addColumn('rfid_number', fn($row) => $row->rfid_number)
+                ->addColumn('kode', fn($row) => $row->kode)
+                ->addColumn('kecamatan', function ($row) use ($user) {
+                    if ($user->role->id == 2) {
+                        return $row->sekolah && $row->sekolah->kecamatan ? $row->sekolah->kecamatan->name : '-';
                     }
-
+                    return null;
+                })
+                ->editColumn(
+                    'tanggal_perawatan',
+                    fn($row) =>
+                    $row->tanggal_perawatan
+                        ? \Carbon\Carbon::parse($row->tanggal_perawatan)->format('d-m-Y')
+                        : '-'
+                )
+                ->editColumn(
+                    'waktu_perawatan',
+                    fn($row) =>
+                    $row->waktu_perawatan ? $row->waktu_perawatan . ' Minggu' : '-'
+                )
+                ->setRowClass(function ($row) {
+                    $waktuPerawatan = is_numeric($row->waktu_perawatan) ? (int) $row->waktu_perawatan : 0;
                     $jatuhTempo = $row->tanggal_perawatan
-                        ? \Carbon\Carbon::parse($row->tanggal_perawatan)->addMonths($waktuPerawatan)
+                        ? \Carbon\Carbon::parse($row->tanggal_perawatan)->addWeeks($waktuPerawatan)
                         : null;
-
                     return ($jatuhTempo && $jatuhTempo->isPast()) ? 'table-danger' : '';
                 })
-
-
+                ->with('totalSeluruhHarga', $totalSeluruhHarga)
                 ->rawColumns(['checkbox'])
                 ->make(true);
         }
@@ -492,7 +490,7 @@ class AssetController extends Controller
                 $waktu = (int) $assetData['waktu'];
 
                 if ($waktu > 0) {
-                    $tanggal_perawatan = now()->addMonths($waktu);
+                    $tanggal_perawatan = now()->addWeeks($waktu);
                     $asset->tanggal_perawatan = $tanggal_perawatan;
                 }
 
@@ -518,17 +516,15 @@ class AssetController extends Controller
         $query = \App\Models\Asset::query()
             ->whereIn('kondisi', ['Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat']);
 
-        // Filter kecamatan jika bukan admin
-        if ($user->role != 'admin') {
+        if ($user->role == 3) {
             $query->whereHas('sekolah', function ($q) use ($user) {
                 $q->where('kecamatan_id', $user->kecamatan_id);
             });
         }
 
-        // Filter waktu perawatan jika ada
         if ($request->filled('waktu')) {
-            $months = (int) $request->waktu;
-            $cutoffDate = now()->subMonths($months)->startOfDay();
+            $weeks = (int) $request->waktu;
+            $cutoffDate = now()->subWeeks($weeks)->startOfDay();
             $query->whereDate('tanggal_perawatan', '>=', $cutoffDate);
         }
 

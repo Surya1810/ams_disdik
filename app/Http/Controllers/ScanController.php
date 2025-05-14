@@ -123,41 +123,47 @@ class ScanController extends Controller
         abort(403);
     }
 
-    public function exportFound()
+    public function exportFound($scanId)
     {
-        $kecamatanId = Auth::user()->kecamatan_id;
-        $roleId = Auth::user()->role_id;
+        // Ambil data scanned_tags berdasarkan scan_id dan status 'found'
+        $scannedTags = ScannedTag::where('scan_id', $scanId)
+            ->where('status', 'found')
+            ->with('asset.sekolah') // Relasi dengan asset dan sekolah
+            ->get();
 
-        $assets = $roleId == 1
-            ? Asset::where('is_there', true)->with('sekolah')->get()
-            : Asset::where('is_there', true)->whereHas('sekolah', function ($q) use ($kecamatanId) {
-                $q->where('kecamatan_id', $kecamatanId);
-            })->with('sekolah')->get();
+        // Ambil data Asset dari scanned_tags berdasarkan ID-nya
+        $assets = $scannedTags->map(function ($scannedTag) {
+            return $scannedTag->asset;
+        });
 
+        // Generate PDF untuk hasil "found"
         $pdf = Pdf::loadView('scan.scan_pdf', [
             'assets' => $assets,
             'status' => 'found'
         ]);
 
-        return $pdf->download('Berita_Acara_Penemuan.pdf');
+        return $pdf->download('Berita_Acara_Penemuan_' . $scanId . '.pdf');
     }
 
-    public function exportMissing()
+    public function exportMissing($scanId)
     {
-        $kecamatanId = Auth::user()->kecamatan_id;
-        $roleId = Auth::user()->role_id;
+        // Ambil data scanned_tags berdasarkan scan_id dan status 'missing'
+        $scannedTags = ScannedTag::where('scan_id', $scanId)
+            ->where('status', 'missing')
+            ->with('asset.sekolah') // Relasi dengan asset dan sekolah
+            ->get();
 
-        $assets = $roleId == 1
-            ? Asset::where('is_there', false)->with('sekolah')->get()
-            : Asset::where('is_there', false)->whereHas('sekolah', function ($q) use ($kecamatanId) {
-                $q->where('kecamatan_id', $kecamatanId);
-            })->with('sekolah')->get();
+        // Ambil data Asset dari scanned_tags berdasarkan ID-nya
+        $assets = $scannedTags->map(function ($scannedTag) {
+            return $scannedTag->asset;
+        });
 
+        // Generate PDF untuk hasil "missing"
         $pdf = Pdf::loadView('scan.scan_pdf', [
             'assets' => $assets,
             'status' => 'missing'
         ]);
 
-        return $pdf->download('Berita_Acara_Kehilangan.pdf');
+        return $pdf->download('Berita_Acara_Kehilangan_' . $scanId . '.pdf');
     }
 }

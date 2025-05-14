@@ -41,10 +41,9 @@
                             </span>
                             <select id="filterWaktu" class="form-select" style="box-shadow: none; appearance: none; width: 200px;">
                                 <option value="">Semua Waktu</option>
-                                <option value="3">3 Bulan</option>
-                                <option value="6">6 Bulan</option>
-                                <option value="12">1 Tahun</option>
-                            </select>
+                                @for ($i = 1; $i <= 48; $i++) <option value="{{ $i }}">{{ $i }} Minggu</option>
+                                    @endfor
+                            </select>                            
                         </div>
 
                         <div class="mb-3">
@@ -64,6 +63,9 @@
                                     <th></th> <!-- Kolom checkbox -->
                                     <th>RFID Number</th>
                                     <th>Kode</th>
+                                    @if (auth()->user()->role_id == 2)
+                                    <th>Kecamatan</th>
+                                    @endif
                                     <th>Nama Barang</th>
                                     <th>Kondisi</th>
                                     <th>Tanggal Perawatan</th>
@@ -101,34 +103,25 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-    let table = $('#maintenanceTable').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: '{{ route('asset.maintenance') }}',
-            data: function(d) {
-                d.waktu = $('#filterWaktu').val();
-            }
-        },
-        columns: [
+        let userRoleId = {{ auth()->user()->role->id }};
+        
+        let columns = [
             {
                 data: null,
                 name: 'checkbox',
                 orderable: false,
                 searchable: false,
                 render: function(data, type, row) {
-                if (!row.tanggal_perawatan || row.tanggal_perawatan === '-') return '';
-                let parts = row.tanggal_perawatan.split('-');
-                let tanggalPerawatan = new Date(parts[2], parts[1] - 1, parts[0]);
-                let today = new Date();
-                today.setHours(0,0,0,0);
-                tanggalPerawatan.setHours(0,0,0,0);
-
-                if (tanggalPerawatan
-                <= today) { return `<input type="checkbox" class="maintenance-checkbox" data-id="${row.id}"
-                    data-waktu="${row.waktu_perawatan ?? 0}" />`;
-                }
-                return '';
+                    if (!row.tanggal_perawatan || row.tanggal_perawatan === '-') return '';
+                    let parts = row.tanggal_perawatan.split('-');
+                    let tanggalPerawatan = new Date(parts[2], parts[1] - 1, parts[0]);
+                    let today = new Date();
+                    today.setHours(0,0,0,0);
+                    tanggalPerawatan.setHours(0,0,0,0);
+                    if (tanggalPerawatan <= today) {
+                        return `<input type="checkbox" class="maintenance-checkbox" data-id="${row.id}" data-waktu="${row.waktu_perawatan ?? 0}" />`;
+                    }
+                    return '';
                 }
             },
             { data: 'rfid_number', name: 'rfid_number' },
@@ -140,7 +133,7 @@
                 data: 'waktu_perawatan',
                 name: 'waktu_perawatan',
                 render: function(data) {
-                return data ? `${data} bulan` : '-';
+                    return data ? `${data}` : '-';
                 }
             },
             {
@@ -154,83 +147,99 @@
                 orderable: false,
                 searchable: false
             }
-        ],
-        createdRow: function(row, data, dataIndex) {
-            // Format dari controller: d-m-Y
-            if (!data.tanggal_perawatan || data.tanggal_perawatan === '-') return;
-            let parts = data.tanggal_perawatan.split('-');
-            let tanggalPerawatan = new Date(parts[2], parts[1] - 1, parts[0]);
-            let today = new Date();
-            today.setHours(0,0,0,0);
-            tanggalPerawatan.setHours(0,0,0,0);
-            if (tanggalPerawatan <= today) {
-                $(row).addClass('table-danger');
-            }
-        },
-        drawCallback: function(settings) {
-            let api = this.api();
-            let total = 0;
-            api.rows({ page: 'current' }).data().each(function(row) {
-                let harga = row.harga_perawatan ?? 0;
-                total += parseInt(harga);
-            });
-            $('#totalHarga').html('Rp ' + total.toLocaleString('id-ID'));
-            $('#totalHargaCard').html('Rp ' + total.toLocaleString('id-ID'));
-        }
-    });
+        ];
 
-    $('#filterWaktu').on('change', function() {
-        table.ajax.reload();
-    });
-
-    $('#downloadPdf').on('click', function() {
-        let waktu = $('#filterWaktu').val();
-        let url = '{{ route('maintenance.pdf') }}';
-        if (waktu) {
-            url += '?waktu=' + waktu;
+        // Sisipkan kolom kecamatan di posisi ke-4 jika role 2
+        if (userRoleId == 2) {
+            columns.splice(3, 0, { data: 'kecamatan', name: 'kecamatan' });
         }
-        window.open(url);
-    });
 
-    $('#markAsMaintained').on('click', function () {
-        let selectedAssets = [];
-        $('.maintenance-checkbox:checked').each(function () {
-            selectedAssets.push({
-                id: $(this).data('id'),
-                waktu: parseInt($(this).data('waktu'), 10)
-            });
-        });
-        if (selectedAssets.length === 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Pilih minimal satu aset yang sudah dimaintenance.'
-            });
-            return;
-        }
-        $.ajax({
-            url: '{{ route('asset.markMaintained') }}',
-            method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                assets: selectedAssets
+        let table = $('#maintenanceTable').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '{{ route('asset.maintenance') }}',
+                data: function(d) {
+                    d.waktu = $('#filterWaktu').val();
+                }
             },
-            success: function (response) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil',
-                    text: response.message
-                });
-                table.ajax.reload();
+            columns: columns,
+            createdRow: function(row, data, dataIndex) {
+                if (!data.tanggal_perawatan || data.tanggal_perawatan === '-') return;
+                let parts = data.tanggal_perawatan.split('-');
+                let tanggalPerawatan = new Date(parts[2], parts[1] - 1, parts[0]);
+                let today = new Date();
+                today.setHours(0,0,0,0);
+                tanggalPerawatan.setHours(0,0,0,0);
+                if (tanggalPerawatan <= today) {
+                    $(row).addClass('table-danger');
+                }
             },
-            error: function (xhr) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal',
-                    text: 'Terjadi kesalahan: ' + (xhr.responseJSON?.message ?? 'Unknown error')
+            drawCallback: function(settings) {
+                let api = this.api();
+                let totalPerPage = 0;
+                api.rows({ page: 'current' }).data().each(function(row) {
+                    let harga = row.harga_perawatan ?? 0;
+                    totalPerPage += parseInt(harga) || 0;
                 });
+                $('#totalHarga').html('Rp ' + totalPerPage.toLocaleString('id-ID'));
+                let totalSeluruh = settings.json ? settings.json.totalSeluruhHarga : 0;
+                $('#totalHargaCard').html('Rp ' + Number(totalSeluruh).toLocaleString('id-ID'));
             }
         });
+
+        $('#filterWaktu').on('change', function() {
+            table.ajax.reload();
+        });
+
+        $('#downloadPdf').on('click', function() {
+            let waktu = $('#filterWaktu').val();
+            let url = '{{ route('maintenance.pdf') }}';
+            if (waktu) {
+                url += '?waktu=' + waktu;
+            }
+            window.open(url);
+        });
+
+        $('#markAsMaintained').on('click', function () {
+            let selectedAssets = [];
+            $('.maintenance-checkbox:checked').each(function () {
+                selectedAssets.push({
+                    id: $(this).data('id'),
+                    waktu: parseInt($(this).data('waktu'), 10)
+                });
+            });
+            if (selectedAssets.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Pilih minimal satu aset yang sudah dimaintenance.'
+                });
+                return;
+            }
+            $.ajax({
+                url: '{{ route('asset.markMaintained') }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    assets: selectedAssets
+                },
+                success: function (response) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: response.message
+                    });
+                    table.ajax.reload();
+                },
+                error: function (xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Terjadi kesalahan: ' + (xhr.responseJSON?.message ?? 'Unknown error')
+                    });
+                }
+            });
+        });
     });
-});
 </script>
 @endpush
