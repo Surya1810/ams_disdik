@@ -211,6 +211,12 @@ class AssetController extends Controller
             'lantai' => 'required',
             'ruangan' => 'required',
             'detail' => 'required',
+            'ukuran' => 'nullable',
+            'pabrik' => 'nullable',
+            'rangka' => 'nullable',
+            'mesin' => 'nullable',
+            'polisi' => 'nullable',
+            'bpkb' => 'nullable'
         ]);
 
         try {
@@ -286,6 +292,12 @@ class AssetController extends Controller
             'lantai' => 'required',
             'ruangan' => 'required',
             'detail' => 'required',
+            'ukuran' => 'nullable',
+            'pabrik' => 'nullable',
+            'rangka' => 'nullable',
+            'mesin' => 'nullable',
+            'polisi' => 'nullable',
+            'bpkb' => 'nullable'
         ]);
 
         try {
