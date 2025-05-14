@@ -386,7 +386,7 @@ class AssetController extends Controller
         $places = Sekolah::where('kecamatan_id', Auth::user()->kecamatan_id)->get();
         $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
             ? asset('assets/Image/no_image.png')
-            : asset(Storage::url('/public/assets/' . $asset->foto_awal));
+            : asset(Storage::url('public/assets/' . $asset->foto_awal));
 
         return response()->json([
             'asset' => $asset,
@@ -402,15 +402,16 @@ class AssetController extends Controller
 
         $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
             ? public_path('assets/Image/no_image.png')
-            : public_path('storage/assets/' . $asset->foto_awal);
+            : Storage::url('public/assets/' . $asset->foto_awal);
+
+        // dd($asset->foto_awal);
 
         $places = Sekolah::where('kecamatan_id', $kecamatanId)->get();
         $pdf = Pdf::loadView('asset.download_pdf', compact('asset', 'places'))
-            ->setPaper('A4', 'portrait');
+            ->setPaper('A4', 'portrait')->setOptions(['isRemoteEnabled' => true]);
 
         return $pdf->download('Detail-Aset-' . $asset->rfid_number . '.pdf');
     }
-
 
     public function maintenance(Request $request)
     {

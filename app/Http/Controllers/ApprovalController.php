@@ -553,8 +553,6 @@ class ApprovalController extends Controller
                         $fields = ['kecamatan_id', 'sekolah_id', 'gedung', 'lantai', 'ruangan', 'detail'];
                         $oldValues = array_intersect_key($payload['old_values'], array_flip($fields));
                         $newValues = array_intersect_key($payload['new_values'], array_flip($fields));
-                        $asset->fill($newValues);
-                        $asset->save();
 
                         History::create([
                             'asset_id' => $asset->id,
