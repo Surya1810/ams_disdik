@@ -31,6 +31,8 @@
             border-collapse: collapse;
             margin-bottom: 50px;
             font-size: 13px;
+            table-layout: fixed;
+            /* fix layout agar wrap bisa jalan */
         }
 
         th,
@@ -39,6 +41,9 @@
             padding: 8px 10px;
             text-align: center;
             vertical-align: middle;
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
         }
 
         th.group-header {
@@ -52,6 +57,24 @@
             background-color: #4F81BD;
             color: #fff;
             font-weight: bold;
+        }
+
+        /* Kolom berpotensi panjang */
+        td:nth-child(1),
+        /* RFID */
+        td:nth-child(2),
+        /* Kode Barang */
+        td:nth-child(3),
+        /* Nama/Jenis Barang */
+        td:nth-child(4),
+        /* Merk/Type */
+        td:nth-child(9)
+
+        /* Detail */
+            {
+            text-align: left;
+            padding-left: 8px;
+            max-width: 180px;
         }
 
         /* Signature section */
@@ -113,13 +136,13 @@
             <tr>
                 <td>{{ $asset->rfid_number }}</td>
                 <td>{{ $asset->kode }}</td>
-                <td style="text-align: left; padding-left: 8px;">{{ $asset->name }}</td>
-                <td style="text-align: left; padding-left: 8px;">{{ $asset->merk }}</td>
+                <td>{{ $asset->name }}</td>
+                <td>{{ $asset->merk }}</td>
                 <td>{{ $asset->kondisi }}</td>
                 <td>{{ $asset->gedung }}</td>
                 <td>{{ $asset->lantai }}</td>
                 <td>{{ $asset->ruangan }}</td>
-                <td style="text-align: left; padding-left: 8px;">{{ $asset->detail }}</td>
+                <td>{{ $asset->detail }}</td>
             </tr>
             @endforeach
         </tbody>

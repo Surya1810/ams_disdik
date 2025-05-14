@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Laporan Maintenance Aset</title>
+    <title>Berita Acara Maintenance Aset</title>
     <style>
         body {
             font-family: "Times New Roman", serif;
@@ -12,11 +12,18 @@
             color: #000;
         }
 
-        h3 {
+        h2 {
             text-align: center;
-            margin-bottom: 20px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            margin-bottom: 30px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        p {
+            text-align: justify;
+            line-height: 1.6;
+            margin-bottom: 30px;
         }
 
         .print-date {
@@ -30,7 +37,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 20px;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
         }
 
@@ -54,14 +61,32 @@
         tfoot td[colspan="4"] {
             text-align: right;
         }
+
+        .signature {
+            margin-top: 50px;
+            width: 100%;
+            border-top: 2px solid #000;
+            text-align: center;
+        }
+
+        .signature p {
+            margin-top: 40px;
+        }
     </style>
 </head>
 
 <body>
-    <h3>Laporan Maintenance Aset</h3>
+    <h2>Berita Acara Maintenance Aset</h2>
     <div class="print-date">
         Dicetak pada: {{ \Carbon\Carbon::now()->translatedFormat('d F Y, H:i') }}
     </div>
+
+    <p>
+        Berikut ini adalah laporan mengenai aset yang perlu
+        melalui
+        proses maintenance dalam periode yang telah ditentukan.
+    </p>
+
     <table>
         <thead>
             <tr>
@@ -96,6 +121,12 @@
             </tr>
         </tfoot>
     </table>
+
+    <div class="signature">
+        <p>Mengetahui,</p>
+        <p>Petugas</p>
+        <p>(__________________)</p>
+    </div>
 </body>
 
 </html>

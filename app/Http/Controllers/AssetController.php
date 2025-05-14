@@ -532,7 +532,7 @@ class AssetController extends Controller
         $query = \App\Models\Asset::query()
             ->whereIn('kondisi', ['Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat']);
 
-        if ($user->role == 3) {
+        if ($user->role_id == 3) {
             $query->whereHas('sekolah', function ($q) use ($user) {
                 $q->where('kecamatan_id', $user->kecamatan_id);
             });
