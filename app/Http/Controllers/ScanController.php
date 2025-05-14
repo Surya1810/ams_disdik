@@ -128,13 +128,15 @@ class ScanController extends Controller
         $assets = ScannedTag::where('scan_id', $id)
             ->where('is_there', true)
             ->get();
+        $scan = Scan::find($id);
 
         $pdf = PDF::loadView('scan.scan_pdf', [
             'assets' => $assets,
+            'scan'   => $scan,
             'status' => 'found'
         ]);
 
-        return $pdf->stream('berita_acara_penemuan.pdf');
+        return $pdf->download('berita_acara_penemuan.pdf');
     }
 
 
@@ -143,12 +145,14 @@ class ScanController extends Controller
         $assets = ScannedTag::where('scan_id', $id)
             ->where('is_there', false)
             ->get();
+        $scan = Scan::find($id);
 
         $pdf = PDF::loadView('scan.scan_pdf', [
             'assets' => $assets,
+            'scan'   => $scan,
             'status' => 'missing'
         ]);
 
-        return $pdf->stream('berita_acara_kehilangan.pdf');
+        return $pdf->download('berita_acara_kehilangan.pdf');
     }
 }

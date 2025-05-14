@@ -46,6 +46,14 @@
 <body>
 
     <h2>{{ $status == 'found' ? 'BERITA ACARA PENEMUAN ASET' : 'BERITA ACARA KEHILANGAN ASET' }}</h2>
+    <p style="text-align: justify; margin-bottom: 30px;">
+        Pada tanggal {{ \Carbon\Carbon::parse($scan->created_at)->translatedFormat('d F Y') }},
+        telah dilakukan kegiatan <strong>{{ $status == 'found' ? 'pencocokan dan penemuan aset' : 'pemeriksaan kehilangan
+            aset' }}</strong>
+        menggunakan teknologi RFID di
+        <strong>{{ $scan->place_name ?? '-' }}</strong>,
+        Kecamatan <strong>{{ $scan->district_name ?? '-' }}</strong>.
+    </p>      
 
     <table>
         <thead>
@@ -58,25 +66,20 @@
                 <th class="sub-header">Kode Barang</th>
                 <th class="sub-header">Nama/Jenis Barang</th>
                 <th class="sub-header">Merk/Type</th>
-                <th class="sub-header">Tahun Pembelian</th>
-                <th class="sub-header">Kondisi</th>
-                <th class="sub-header">Pinjaman</th>
-                <th class="sub-header">Sekolah</th>
+                <th class="sub-header">Gedung</th>
+                <th class="sub-header">Lantai</th>
                 <th class="sub-header">Ruangan</th>
-                <th class="sub-header">Baris</th>
-                <th class="sub-header">Rak</th>
-                <th class="sub-header">Box</th>
+                <th class="sub-header">Detail</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($assets as $asset)
             <tr>
+                <td>{{ $asset->rfid_number }}</td>
                 <td>{{ $asset->kode }}</td>
                 <td>{{ $asset->name }}</td>
                 <td>{{ $asset->merk }}</td>
-                <td>{{ $asset->tahun_pembelian }}</td>
                 <td>{{ $asset->kondisi }}</td>
-                <td>-</td> <!-- placeholder untuk pinjaman -->
                 <td>{{ $asset->gedung }}</td>
                 <td>{{ $asset->lantai }}</td>
                 <td>{{ $asset->ruangan }}</td>
