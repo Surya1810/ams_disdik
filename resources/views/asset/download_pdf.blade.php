@@ -82,8 +82,8 @@
 
     <div class="image-container">
         <h4>Foto Aset</h4>
-        @if ($asset->foto_awal && file_exists(public_path('storage/assets/' . $asset->foto_awal)))
-        <img src="{{ public_path('storage/assets/' . $asset->foto_awal) }}" alt="Foto Aset" width="300">
+        @if ($asset->foto_awal)
+        <img src="{{ $asset->foto_awal }}" alt="Foto Aset" width="300">
         @else
         <p><em>Gambar tidak tersedia</em></p>
         @endif
