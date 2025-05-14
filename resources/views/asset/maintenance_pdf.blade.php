@@ -104,7 +104,7 @@
                 <td>{{ $item->name ?? '-' }}</td>
                 <td>{{ $item->kondisi ?? '-' }}</td>
                 <td>{{ \Carbon\Carbon::parse($item->tanggal_perawatan)->translatedFormat('d F Y') }}</td>
-                <td>{{ $item->waktu_perawatan ? $item->waktu_perawatan . ' Bulan' : '-' }}</td>
+                <td>{{ $item->waktu_perawatan ? $item->waktu_perawatan . ' Minggu' : '-' }}</td>
                 <td style="text-align: right;">{{ number_format($item->harga_perawatan ?? 0, 0, ',', '.') }}</td>
             </tr>
             @php $total += $item->harga_perawatan ?? 0; @endphp
