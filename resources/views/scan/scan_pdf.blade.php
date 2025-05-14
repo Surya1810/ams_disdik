@@ -71,18 +71,16 @@
         <tbody>
             @foreach ($assets as $asset)
             <tr>
-                <td>{{ $asset->rfid_number }}</td>
                 <td>{{ $asset->kode }}</td>
                 <td>{{ $asset->name }}</td>
                 <td>{{ $asset->merk }}</td>
                 <td>{{ $asset->tahun_pembelian }}</td>
                 <td>{{ $asset->kondisi }}</td>
-                <td>{{ $asset->pinjaman }}</td>
-                <td>{{ $asset->sekolah->name ?? '-' }}</td>
-                <td>{{ $asset->room }}</td>
-                <td>{{ $asset->row }}</td>
-                <td>{{ $asset->rack }}</td>
-                <td>{{ $asset->box }}</td>
+                <td>-</td> <!-- placeholder untuk pinjaman -->
+                <td>{{ $asset->gedung }}</td>
+                <td>{{ $asset->lantai }}</td>
+                <td>{{ $asset->ruangan }}</td>
+                <td>{{ $asset->detail }}</td>
             </tr>
             @endforeach
         </tbody>

@@ -123,47 +123,32 @@ class ScanController extends Controller
         abort(403);
     }
 
-    public function exportFound($scanId)
+    public function exportFound($id)
     {
-        // Ambil data scanned_tags berdasarkan scan_id dan status 'found'
-        $scannedTags = ScannedTag::where('scan_id', $scanId)
-            ->where('status', 'found')
-            ->with('asset.sekolah') // Relasi dengan asset dan sekolah
+        $assets = ScannedTag::where('scan_id', $id)
+            ->where('is_there', true)
             ->get();
 
-        // Ambil data Asset dari scanned_tags berdasarkan ID-nya
-        $assets = $scannedTags->map(function ($scannedTag) {
-            return $scannedTag->asset;
-        });
-
-        // Generate PDF untuk hasil "found"
-        $pdf = Pdf::loadView('scan.scan_pdf', [
+        $pdf = PDF::loadView('scan.scan_pdf', [
             'assets' => $assets,
             'status' => 'found'
         ]);
 
-        return $pdf->download('Berita_Acara_Penemuan_' . $scanId . '.pdf');
+        return $pdf->stream('berita_acara_penemuan.pdf');
     }
 
-    public function exportMissing($scanId)
+
+    public function exportMissing($id)
     {
-        // Ambil data scanned_tags berdasarkan scan_id dan status 'missing'
-        $scannedTags = ScannedTag::where('scan_id', $scanId)
-            ->where('status', 'missing')
-            ->with('asset.sekolah') // Relasi dengan asset dan sekolah
+        $assets = ScannedTag::where('scan_id', $id)
+            ->where('is_there', false)
             ->get();
 
-        // Ambil data Asset dari scanned_tags berdasarkan ID-nya
-        $assets = $scannedTags->map(function ($scannedTag) {
-            return $scannedTag->asset;
-        });
-
-        // Generate PDF untuk hasil "missing"
-        $pdf = Pdf::loadView('scan.scan_pdf', [
+        $pdf = PDF::loadView('scan.scan_pdf', [
             'assets' => $assets,
             'status' => 'missing'
         ]);
 
-        return $pdf->download('Berita_Acara_Kehilangan_' . $scanId . '.pdf');
+        return $pdf->stream('berita_acara_kehilangan.pdf');
     }
 }
