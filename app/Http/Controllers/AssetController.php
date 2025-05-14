@@ -401,7 +401,7 @@ class AssetController extends Controller
         $asset = Asset::findOrFail($id);
 
         $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
-            ? public_path('assets/Image/no_image.png')
+            ? asset('assets/Image/no_image.png')
             : Storage::url('public/assets/' . $asset->foto_awal);
 
         // dd($asset->foto_awal);
