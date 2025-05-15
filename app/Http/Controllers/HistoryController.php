@@ -64,6 +64,10 @@ class HistoryController extends Controller
                             $oldVal = $oldValues[$field] ?? '-';
                             $newVal = $newValues[$field] ?? '-';
 
+                            if (in_array($field, ['nilai_perolehan', 'harga_perawatan'])) {
+                                $oldVal = is_numeric($oldVal) ? 'Rp ' . number_format($oldVal, 0, ',', '.') : $oldVal;
+                                $newVal = is_numeric($newVal) ? 'Rp ' . number_format($newVal, 0, ',', '.') : $newVal;
+                            }
                             // Coba format kalau nilainya mirip tanggal
                             try {
                                 if (strtotime($oldVal)) {
