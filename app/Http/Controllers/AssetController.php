@@ -404,8 +404,6 @@ class AssetController extends Controller
             ? asset('assets/Image/no_image.png')
             : Storage::url('public/assets/' . $asset->foto_awal);
 
-        // dd($asset->foto_awal);
-
         $places = Sekolah::where('kecamatan_id', $kecamatanId)->get();
         $pdf = Pdf::loadView('asset.download_pdf', compact('asset', 'places'))
             ->setPaper('A4', 'portrait')->setOptions(['isRemoteEnabled' => true]);
