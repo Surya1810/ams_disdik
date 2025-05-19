@@ -13,6 +13,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/school', [ApiController::class, 'getsekolah']);
+    Route::get('/districts', [ApiController::class, 'getDistricts']);
+    Route::get('/schools/{kecamatanId}', [ApiController::class, 'getSchoolsByDistrict']);
     Route::get('/school/stockOpname/{idSchool}', [ApiController::class, 'getAssetSekolah']);
     Route::post('/school/stockOpname/{idSchool}', [ApiController::class, 'postStockOpname']);
     Route::get('/search/filter', [ApiController::class, 'getSearchFilter']);
