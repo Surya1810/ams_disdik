@@ -196,7 +196,7 @@ class AssetController extends Controller
             'register' => 'required|string|max:255',
             'merk' => 'required|string|max:255',
             'bahan' => 'required|string|max:255',
-            'tanggal_pembelian' => 'required|date',
+            'tahun_pembelian' => 'required|integer',
             'nip_pic' => 'required|string|max:255',
             'nama_pic' => 'required|string|max:255',
             'jabatan_pic' => 'required|string|max:255',
@@ -237,8 +237,6 @@ class AssetController extends Controller
                 $validated['foto_awal'] = $filename;
             }
 
-            $validated['tahun_pembelian'] = Carbon::parse($request->tanggal_pembelian)->year;
-
             // Simpan asset
             $asset = Asset::create($validated);
 
@@ -277,7 +275,7 @@ class AssetController extends Controller
             'register' => 'required|string|max:255',
             'merk' => 'required|string|max:255',
             'bahan' => 'required|string|max:255',
-            'tanggal_pembelian' => 'required|date',
+            'tahun_pembelian' => 'required|integer',
             'nip_pic' => 'required|string|max:255',
             'nama_pic' => 'required|string|max:255',
             'jabatan_pic' => 'required|string|max:255',
@@ -330,10 +328,7 @@ class AssetController extends Controller
                 $validated['foto_awal'] = $filename;
             }
 
-            $validated['tahun_pembelian'] = Carbon::parse($request->tanggal_pembelian)->year;
-
             $asset->update($validated);
-
             $newValues = $asset->fresh()->toArray(); // ambil data terbaru
             $changedFields = [];
 

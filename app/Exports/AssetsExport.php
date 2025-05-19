@@ -66,7 +66,7 @@ class AssetsExport implements FromQuery, WithEvents, WithTitle, WithMapping, Sho
     {
         return [
             // Informasi Barang
-            $asset->rfid_number, $asset->kode, $asset->name, $asset->register, $asset->merk, $asset->ukuran ?? '-', $asset->bahan ?? '-', $asset->tanggal_pembelian, $asset->pabrik ?? '-',
+            $asset->rfid_number, $asset->kode, $asset->name, $asset->register, $asset->merk, $asset->ukuran ?? '-', $asset->bahan ?? '-', $asset->tahun_pembelian, $asset->pabrik ?? '-',
 
             // Nomor Barang
             $asset->rangka ?? '-', $asset->mesin ?? '-', $asset->polisi ?? '-', $asset->bpkb ?? '-',
@@ -123,7 +123,7 @@ class AssetsExport implements FromQuery, WithEvents, WithTitle, WithMapping, Sho
 
                 // 4. Baris 3 - Sub Heading Detail
                 $subHeadings = [
-                    'RFID', 'Kode Barang', 'Nama/Jenis Barang', 'Nomor Register', 'Merk', 'Ukuran', 'Bahan', 'Tanggal Pembelian', 'Pabrik',
+                    'RFID', 'Kode Barang', 'Nama/Jenis Barang', 'Nomor Register', 'Merk', 'Ukuran', 'Bahan', 'Tahun Pembelian', 'Pabrik',
                     'Rangka', 'Mesin', 'Polisi', 'BPKB',
                     'Asal-usul Perolehan', 'Nilai Perolehan', 'Kondisi', 'Tanggal Perawatan', 'Harga Perawatan', 'Jangka Waktu Perawatan',
                     'Kecamatan', 'Tempat', 'Gedung', 'Lantai', 'Ruangan', 'Detail'

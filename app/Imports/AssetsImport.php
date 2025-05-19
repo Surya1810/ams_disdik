@@ -74,7 +74,7 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
                     'merk' => $row['merk'],
                     'ukuran' => $row['ukuran'] ?? null,
                     'bahan' => $row['bahan'],
-                    'tanggal_pembelian' => $row['tanggal_pembelian'],
+                    'tahun_pembelian' => $row['tahun_pembelian'],
                     'pabrik' => $row['pabrik'] ?? null,
                     'rangka' => $row['rangka'] ?? null,
                     'mesin' => $row['mesin'] ?? null,
@@ -95,8 +95,6 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
                     'ruangan' => $row['ruangan'],
                     'detail' => $row['detail'],
                 ];
-
-                $data['tahun_pembelian'] = Carbon::parse($row['tanggal_pembelian'])->year;
 
                 Asset::create($data);
 

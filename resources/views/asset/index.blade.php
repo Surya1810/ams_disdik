@@ -286,12 +286,13 @@
                                             </div>
 
                                             <div class="col-6 col-md-4">
-                                                <label>Tanggal Pembelian</label>
-                                                <input type="date"
-                                                    class="form-control @error('tanggal_pembelian') is-invalid @enderror"
-                                                    name="tanggal_pembelian" value="{{ old('tanggal_pembelian') }}"
-                                                    aria-label="tanggal_pembelian" required>
-                                                @error('tanggal_pembelian')
+                                                <label>Tahun Pembelian</label>
+                                                <input type="numeric"
+                                                    class="form-control @error('tahun_pembelian') is-invalid @enderror"
+                                                    placeholder="{{ date('Y') }}"
+                                                    name="tahun_pembelian" value="{{ old('tahun_pembelian') }}"
+                                                    aria-label="tahun_pembelian" required>
+                                                @error('tahun_pembelian')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
                                                     </span>
@@ -521,13 +522,13 @@
                                                 </option>
                                                 @endfor
                                         </select>
-                                    
+
                                         @error('waktu_perawatan')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
                                         </span>
                                         @enderror
-                                    </div>                                                                    
+                                    </div>
 
                                     <hr class="horizontal dark my-3">
                                     <div class="col-12 text-center">
@@ -741,12 +742,12 @@
                                             </div>
 
                                             <div class="col-6 col-md-4">
-                                                <label>Tanggal Pembelian</label>
-                                                <input type="date"
-                                                    class="form-control @error('tanggal_pembelian') is-invalid @enderror"
-                                                    name="tanggal_pembelian" id="tanggal_pembelian_edit" required
-                                                    placeholder="Tulis tanggal pembelian" aria-label="tanggal_pembelian">
-                                                @error('tanggal_pembelian')
+                                                <label>Tahun Pembelian</label>
+                                                <input type="numeric"
+                                                    class="form-control @error('tahun_pembelian') is-invalid @enderror"
+                                                    name="tahun_pembelian" id="tahun_pembelian_edit" required
+                                                    placeholder="{{ date('Y') }}" aria-label="tahun_pembelian">
+                                                @error('tahun_pembelian')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
                                                     </span>
@@ -982,13 +983,13 @@
                                                 </option>
                                                 @endfor
                                         </select>
-                                    
+
                                         @error('waktu_perawatan')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>
                                         </span>
                                         @enderror
-                                    </div>                                    
+                                    </div>
 
                                     <hr class="horizontal dark my-3">
                                     <div class="col-12 text-center">
@@ -1139,12 +1140,13 @@
                                             <input type="text" class="form-control muted" id="bahan" readonly>
                                         </div>
                                         <div class="col-12 col-md-4">
-                                            <label>Tanggal Pembelian</label>
-                                            <input type="date"
-                                                class="form-control muted @error('tanggal_pembelian') is-invalid @enderror"
-                                                name="tanggal_pembelian" id="tanggal_pembelian_show"
-                                                aria-label="tanggal_pembelian" required>
-                                            @error('tanggal_pembelian')
+                                            <label>Tahun Pembelian</label>
+                                            <input type="numeric"
+                                                class="form-control muted @error('tahun_pembelian') is-invalid @enderror"
+                                                placeholder="{{ date('Y') }}"
+                                                name="tahun_pembelian" id="tahun_pembelian_show"
+                                                aria-label="tahun_pembelian" required>
+                                            @error('tahun_pembelian')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
                                                 </span>
@@ -1244,7 +1246,7 @@
                                         @for ($i = 1; $i <= 48; $i++) <option value="{{ $i }}">{{ $i }} Minggu</option>
                                             @endfor
                                     </select>
-                                </div>                                
+                                </div>
                             </div>
 
                             <hr class="horizontal dark my-3">
@@ -1510,6 +1512,14 @@
                 // Isi field biasa
                 fields.forEach(field => {
                     $(`${selector} #${field}`).val(asset[field] ?? '');
+
+                    if (prefix === 'editAset') {
+                        $(`${selector} #${field}_edit`).val(asset[field] ?? '');
+                    }
+
+                    if (prefix === 'showAset') {
+                        $(`${selector} #${field}_show`).val(asset[field] ?? '');
+                    }
                 });
 
                 // Isi RFID
@@ -1523,9 +1533,8 @@
                 // Isi tanggal pembelian dan perawatan untuk edit
                 if (prefix === 'editAset') {
                     let tanggal = asset.tanggal_perawatan ?? '';
-                    let tanggalPembelian = asset.tanggal_pembelian ?? '';
 
-                    if (tanggal || tanggalPembelian) {
+                    if (tanggal) {
                         const dateObj = new Date(tanggal);
                         if (!isNaN(dateObj)) {
                             const yyyy = dateObj.getFullYear();
@@ -1533,55 +1542,32 @@
                             const dd = ('0' + dateObj.getDate()).slice(-2);
                             tanggal = `${yyyy}-${mm}-${dd}`;
                         }
-
-                        const dateObjPembelian = new Date(tanggalPembelian);
-                        if (!isNaN(dateObjPembelian)) {
-                            const yearPembelian = dateObjPembelian.getFullYear();
-                            const monthPembelian = ('0' + (dateObjPembelian.getMonth() + 1)).slice(-2);
-                            const dayPembelian = ('0' + dateObjPembelian.getDate()).slice(-2);
-
-                            tanggalPembelian = `${yearPembelian}-${monthPembelian}-${dayPembelian}`;
-                        }
                     }
 
                     $(`${selector} #tanggal_perawatan_edit`).val(tanggal);
-                    $(`${selector} #tanggal_pembelian_edit`).val(tanggalPembelian);
                 }
 
                 // Isi tanggal pembelian dan perawatan untuk show
                 if (prefix === 'showAset') {
                     let tanggal = asset.tanggal_perawatan ?? '';
-                    let tanggalPembelian = asset.tanggal_pembelian ?? '';
 
-                    if (tanggal || tanggalPembelian) {
+                    if (tanggal) {
                         const dateObj = new Date(tanggal);
 
                         if (!isNaN(dateObj)) {
                             const yearPerawatan = dateObj.getFullYear();
                             const monthPerawatan = ('0' + (dateObj.getMonth() + 1)).slice(-2);
                             const dayPerawatan = ('0' + dateObj.getDate()).slice(-2);
-
                             tanggal = `${yearPerawatan}-${monthPerawatan}-${dayPerawatan}`;
-                        }
-
-                        const dateObjPembelian = new Date(tanggalPembelian);
-                        if (!isNaN(dateObjPembelian)) {
-                            const yearPembelian = dateObjPembelian.getFullYear();
-                            const monthPembelian = ('0' + (dateObjPembelian.getMonth() + 1)).slice(-2);
-                            const dayPembelian = ('0' + dateObjPembelian.getDate()).slice(-2);
-
-                            tanggalPembelian = `${yearPembelian}-${monthPembelian}-${dayPembelian}`;
                         }
                     }
 
                     $(`${selector} #tanggal_perawatan_show`).val(tanggal);
-                    $(`${selector} #tanggal_pembelian_show`).val(tanggalPembelian);
                 }
 
                 // Isi Jangka Waktu Perawatan (select)
                 if (prefix === 'editAset') {
                     $(`${selector} #waktu_perawatan_edit`).val(asset.waktu_perawatan ?? '').trigger('change');
-            
 
                     // Preview gambar
                     const $previewImg = $(`${selector} #previewImgEdit`);
@@ -1591,7 +1577,7 @@
                     } else {
                         $previewImg.hide();
                     }
-                    
+
                 }
                 if (prefix === 'showAset') {
                     $(`${selector} #waktu_perawatan_show`).val(asset.waktu_perawatan ?? '').trigger('change');
