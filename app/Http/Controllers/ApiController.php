@@ -423,7 +423,7 @@ class ApiController extends Controller
             empty($personInCharge['phoneNumber'])
         ) {
             return response()->json([
-                'success' => false,
+                'status' => 'false',
                 'message' => 'Data personInCharge tidak lengkap'
             ], 400);
         }
@@ -453,7 +453,7 @@ class ApiController extends Controller
         ]);
 
         return response()->json([
-            'success' => true,
+            'status' => 'success',
             'message' => 'Mutasi aset berhasil diajukan untuk approval.',
             'approval_id' => $approval->id
         ], 200);
@@ -466,7 +466,7 @@ class ApiController extends Controller
 
         if (empty($location['building']) || empty($location['floor']) || empty($location['room']) || empty($location['information'])) {
             return response()->json([
-                'success' => false,
+                'status' => 'false',
                 'message' => 'Data location tidak lengkap'
             ], 400);
         }
@@ -512,7 +512,7 @@ class ApiController extends Controller
         ]);
 
         return response()->json([
-            'success' => true,
+            'status' => 'success',
             'message' => 'Perubahan lokasi berhasil diajukan untuk approval.',
             'approval_id' => $approval->id
         ], 200);
