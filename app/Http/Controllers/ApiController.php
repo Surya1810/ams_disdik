@@ -377,11 +377,17 @@ class ApiController extends Controller
     public function getDistricts()
     {
         $districts = Kecamatan::select('id', 'name')->whereNot('id', 1)->get();
+        $result = $districts->map(function ($district) {
+            return [
+                'id' => $district->id,
+                'districtName' => $district->name
+            ];
+        });
 
         return response()->json([
             'status' => 'success',
             'data' => [
-                'districts' => $districts
+                'districts' => $result
             ]
         ]);
     }
@@ -453,7 +459,6 @@ class ApiController extends Controller
         ], 200);
     }
 
-
     public function mutationLocation(Request $request, $idItem)
     {
         $asset = Asset::findOrFail($idItem);
@@ -466,8 +471,8 @@ class ApiController extends Controller
             ], 400);
         }
 
-        $oldSchool = Sekolah::with('kecamatan')->find('sekolah_id', $asset->sekolah_id);
-        $newSchool = Sekolah::with('kecamatan')->find('sekolah_id', $request->schoolId);
+        $oldSchool = Sekolah::with('kecamatan')->where('id', $asset->sekolah_id)->first();
+        $newSchool = Sekolah::with('kecamatan')->where('id', $request->schoolId)->first();
 
         $payload = [
             'old_values' => [
