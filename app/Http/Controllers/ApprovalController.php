@@ -657,10 +657,6 @@ class ApprovalController extends Controller
                         $oldValues = $asset->only($fields);
                         $newValues = array_intersect_key($payload['to'], array_flip($fields)); // Ambil nilai dari 'to'
 
-                        // Update data asset
-                        $asset->fill($newValues);
-                        $asset->save();
-
                         History::create([
                             'asset_id' => $asset->id,
                             'user_id' => $userId,
