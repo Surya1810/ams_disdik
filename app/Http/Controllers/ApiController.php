@@ -142,7 +142,7 @@ class ApiController extends Controller
                 'rfid' => $asset->rfid_number,
                 'room' => $asset->ruangan ?? '-',
                 'isThere' => false,
-                'purcaseYear' => $asset->tahun_pembelian,
+                'purchaseYear' => $asset->tahun_pembelian,
                 'condition' => $asset->kondisi,
             ];
         });
@@ -260,7 +260,7 @@ class ApiController extends Controller
             'status' => 'success',
             'data' => [
                 'school' => $schools,
-                'purcaseYear' => $years
+                'purchaseYear' => $years
             ]
         ]);
     }
@@ -285,8 +285,8 @@ class ApiController extends Controller
             $query->where('kondisi', $request->condition);
         }
 
-        if ($request->filled('purcaseYear')) {
-            $query->where('tahun_pembelian', $request->purcaseYear);
+        if ($request->filled('purchaseYear')) {
+            $query->where('tahun_pembelian', $request->purchaseYear);
         }
 
         if ($request->filled('search')) {
@@ -315,7 +315,7 @@ class ApiController extends Controller
                         'rfid' => $item->rfid_number,
                         'room' => $item->ruangan,
                         'isThere' => (bool) $item->is_there,
-                        'purcaseYear' => $item->tahun_pembelian,
+                        'purchaseYear' => $item->tahun_pembelian,
                         'condition' => $item->kondisi,
                     ];
                 }),
@@ -342,7 +342,7 @@ class ApiController extends Controller
                     'ItemName' => $asset->name,
                     'rfidNumber' => $asset->rfid_number,
                     'itemCode' => $asset->kode,
-                    'purcaseYear' => $asset->tahun_pembelian,
+                    'purchaseYear' => $asset->tahun_pembelian,
                     'lastMaintenance' => optional($asset->tanggal_perawatan)->format('d/m/Y'),
                     'merk' => $asset->merk,
                     'condition' => $asset->kondisi,
