@@ -550,13 +550,13 @@ class ApprovalController extends Controller
                         break;
 
                     case 'loan':
-                        $fields = ['sekolah_id', 'gedung', 'lantai', 'ruangan', 'detail'];
+                        $fields = ['kecamatan_id', 'sekolah_id', 'gedung', 'lantai', 'ruangan', 'detail'];
                         $oldValues = array_intersect_key($payload['old_values'], array_flip($fields));
                         $newValues = array_intersect_key(
                             $payload['new_values'],
-                            array_flip(['sekolah_id', 'gedung', 'lantai', 'ruangan', 'detail'])
+                            array_flip(['kecamatan_id', 'sekolah_id', 'gedung', 'lantai', 'ruangan', 'detail'])
                         );
-                        $asset->fill($newValues);
+                        $asset->status = 'Dipinjam';
                         $asset->save();
 
                         History::create([
