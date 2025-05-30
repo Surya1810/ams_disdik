@@ -311,7 +311,7 @@ class ApiController extends Controller
                     return [
                         'id' => $item->id,
                         'itemName' => $item->name,
-                        'school' => $item->sekolah->name ?? '-',
+                        'school' => $item->sekolah->category . ' ' . $item->sekolah->name,
                         'rfid' => $item->rfid_number,
                         'room' => $item->ruangan,
                         'isThere' => (bool) $item->is_there,

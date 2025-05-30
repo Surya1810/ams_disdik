@@ -43,41 +43,28 @@ class AssetController extends Controller
         if ($roleId == 2) {
             $placesForFilter = Kecamatan::whereNot('id', 1)->get();
             $places = Sekolah::where('kecamatan_id', $kecamatanId)->get();
+            $asset = Asset::whereHas('sekolah')->with('sekolah')->get();
         } else if ($roleId == 3) {
             $places = Sekolah::where('kecamatan_id', $kecamatanId)->get();
+            $asset = Asset::whereHas('sekolah', function ($query) use ($kecamatanId) {
+                $query->where('kecamatan_id', $kecamatanId);
+            })->with('sekolah')->get();
         }
-
-        // Untuk role 2 dan 3, hanya dapat melihat aset di kecamatan dan sekolah atau kantor mereka
-        $asset = Asset::whereHas('sekolah', function ($query) use ($kecamatanId) {
-            $query->where('kecamatan_id', $kecamatanId);
-        })->with('sekolah')->get();
 
         if ($request->ajax()) {
             // Query untuk DataTables
             $assetsQuery = Asset::with('sekolah.kecamatan');
 
             // Filter berdasarkan kecamatan untuk role 2 dan 3
-            if ($roleId != 1) {
-                $assetsQuery->whereHas('sekolah', function ($query) use ($kecamatanId, $roleId) {
-                    if ($roleId == 3) {
-                        $query->where('kecamatan_id', $kecamatanId);
-                    }
-                });
-            }
+            $assetsQuery->whereHas('sekolah', function ($query) use ($kecamatanId, $roleId) {
+                if ($roleId === 3) {
+                    $query->where('kecamatan_id', $kecamatanId);
+                }
+            });
 
             // Filter
             if ($request->filled('kondisi')) {
                 $assetsQuery->where('kondisi', $request->kondisi);
-            }
-
-            if ($request->filled('tempat')) {
-                if ($roleId == 2) {
-                    $assetsQuery = Asset::whereHas('sekolah.kecamatan', function ($query) use ($request) {
-                        $query->where('id', $request->tempat);
-                    });
-                } else {
-                    $assetsQuery->where('sekolah_id', $request->tempat);
-                }
             }
 
             if ($request->filled('tahun_pembelian')) {
@@ -85,6 +72,12 @@ class AssetController extends Controller
             }
 
             if ($roleId == 2) {
+                if ($request->filled('tempat')) {
+                    $assetsQuery->whereHas('sekolah', function ($query) use ($request) {
+                        $query->where('kecamatan_id', $request->tempat);
+                    });
+                }
+
                 $dataTable = DataTables::of($assetsQuery)
                     ->addColumn('sekolah_name', function ($row) {
                         return $row->sekolah->category . ' ' . $row->sekolah->name;
@@ -126,6 +119,10 @@ class AssetController extends Controller
                     })
                     ->rawColumns(['kondisi_badge', 'action']);
             } else {
+                if ($request->filled('tempat')) {
+                    $assetsQuery->where('sekolah_id', $request->tempat);
+                }
+
                 $dataTable = DataTables::of($assetsQuery)
                     ->addColumn('sekolah_name', function ($row) {
                         return $row->sekolah->category . ' ' . $row->sekolah->name;
