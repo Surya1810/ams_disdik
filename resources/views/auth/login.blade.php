@@ -7,6 +7,14 @@
 
     <title>Login | Asset Management System by Partnership</title>
 
+    {{-- Favicons --}}
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/Image/favicons/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/Image/favicons/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/Image/favicons/favicon-16x16.png') }}">
+
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="{{ asset('assets/FontAwesome/css/all.min.css') }}">
     <!-- Theme Style -->
@@ -24,7 +32,7 @@
             <div class="container">
                 <div class="row justify-content-center">
                     <div class="col-lg-5 text-center mx-auto">
-                        <img src="{{ asset('assets/Image/logo/Light.webp') }}" alt="main_logo" width="250"
+                        <img src="{{ asset('assets/Image/logo/disdik_logo.png') }}" alt="main_logo" width="150"
                             class="mt-5">
                     </div>
                 </div>

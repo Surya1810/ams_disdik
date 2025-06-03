@@ -73,11 +73,13 @@
                                     <select name="category" id="category"
                                         class="form-select category @error('category') is-invalid @enderror" required>
                                         <option></option>
+                                        <option value="TK" {{ old('category') == 'TK' ? 'selected' : '' }}>TK</option>
                                         <option value="SD" {{ old('category') == 'SD' ? 'selected' : '' }}>SD</option>
                                         <option value="SMP" {{ old('category') == 'SMP' ? 'selected' : '' }}>SMP</option>
                                         <option value="SMA" {{ old('category') == 'SMA' ? 'selected' : '' }}>SMA</option>
                                         <option value="SMK" {{ old('category') == 'SMK' ? 'selected' : '' }}>SMK</option>
                                         <option value="MA" {{ old('category') == 'MA' ? 'selected' : '' }}>MA</option>
+                                        <option value="MTS" {{ old('category') == 'MTS' ? 'selected' : '' }}>MTS</option>
                                         <option value="Kantor" {{ old('category') == 'Kantor' ? 'selected' : '' }}>Kantor
                                         </option>
                                     </select>

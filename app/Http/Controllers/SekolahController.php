@@ -59,7 +59,6 @@ class SekolahController extends Controller
     }
 
 
-
     /**
      * Store a newly created resource in storage.
      */
@@ -70,6 +69,16 @@ class SekolahController extends Controller
             'category' => 'required|string',
             'kecamatan_id' => 'required|integer|exists:kecamatans,id',
         ]);
+
+        // check if exists
+        $namaSekolah = $request->name;
+        $sekolah = Sekolah::where('name', 'like', "%$namaSekolah%")->first();
+
+        if ($sekolah) {
+            if ($sekolah->category == $request->category) {
+                return redirect()->back()->with(['pesan' => 'Sekolah dengan nama dan kategori yang sama sudah ada', 'level-alert' => 'alert-danger']);
+            }
+        }
 
         Sekolah::create([
             'name' => $request->name,

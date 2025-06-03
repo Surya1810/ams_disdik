@@ -9,6 +9,11 @@
 
     <title>@yield('title') | Asset Management System by Partnership</title>
 
+    {{-- Favicons --}}
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/Image/favicons/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/Image/favicons/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/Image/favicons/favicon-16x16.png') }}">
+
     <!-- Sweetalert2 -->
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Select2 -->
@@ -28,8 +33,10 @@
 
     <style type="text/css">
         #linkProfile:hover {
-            p, small {
-                color: #3006c7!important;
+
+            p,
+            small {
+                color: #3006c7 !important;
             }
         }
     </style>
@@ -48,7 +55,7 @@
             <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none"
                 aria-hidden="true" id="iconSidenav"></i>
             <a class="navbar-brand m-0" href="{{ route('dashboard') }}">
-                <img src="{{ asset('assets/Image/logo/Dark.webp') }}" class="navbar-brand-img" alt="main_logo">
+                <img src="{{ asset('assets/image/logo/disdik_logo.png') }}" class="navbar-brand-img" alt="main_logo">
             </a>
         </div>
         <hr class="horizontal dark my-0">
@@ -75,72 +82,73 @@
                 </li>
 
                 @if (auth()->user()->role_id != 1)
-                <li class="nav-item mt-3">
-                    <h6 class="ps-4 ms-2 text-uppercase text-xs text-dark font-weight-bolder opacity-5">Asset
-                    </h6>
-                </li>
+                    <li class="nav-item mt-3">
+                        <h6 class="ps-4 ms-2 text-uppercase text-xs text-dark font-weight-bolder opacity-5">Asset
+                        </h6>
+                    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link text-dark dropdown-toggle" href="#" id="menuDropdown" role="button"
-                        data-bs-toggle="collapse" data-bs-target="#submenu" aria-expanded="false">
-                        <i class="fa-solid fa-boxes-packing"></i>
-                        <span class="nav-link-text ms-1">Asset</span>
-                    </a>
-                    <div class="collapse" id="submenu">
-                        <ul class="nav flex-column">
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('asset.index') }}">Asset List</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('asset.maintenance') }}">Maintenance</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('asset.mutation') }}">Mutation</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('asset.loan') }}">Loan</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('asset.disposal') }}">Disposal</a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark dropdown-toggle" href="#" id="menuDropdown" role="button"
+                            data-bs-toggle="collapse" data-bs-target="#submenu" aria-expanded="false">
+                            <i class="fa-solid fa-boxes-packing"></i>
+                            <span class="nav-link-text ms-1">Asset</span>
+                        </a>
+                        <div class="collapse" id="submenu">
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" href="{{ route('asset.index') }}">Asset List</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark"
+                                        href="{{ route('asset.maintenance') }}">Maintenance</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" href="{{ route('asset.mutation') }}">Mutation</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" href="{{ route('asset.loan') }}">Loan</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" href="{{ route('asset.disposal') }}">Disposal</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link text-dark dropdown-toggle" href="#" id="menuDropdown" role="button"
-                        data-bs-toggle="collapse" data-bs-target="#history" aria-expanded="false">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
-                        <span class="nav-link-text ms-1">History</span>
-                    </a>
-                    <div class="collapse" id="history">
-                        <ul class="nav flex-column">
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('histories.changes') }}">Changes
-                                    History</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('histories.mutation') }}">Mutation
-                                    History</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('histories.location') }}">Location
-                                    History</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" href="{{ route('histories.disposal') }}">Disposal
-                                    History</a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark dropdown-toggle" href="#" id="menuDropdown" role="button"
+                            data-bs-toggle="collapse" data-bs-target="#history" aria-expanded="false">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <span class="nav-link-text ms-1">History</span>
+                        </a>
+                        <div class="collapse" id="history">
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" href="{{ route('histories.changes') }}">Changes
+                                        History</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" href="{{ route('histories.mutation') }}">Mutation
+                                        History</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" href="{{ route('histories.location') }}">Location
+                                        History</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" href="{{ route('histories.disposal') }}">Disposal
+                                        History</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
 
-                <li class="nav-item">
-                    <a class="nav-link text-dark" href="{{ route('scan.index') }}">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <span class="nav-link-text ms-1">History Stock Opname</span>
-                    </a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" href="{{ route('scan.index') }}">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span class="nav-link-text ms-1">History Stock Opname</span>
+                        </a>
+                    </li>
                 @endif
 
                 @if (Auth::user()->role_id == 2)
