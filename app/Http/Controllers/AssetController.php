@@ -117,6 +117,11 @@ class AssetController extends Controller
 
                         return $buttons;
                     })
+                    ->filterColumn('kecamatan_name', function ($query, $keyword) {
+                        $query->whereHas('sekolah.kecamatan', function ($query) use ($keyword) {
+                            $query->where('name', 'like', '%' . $keyword . '%');
+                        });
+                    })
                     ->rawColumns(['kondisi_badge', 'action']);
             } else {
                 if ($request->filled('tempat')) {
@@ -152,6 +157,12 @@ class AssetController extends Controller
                     ->rawColumns(['kondisi_badge', 'action']);
             }
 
+            $dataTable->filterColumn('sekolah_name', function ($query, $keyword) {
+                $query->whereHas('sekolah', function ($query) use ($keyword) {
+                    $query->whereRaw("CONCAT(category, ' ', name) LIKE ?", ["%{$keyword}%"]);
+                });
+            });
+
             return $dataTable->make(true);
         }
 
@@ -171,10 +182,11 @@ class AssetController extends Controller
             'firstTagAvailable' => $firstTagAvailable,
             'lastTagAvailable' => $lastTagAvailable
         ];
+        $countAssets = $asset->count();
 
         $compactedData = isset($placesForFilter)
-            ? compact('tags', 'places', 'asset', 'tahunPembelianArr', 'availableTags', 'placesForFilter')
-            : compact('tags', 'places', 'asset', 'tahunPembelianArr', 'availableTags');
+            ? compact('tags', 'places', 'asset', 'tahunPembelianArr', 'availableTags', 'placesForFilter', 'countAssets')
+            : compact('tags', 'places', 'asset', 'tahunPembelianArr', 'availableTags', 'countAssets');
 
         return view('asset.index', $compactedData);
     }
@@ -547,12 +559,22 @@ class AssetController extends Controller
      */
     public function export(Request $request)
     {
+        $roleId = Auth::user()->role_id;
         $kondisi = $request->query('kondisi');
         $tempat = $request->query('tempat');
         $tahun  = $request->query('tahun');
 
+        if ($roleId == 2) {
+            $tempatForFileName = Kecamatan::where('id', $tempat)->first()->name;
+        }
+
+        if ($roleId == 3) {
+            $tempatForFileName = Sekolah::where('id', $tempat)->first()->name;
+        }
+
         $date = date('Y-m-d');
-        $fileName = "List Data Aset - $date.xlsx";
+        $kondisiForFileName = $kondisi ? strtoupper($kondisi) : 'SEMUA KONDISI';
+        $fileName = "List Data Aset - $tempatForFileName - $kondisiForFileName - $date.xlsx";
 
         if (Auth::user()->role_id == 2) {
             if (is_null($tempat)) {

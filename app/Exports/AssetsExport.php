@@ -49,9 +49,15 @@ class AssetsExport implements FromQuery, WithEvents, WithTitle, WithMapping, Sho
             $asset->where('kondisi', $this->kondisi);
         }
 
-        if ($roleId == 3) {
-            if ($this->sekolahId) {
+        if ($this->sekolahId) {
+            if ($roleId == 3) {
                 $asset->where('tempat', $this->sekolahId);
+            }
+
+            if ($roleId == 2) {
+                $asset->whereHas('sekolah.kecamatan', function ($query) {
+                    $query->where('id', $this->sekolahId);
+                });
             }
         }
 
@@ -75,7 +81,7 @@ class AssetsExport implements FromQuery, WithEvents, WithTitle, WithMapping, Sho
             $asset->asal_perolehan, formatRupiah($asset->nilai_perolehan), $asset->kondisi, $asset->tanggal_perawatan->format('Y-m-d'), formatRupiah($asset->harga_perawatan), ($asset->waktu_perawatan . ' Bulan'),
 
             // Lokasi
-            $asset->sekolah ? $asset->sekolah->kecamatan->name : '-', $asset->sekolah ? $asset->sekolah->name : '-', $asset->gedung, $asset->lantai, $asset->ruangan, $asset->detail
+            $asset->sekolah ? $asset->sekolah->kecamatan->name : '-', $asset->sekolah ? $asset->sekolah->category . ' ' . $asset->sekolah->name : '-', $asset->gedung, $asset->lantai, $asset->ruangan, $asset->detail
         ];
     }
 
@@ -163,6 +169,9 @@ class AssetsExport implements FromQuery, WithEvents, WithTitle, WithMapping, Sho
 
                 // 7. Wrap Text heading
                 $sheet->getStyle('A1:Y3')->getAlignment()->setWrapText(true);
+
+                // 8. Freeze Pane row 1-3
+                $sheet->freezePane('A4');
             },
         ];
     }

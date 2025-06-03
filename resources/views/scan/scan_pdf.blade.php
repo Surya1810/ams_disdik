@@ -110,7 +110,7 @@
         dilakukan kegiatan pemindaian aset di lokasi
         <strong>{{ $scan->place_name ?? '-' }}</strong>, Kecamatan <strong>{{ $scan->district_name ?? '-' }}</strong>.
         Berdasarkan hasil kegiatan tersebut, ditemukan <strong>{{ $status == 'found' ? 'aset yang berhasil ditemukan' :
-            'aset yang hilang' }}</strong> sebagai berikut:
+            'aset yang hilang' }}</strong> sebanyak <strong>{{ count($assets) }} aset</strong>, dengan rincian sebagai berikut:
     </p>
 
     <table>
@@ -152,7 +152,7 @@
         <tr>
             <td>
                 <p>{{ now()->translatedFormat('d F Y') }}</p>
-                <p class="name-line">Petugas</p>
+                <p class="name-line"></p>
             </td>
         </tr>
     </table>

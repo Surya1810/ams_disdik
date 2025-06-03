@@ -75,12 +75,23 @@ class ScanController extends Controller
             return DataTables::of($query)
                 ->addColumn('is_there', fn($row) => $row->is_there ? '<strong>FOUND</strong>' : '<strong>MISSING</strong>')
                 ->addColumn('actions', function ($row) {
+                    /**
+                     * Kalau assetnya masih ada/belum dilelang
+                     * maka tampilkan tombol detail
+                     */
                     $assetExists = Asset::where('rfid_number', $row->rfid_number)->exists();
 
                     if ($assetExists) {
                         return '<button type="button" class="badge bg-primary border-0 edit-asset" data-rfid="' . $row->rfid_number . '" onclick="buttonModalShowAset(this)"><i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Detail"></i></button>';
                     }
                     return '<small class="badge bg-danger">Aset Sudah Tidak Terdaftar</small>';
+                })
+                ->filterColumn('is_there', function ($query, $keyword) {
+                    $status = strtolower($keyword) == 'found'
+                        ? true
+                        : (strtolower($keyword) == 'missing' ? false : null) ?? null;
+
+                    $query->where('is_there', $status);
                 })
                 ->rawColumns(['is_there', 'actions'])
                 ->make(true);

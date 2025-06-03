@@ -36,11 +36,14 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
         return 100; // Proses per 100 baris
     }
 
-
     public function collection(Collection $rows)
     {
         foreach ($rows as $index => $row) {
             $rowNumber = $index + 2;
+            $rowContent = preg_replace('/\s+/', '', implode('', $row->toArray()));
+            if ($rowContent === '') {
+                continue;
+            }
 
             try {
                 if (empty($row['tag']) || empty($row['kode'])) {
@@ -100,7 +103,6 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
 
                 // Update status tag
                 $tag->update(['status' => 'used']);
-
             } catch (\Exception $e) {
                 $this->errors[] = "Baris {$rowNumber}: " . $e->getMessage();
                 continue;
@@ -113,4 +115,3 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
         return $this->errors;
     }
 }
-

@@ -66,8 +66,9 @@
 
                         <div class="d-flex justify-content-between" id="buttonWrapper">
                             <div id="leftButtonWrapper" class="d-flex align-items-center gap-2 flex-wrap mb-3">
-                                <button type="button" class="btn bg-gradient-primary rounded-partner mb-0" data-bs-toggle="modal"
-                                    data-bs-target="#addAset"> <i class="fa-solid fa-plus"></i> Tambah
+                                <button type="button" class="btn bg-gradient-primary rounded-partner mb-0"
+                                    data-bs-toggle="modal" data-bs-target="#addAset"> <i class="fa-solid fa-plus"></i>
+                                    Tambah
                                 </button>
                                 <div class="d-flex gap-2" id="filterWrapper">
                                     <div class="input-group">
@@ -86,7 +87,7 @@
                                             <option value="Rusak Ringan">
                                                 Rusak Ringan
                                             </option>
-                                                Rusak Sedang
+                                            Rusak Sedang
                                             </option>
                                             <option value="Rusak Berat">
                                                 Rusak Berat
@@ -97,7 +98,7 @@
                                     <select id="filterTempat" class="form-control w-auto">
                                         <option value="">Semua Tempat </option>
                                         @if (auth()->user()->role_id == 2)
-                                        {{-- Untuk role == 2 atau Dispora --}}
+                                            {{-- Untuk role == 2 atau Dispora --}}
                                             @foreach ($placesForFilter as $place)
                                                 <option value="{{ $place->id }}"
                                                     {{ old('sekolah_id') == $place->id ? 'selected' : '' }}>
@@ -125,7 +126,8 @@
                                 </div>
                             </div>
                             <div id="rightButtonWrapper" class="ms-auto">
-                                <button type="button" class="btn bg-gradient-success rounded-partner" id="buttonExport">
+                                <button type="button" class="btn bg-gradient-success rounded-partner" id="buttonExport"
+                                    {{ $countAssets > 0 ? '' : 'disabled' }}>
                                     <i class="fa-solid fa-download"></i> Export
                                 </button>
                                 <button type="button" class="btn bg-gradient-warning rounded-partner"
@@ -210,9 +212,9 @@
                                             <div class="col-12 col-md-6">
                                                 <label>Kode Barang</label>
                                                 <input type="text"
-                                                    class="form-control @error('kode') is-invalid @enderror" name="kode"
-                                                    value="{{ old('kode') }}" required placeholder="Tulis kode barang"
-                                                    aria-label="kode">
+                                                    class="form-control @error('kode') is-invalid @enderror"
+                                                    name="kode" value="{{ old('kode') }}" required
+                                                    placeholder="Tulis kode barang" aria-label="kode">
                                                 @error('kode')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -289,9 +291,9 @@
                                                 <label>Tahun Pembelian</label>
                                                 <input type="numeric"
                                                     class="form-control @error('tahun_pembelian') is-invalid @enderror"
-                                                    placeholder="{{ date('Y') }}"
-                                                    name="tahun_pembelian" value="{{ old('tahun_pembelian') }}"
-                                                    aria-label="tahun_pembelian" required>
+                                                    placeholder="{{ date('Y') }}" name="tahun_pembelian"
+                                                    value="{{ old('tahun_pembelian') }}" aria-label="tahun_pembelian"
+                                                    required>
                                                 @error('tahun_pembelian')
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $message }}</strong>
@@ -515,18 +517,21 @@
                                     <div class="col-12 col-md-4">
                                         <label>Jangka Waktu Perawatan</label>
                                         <select name="waktu_perawatan" id="waktu_perawatan"
-                                            class="form-control waktu_perawatan @error('waktu_perawatan') is-invalid @enderror" required>
+                                            class="form-control waktu_perawatan @error('waktu_perawatan') is-invalid @enderror"
+                                            required>
                                             <option value="">Pilih Jangka Waktu</option>
-                                            @for ($i = 1; $i <= 48; $i++) <option value="{{ $i }}" {{ old('waktu_perawatan')==$i ? 'selected' : '' }}>
-                                                {{ $i }} Minggu
+                                            @for ($i = 1; $i <= 48; $i++)
+                                                <option value="{{ $i }}"
+                                                    {{ old('waktu_perawatan') == $i ? 'selected' : '' }}>
+                                                    {{ $i }} Minggu
                                                 </option>
-                                                @endfor
+                                            @endfor
                                         </select>
 
                                         @error('waktu_perawatan')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
                                         @enderror
                                     </div>
 
@@ -833,7 +838,8 @@
 
                                     <div class="col-12 col-md-3">
                                         <label>NIP</label>
-                                        <input type="text" class="form-control muted @error('nip_pic') is-invalid @enderror"
+                                        <input type="text"
+                                            class="form-control muted @error('nip_pic') is-invalid @enderror"
                                             name="nip_pic" id="nip_pic" readonly placeholder="Tulis NIP PIC Barang"
                                             aria-label="nip_pic">
                                         @error('nip_pic')
@@ -846,8 +852,8 @@
                                     <div class="col-12 col-md-3">
                                         <label>Nama</label>
                                         <input type="text"
-                                            class="form-control muted @error('nama_pic') is-invalid @enderror" name="nama_pic"
-                                            id="nama_pic" readonly placeholder="Tulis Nama PIC Barang"
+                                            class="form-control muted @error('nama_pic') is-invalid @enderror"
+                                            name="nama_pic" id="nama_pic" readonly placeholder="Tulis Nama PIC Barang"
                                             aria-label="nama_pic">
                                         @error('nama_pic')
                                             <span class="invalid-feedback" role="alert">
@@ -872,9 +878,9 @@
                                     <div class="col-12 col-md-3">
                                         <label>No. Telepon</label>
                                         <input type="text"
-                                            class="form-control muted @error('telp_pic') is-invalid @enderror" name="telp_pic"
-                                            id="telp_pic" readonly placeholder="Tulis nomor telepon PIC Barang"
-                                            aria-label="nip_pic">
+                                            class="form-control muted @error('telp_pic') is-invalid @enderror"
+                                            name="telp_pic" id="telp_pic" readonly
+                                            placeholder="Tulis nomor telepon PIC Barang" aria-label="nip_pic">
                                         @error('telp_pic')
                                             <span class="invalid-feedback" role="alert">
                                                 <strong>{{ $message }}</strong>
@@ -976,18 +982,21 @@
                                     <div class="col-12 col-md-4">
                                         <label>Jangka Waktu Perawatan</label>
                                         <select name="waktu_perawatan" id="waktu_perawatan_edit"
-                                            class="form-control waktu_perawatan @error('waktu_perawatan') is-invalid @enderror" required>
+                                            class="form-control waktu_perawatan @error('waktu_perawatan') is-invalid @enderror"
+                                            required>
                                             <option value="">Pilih Jangka Waktu</option>
-                                            @for ($i = 1; $i <= 48; $i++) <option value="{{ $i }}" {{ old('waktu_perawatan')==$i ? 'selected' : '' }}>
-                                                {{ $i }} Minggu
+                                            @for ($i = 1; $i <= 48; $i++)
+                                                <option value="{{ $i }}"
+                                                    {{ old('waktu_perawatan') == $i ? 'selected' : '' }}>
+                                                    {{ $i }} Minggu
                                                 </option>
-                                                @endfor
+                                            @endfor
                                         </select>
 
                                         @error('waktu_perawatan')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
                                         @enderror
                                     </div>
 
@@ -1011,7 +1020,8 @@
                                     <div class="col-12 col-md-6">
                                         <label>Tempat</label>
                                         <select name="sekolah_id" id="sekolah_id"
-                                            class="form-control muted place @error('sekolah_id') is-invalid @enderror" readonly>
+                                            class="form-control muted place @error('sekolah_id') is-invalid @enderror"
+                                            readonly>
                                             <option value=""></option>
                                             @foreach ($places as $place)
                                                 <option value="{{ $place->id }}">{{ $place->name }}</option>
@@ -1026,7 +1036,8 @@
 
                                     <div class="col-12 col-md-3">
                                         <label>Gedung</label>
-                                        <input type="text" class="form-control muted @error('gedung') is-invalid @enderror"
+                                        <input type="text"
+                                            class="form-control muted @error('gedung') is-invalid @enderror"
                                             name="gedung" id="gedung" placeholder="Tulis lokasi gedung"
                                             aria-label="gedung" readonly>
                                         @error('gedung')
@@ -1038,7 +1049,8 @@
 
                                     <div class="col-12 col-md-3">
                                         <label>Lantai</label>
-                                        <input type="text" class="form-control muted @error('lantai') is-invalid @enderror"
+                                        <input type="text"
+                                            class="form-control muted @error('lantai') is-invalid @enderror"
                                             name="lantai" id="lantai" placeholder="Tulis lokasi lantai"
                                             aria-label="lantai" readonly>
                                         @error('lantai')
@@ -1050,7 +1062,8 @@
 
                                     <div class="col-12 col-md-3">
                                         <label>Ruangan</label>
-                                        <input type="text" class="form-control muted @error('ruangan') is-invalid @enderror"
+                                        <input type="text"
+                                            class="form-control muted @error('ruangan') is-invalid @enderror"
                                             name="ruangan" id="ruangan" placeholder="Tulis lokasi ruangan"
                                             aria-label="ruangan" readonly>
                                         @error('ruangan')
@@ -1062,7 +1075,8 @@
 
                                     <div class="col-12 col-md-3">
                                         <label>Detail</label>
-                                        <input type="text" class="form-control muted @error('detail') is-invalid @enderror"
+                                        <input type="text"
+                                            class="form-control muted @error('detail') is-invalid @enderror"
                                             name="detail" id="detail" placeholder="Tulis lokasi detail"
                                             aria-label="detail" readonly>
                                         @error('detail')
@@ -1143,9 +1157,8 @@
                                             <label>Tahun Pembelian</label>
                                             <input type="numeric"
                                                 class="form-control muted @error('tahun_pembelian') is-invalid @enderror"
-                                                placeholder="{{ date('Y') }}"
-                                                name="tahun_pembelian" id="tahun_pembelian_show"
-                                                aria-label="tahun_pembelian" required>
+                                                placeholder="{{ date('Y') }}" name="tahun_pembelian"
+                                                id="tahun_pembelian_show" aria-label="tahun_pembelian" required>
                                             @error('tahun_pembelian')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
@@ -1233,7 +1246,8 @@
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <label>Tanggal Perawatan</label>
-                                    <input type="date" class="form-control muted" id="tanggal_perawatan_show" readonly>
+                                    <input type="date" class="form-control muted" id="tanggal_perawatan_show"
+                                        readonly>
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <label>Harga Perawatan</label>
@@ -1241,10 +1255,12 @@
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <label>Jangka Waktu Perawatan</label>
-                                    <select id="waktu_perawatan_show" class="form-control waktu_perawatan muted" disabled readonly>
+                                    <select id="waktu_perawatan_show" class="form-control waktu_perawatan muted" disabled
+                                        readonly>
                                         <option value="">Pilih Jangka Waktu</option>
-                                        @for ($i = 1; $i <= 48; $i++) <option value="{{ $i }}">{{ $i }} Minggu</option>
-                                            @endfor
+                                        @for ($i = 1; $i <= 48; $i++)
+                                            <option value="{{ $i }}">{{ $i }} Minggu</option>
+                                        @endfor
                                     </select>
                                 </div>
                             </div>
@@ -1319,24 +1335,27 @@
                                         <span>
                                             Tag Tersedia:
                                         </span>
-                                        <a href="{{ route('tag.index') }}" class="badge badge-sm bg-gradient-primary mb-0" target="_blank" rel="noopener" title="Lihat List Tag">
+                                        <a href="{{ route('tag.index') }}"
+                                            class="badge badge-sm bg-gradient-primary mb-0" target="_blank"
+                                            rel="noopener" title="Lihat List Tag">
                                             <i class="fa-solid fa-eye"></i>
                                         </a>
                                     </label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control" value="{{ $availableTags['firstTagAvailable'] }}" style="text-align: center" disabled>
+                                        <input type="text" class="form-control"
+                                            value="{{ $availableTags['firstTagAvailable'] }}" style="text-align: center"
+                                            disabled>
                                         <span class="input-group-text">s.d.</span>
-                                        <input type="text" class="form-control" value="{{ $availableTags['lastTagAvailable'] }}" style="text-align: center" disabled>
+                                        <input type="text" class="form-control"
+                                            value="{{ $availableTags['lastTagAvailable'] }}" style="text-align: center"
+                                            disabled>
                                     </div>
                                 </div>
                                 <div class="col-12 mb-3">
                                     <label for="sekolah_id_import">Tempat</label>
                                     <select name="sekolah_id_import" id="sekolah_id_import"
                                         class="form-control place @error('sekolah_id_import') is-invalid @enderror"
-                                        @if (!$availableTags['firstTagAvailable'])
-                                            {{ "disabled " }}
-                                        @endif
-                                        required>
+                                        @if (!$availableTags['firstTagAvailable']) {{ 'disabled ' }} @endif required>
                                         <option value="" selected disabled hidden>
                                         </option>
                                         @foreach ($places as $place)
@@ -1355,28 +1374,24 @@
                                     <label for="formImportExcel" class="form-label">
                                         Import Data Aset dari File Excel
                                     </label>
-                                    <input class="form-control" type="file" name="file" accept=".xlsx" id="formImportExcel"
-                                        @if (!$availableTags['firstTagAvailable'])
-                                            {{ "disabled " }}
-                                        @endif
-                                    required>
+                                    <input class="form-control" type="file" name="file" accept=".xlsx"
+                                        id="formImportExcel"
+                                        @if (!$availableTags['firstTagAvailable']) {{ 'disabled ' }} @endif required>
                                 </div>
                                 <div class="d-flex justify-content-between mb-3">
-                                    <button id="buttonDownloadTemplateImport" class="btn btn-m bg-gradient-primary" type="button">
+                                    <button id="buttonDownloadTemplateImport" class="btn btn-m bg-gradient-primary"
+                                        type="button">
                                         Download Template
                                     </button>
                                     <button class="btn btn-sm bg-gradient-warning"
-                                    @if (!$availableTags['firstTagAvailable'])
-                                        {{ "disabled " }}
-                                    @endif
-                                    >
+                                        @if (!$availableTags['firstTagAvailable']) {{ 'disabled ' }} @endif>
                                         <i class="fa-solid fa-upload"></i> Import
                                     </button>
                                 </div>
                                 @if (!$availableTags['firstTagAvailable'])
-                                <div class="small text-danger">
-                                    *Import tidak bisa dilakukan, karena tag tidak tersedia.
-                                </div>
+                                    <div class="small text-danger">
+                                        *Import tidak bisa dilakukan, karena tag tidak tersedia.
+                                    </div>
                                 @endif
                             </form>
                         </div>
@@ -1430,12 +1445,12 @@
             window.previewImage = function(event) {
                 const input = event.target;
                 const isEdit = event.target.dataset.edit;
-                const preview = isEdit == '0'
-                    ? document.getElementById('previewImg')
-                    : document.getElementById('previewImgEdit');
-                const fileName = isEdit == '0'
-                    ? document.getElementById('fileName')
-                    : document.getElementById('fileNameEdit');
+                const preview = isEdit == '0' ?
+                    document.getElementById('previewImg') :
+                    document.getElementById('previewImgEdit');
+                const fileName = isEdit == '0' ?
+                    document.getElementById('fileName') :
+                    document.getElementById('fileNameEdit');
 
                 if (input.files && input.files[0]) {
                     const reader = new FileReader();
@@ -1449,14 +1464,40 @@
             };
 
             // DataTables
-            let baseColumns = [
-                { data: 'rfid_number', name: 'rfid_number', className: "text-start" },
-                { data: 'kode', name: 'kode', className: "text-start" },
-                { data: 'name', name: 'name', className: "text-start" },
-                { data: 'merk', name: 'merk', className: "text-start" },
-                { data: 'tahun_pembelian', name: 'tahun_pembelian', className: "text-start" },
-                { data: 'kondisi_badge', name: 'kondisi', className: "text-start" },
-                { data: 'sekolah_name', name: 'sekolah_name' }
+            let baseColumns = [{
+                    data: 'rfid_number',
+                    name: 'rfid_number',
+                    className: "text-start"
+                },
+                {
+                    data: 'kode',
+                    name: 'kode',
+                    className: "text-start"
+                },
+                {
+                    data: 'name',
+                    name: 'name',
+                    className: "text-start"
+                },
+                {
+                    data: 'merk',
+                    name: 'merk',
+                    className: "text-start"
+                },
+                {
+                    data: 'tahun_pembelian',
+                    name: 'tahun_pembelian',
+                    className: "text-start"
+                },
+                {
+                    data: 'kondisi_badge',
+                    name: 'kondisi',
+                    className: "text-start"
+                },
+                {
+                    data: 'sekolah_name',
+                    name: 'sekolah_name'
+                }
             ];
 
             // Tambahkan kolom kecamatan jika roleId == 2
@@ -1480,7 +1521,7 @@
                 serverSide: true,
                 ajax: {
                     url: '{{ route('asset.index') }}',
-                    data: function (d) {
+                    data: function(d) {
                         d.kondisi = $('#filterKondisi').find(':selected').val();
                         d.tempat = $('#filterTempat').find(':selected').val();
                         d.tahun_pembelian = $('#filterTahun').find(':selected').val();
@@ -1659,7 +1700,7 @@
             });
 
             // Event untuk buka modal import data aset
-            $('#buttonShowImportModal').on('click', function () {
+            $('#buttonShowImportModal').on('click', function() {
                 $('#showImportModal').modal('show');
             })
         });
@@ -1668,15 +1709,15 @@
          * Date: 03-05-2025
          * Download Template untuk Import Data Aset
          **/
-        $('#buttonDownloadTemplateImport').on('click', function (e) {
+        $('#buttonDownloadTemplateImport').on('click', function(e) {
             e.preventDefault();
             $.ajax({
-                url: '{{ route("asset.download.template.import") }}',
+                url: '{{ route('asset.download.template.import') }}',
                 method: 'GET',
                 xhrFields: {
                     responseType: 'blob' // penting untuk file binary
                 },
-                success: function (data, status, xhr) {
+                success: function(data, status, xhr) {
                     const blob = new Blob([data]);
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -1687,7 +1728,7 @@
                     a.remove();
                     window.URL.revokeObjectURL(url);
                 },
-                error: function (xhr) {
+                error: function(xhr) {
                     const Toast = Swal.mixin({
                         toast: true,
                         position: 'top-end',

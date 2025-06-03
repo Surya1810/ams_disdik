@@ -120,10 +120,6 @@
             <td>{{ $asset->bahan }}</td>
         </tr>
         <tr>
-            <th>Tanggal Pembelian</th>
-            <td>{{ $asset->tanggal_pembelian }}</td>
-        </tr>
-        <tr>
             <th>Tahun Pembelian</th>
             <td>{{ $asset->tahun_pembelian }}</td>
         </tr>
