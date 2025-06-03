@@ -30,38 +30,38 @@ class ReportController extends Controller
         })->with('sekolah')->get();
 
         // Hitung asset
-        $assetsCount = ($roleId === 1 || $roleId === 2) ? Asset::count() : $assetsQuery->count();
-        $assetsNilai = ($roleId === 1 || $roleId === 2)
+        $assetsCount = ($roleId == 1 || $roleId == 2) ? Asset::count() : $assetsQuery->count();
+        $assetsNilai = ($roleId == 1 || $roleId == 2)
             ? Asset::sum('nilai_perolehan')
             : $assetsQuery->sum('nilai_perolehan');
-        $assetsHilangCount = ($roleId === 1 || $roleId === 2)
+        $assetsHilangCount = ($roleId == 1 || $roleId == 2)
             ? Asset::where('is_there', false)->count()
             : $assetsQuery->where('is_there', false)->count();
 
         // Hitung perawatan
         $kondisiTidakDirawat = ['Baik', 'Hilang'];
-        $perawatanCount = ($roleId === 1 || $roleId === 2)
+        $perawatanCount = ($roleId == 1 || $roleId == 2)
             ? Asset::whereNotIn('kondisi', $kondisiTidakDirawat)->count()
             : $assetsQuery->whereNotIn('kondisi', $kondisiTidakDirawat)->count();
-        $perawatanNilai = ($roleId === 1 || $roleId === 2)
+        $perawatanNilai = ($roleId == 1 || $roleId == 2)
             ? Asset::whereNotIn('kondisi', $kondisiTidakDirawat)->sum('harga_perawatan')
             : $assetsQuery->whereNotIn('kondisi', $kondisiTidakDirawat)->sum('harga_perawatan');
 
         // Hitung kehilangan
-        $kehilanganNilai = ($roleId === 1 || $roleId === 2)
+        $kehilanganNilai = ($roleId == 1 || $roleId == 2)
             ? Asset::where('is_there', false)->sum('nilai_perolehan')
             : $assetsQuery->where('is_there', false)->sum('nilai_perolehan');
 
         // Hitung tag
-        $tagsCount = ($roleId === 1 || $roleId === 2)
+        $tagsCount = ($roleId == 1 || $roleId == 2)
             ? Tag::count()
             : Tag::where('kecamatan_id', $kecamatanId)->count();
-        $tagsUsedCount = ($roleId === 1 || $roleId === 2)
+        $tagsUsedCount = ($roleId == 1 || $roleId == 2)
             ? Tag::where('status', 'used')->count()
             : Tag::where('kecamatan_id', $kecamatanId)->where('status', 'used')->count();
 
         // Tahun Pembelian
-        $tahunPembelianArr = ($roleId === 1 || $roleId === 2)
+        $tahunPembelianArr = ($roleId == 1 || $roleId == 2)
             ? Asset::all()->pluck('tahun_pembelian')->unique()->values()->all()
             : $assetsQuery->pluck('tahun_pembelian')->unique()->values()->all();
 
@@ -106,7 +106,7 @@ class ReportController extends Controller
             $query = $query->where('tahun_pembelian', $request->tahun);
         }
 
-        $assetPerTahun = ($roleId === 1 || $roleId === 2)
+        $assetPerTahun = ($roleId == 1 || $roleId == 2)
             ? $query->get()
             : $query->whereHas('sekolah', function ($q) use ($kecamatanId) {
                 $q->where('kecamatan_id', $kecamatanId);
