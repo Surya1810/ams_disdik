@@ -63,7 +63,7 @@ class ScanController extends Controller
         $user = Auth::user();
 
         // Validasi akses user
-        if ($user->role_id !== 2 && $scan->user_id !== $user->id) {
+        if ($user->role_id != 2 && $scan->user_id != $user->id) {
             abort(404, 'History Stock Opname Tidak Ditemukan');
         }
 
