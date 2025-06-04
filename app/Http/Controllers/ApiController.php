@@ -18,6 +18,8 @@ use App\Models\ScannedTag;
 use App\Models\Kecamatan;
 use App\Models\History;
 
+use Illuminate\Support\Facades\DB;
+
 class ApiController extends Controller
 {
     /**
@@ -248,7 +250,9 @@ class ApiController extends Controller
 
     public function getSearchFilter(Request $request)
     {
-        $schools = $this->filterSekolahByRole(Sekolah::select('id', 'name as schoolName'))->get();
+        $schools = $this->filterSekolahByRole(
+            Sekolah::select('id', DB::raw("CONCAT(category, ' ', name) as schoolName"), 'category')
+        )->get();
 
         // Ambil semua tahun pembelian unik dari tabel assets
         $years = Asset::select('tahun_pembelian')
@@ -265,15 +269,26 @@ class ApiController extends Controller
         ]);
     }
 
-
     public function getSearch(Request $request)
     {
         $query = Asset::with('sekolah');
         $query = $this->filterAssetByRole($query);
 
         if ($request->filled('school')) {
-            $sekolah = Sekolah::where('name', $request->school)->first();
-            $query->where('sekolah_id', $sekolah->id);
+            preg_match('/^(SD|SMP|SMA|SMK|MA|Kantor|TK|MTS)\s+(.*)$/i', $request->school, $matches);
+
+            if (count($matches) === 3) {
+                $category = strtoupper($matches[1]);
+                $name = $matches[2];
+
+                $sekolah = Sekolah::where('category', $category)
+                    ->where('name', $name)
+                    ->first();
+
+                if ($sekolah) {
+                    $query->where('sekolah_id', $sekolah->id);
+                }
+            }
         }
 
         if ($request->filled('isThere')) {

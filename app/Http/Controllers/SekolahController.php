@@ -70,24 +70,30 @@ class SekolahController extends Controller
             'kecamatan_id' => 'required|integer|exists:kecamatans,id',
         ]);
 
-        // check if exists
-        $namaSekolah = $request->name;
-        $sekolah = Sekolah::where('name', 'like', "%$namaSekolah%")->first();
+        $rawName = $request->name;
+        $cleanedName = preg_replace('/^(SD|SMP|SMA|SMK|MA|MTS|TK|Kantor)\s+/i', '', $rawName);
 
-        if ($sekolah) {
-            if ($sekolah->category == $request->category) {
-                return redirect()->back()->with(['pesan' => 'Sekolah dengan nama dan kategori yang sama sudah ada', 'level-alert' => 'alert-danger']);
-            }
+        $sekolah = Sekolah::where('name', 'like', "%$cleanedName%")->first();
+
+        if ($sekolah && $sekolah->category == $request->category) {
+            return redirect()->back()->with([
+                'pesan' => 'Sekolah dengan nama dan kategori yang sama sudah ada',
+                'level-alert' => 'alert-danger'
+            ]);
         }
 
         Sekolah::create([
-            'name' => $request->name,
+            'name' => $cleanedName,
             'category' => $request->category,
             'kecamatan_id' => $request->kecamatan_id,
         ]);
 
-        return redirect()->route('sekolah.index')->with(['pesan' => 'Sekolah berhasil ditambahkan', 'level-alert' => 'alert-success']);
+        return redirect()->route('sekolah.index')->with([
+            'pesan' => 'Sekolah berhasil ditambahkan',
+            'level-alert' => 'alert-success'
+        ]);
     }
+
 
     public function edit($id)
     {
