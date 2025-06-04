@@ -193,7 +193,7 @@
                                         <div class="row">
                                             <div class="col-12 col-md-6">
                                                 <label>Nomor RFID</label>
-                                                <select class="form-control tag" id="tag" name="tag" required>
+                                                <select class="form-control select2 tag" id="tag" name="tag" required>
                                                     <option></option>
                                                     @foreach ($tags as $tag)
                                                         <option value="{{ $tag }}"
@@ -1414,7 +1414,7 @@
 
             // Inisialisasi Select2 untuk modal yang menggunakan select2 (kondisi, waktu_perawatan, place)
             function initSelect2(parent) {
-                $('.kondisi, .waktu_perawatan, .place', parent).select2({
+                $('.kondisi, .waktu_perawatan, .place, .tag', parent).select2({
                     placeholder: "Pilih opsi",
                     dropdownParent: parent,
                     width: "100%"
