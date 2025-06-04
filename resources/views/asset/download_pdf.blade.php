@@ -193,11 +193,11 @@
     <table class="info-table">
         <tr>
             <th>Kecamatan</th>
-            <td>{{ Auth::user()->kecamatan->name }}</td>
+            <td>{{ $places->kecamatan->name }}</td>
         </tr>
         <tr>
             <th>Tempat</th>
-            <td>{{ $asset->sekolah->name ?? '-' }}</td>
+            <td>{{ $places->category . ' ' . $places->name }}</td>
         </tr>
         <tr>
             <th>Lokasi</th>

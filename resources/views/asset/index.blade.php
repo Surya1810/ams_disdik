@@ -1008,7 +1008,7 @@
                                     <div class="col-12 col-md-6">
                                         <label>Kecamatan</label>
                                         <input type="text" class="form-control"
-                                            value="{{ Auth::user()->kecamatan->name }}" disabled>
+                                            value="" id="kecamatan_edit" disabled>
 
                                         @error('harga_perawatan')
                                             <span class="invalid-feedback" role="alert">
@@ -1018,13 +1018,14 @@
                                     </div>
 
                                     <div class="col-12 col-md-6">
+                                        <input type="hidden" value="" id="sekolah_edit" name="sekolah_id">
                                         <label>Tempat</label>
-                                        <select name="sekolah_id" id="sekolah_id"
+                                        <select id="sekolah_edit_select"
                                             class="form-control muted place @error('sekolah_id') is-invalid @enderror"
-                                            readonly>
+                                            readonly disabled>
                                             <option value=""></option>
                                             @foreach ($places as $place)
-                                                <option value="{{ $place->id }}">{{ $place->name }}</option>
+                                                <option value="{{ $place->id }}">{{ $place->category . ' ' . $place->name }}</option>
                                             @endforeach
                                         </select>
                                         @error('sekolah_id')
@@ -1273,7 +1274,7 @@
                                 <div class="col-12 col-md-6">
                                     <label>Kecamatan</label>
                                     <input type="text" class="form-control"
-                                        value="{{ Auth::user()->kecamatan->name }}" disabled>
+                                        value="" id="kecamatan_show" disabled>
 
                                     @error('harga_perawatan')
                                         <span class="invalid-feedback" role="alert">
@@ -1282,13 +1283,8 @@
                                     @enderror
                                 </div>
                                 <div class="col-12 col-md-6">
-                                    <label>Tempat</label>
-                                    <select id="sekolah_id" class="form-control place muted" disabled readonly>
-                                        <option value=""></option>
-                                        @foreach ($places as $place)
-                                            <option value="{{ $place->id }}">{{ $place->name }}</option>
-                                        @endforeach
-                                    </select>
+                                    <label for="sekolah_show">Tempat</label>
+                                    <input type="text" class="form-control muted" id="sekolah_show" readonly>
                                 </div>
                                 <div class="col-12 col-md-3">
                                     <label>Gedung</label>
@@ -1541,13 +1537,16 @@
             });
 
             // Fungsi untuk mengisi form modal (add, edit, show)
-            function fillAssetForm(prefix, asset) {
+            function fillAssetForm(prefix, response) {
+                console.log(response);
+                const asset = response.asset;
+                const places = response.places;
                 const selector = `#${prefix}`;
                 const fields = [
                     'kode', 'name', 'register', 'merk', 'ukuran', 'bahan', 'tahun_pembelian',
                     'pabrik', 'rangka', 'mesin', 'polisi', 'bpkb', 'nip_pic', 'nama_pic', 'jabatan_pic',
                     'telp_pic', 'asal_perolehan', 'nilai_perolehan', 'harga_perawatan', 'gedung', 'lantai',
-                    'ruangan', 'detail',
+                    'ruangan', 'detail', 'kecamatan', 'sekolah_id'
                 ];
 
                 // Isi field biasa
@@ -1640,9 +1639,16 @@
                 }
 
                 // Isi sekolah select2 jika ada
-                const $sekolah = $(`${selector} #sekolah_id`);
-                if ($sekolah.length) {
-                    $sekolah.val(asset.sekolah_id ?? '').trigger('change');
+                let $sekolah = '';
+                if (prefix === 'showAset') {
+                    $sekolah = $(`${selector} #sekolah_show`);
+                    $sekolah.val(asset.sekolah);
+                }
+
+                if (prefix === 'editAset') {
+                    $sekolah = $(`${selector} #sekolah_edit`);
+                    $sekolah.val(asset.sekolah_id).trigger('change');
+                    $(`${selector} #sekolah_edit_select`).val(asset.sekolah_id).trigger('change');
                 }
 
                 // Isi kecamatan jika ada
@@ -1658,7 +1664,7 @@
             $('#asetTable').on('click', '.edit-asset', function() {
                 const assetId = $(this).data('asset-id');
                 $.get(`/asset/${assetId}/edit`, function(response) {
-                    fillAssetForm('editAset', response.asset);
+                    fillAssetForm('editAset', response);
                     $('#form-edit-asset').attr('action', `/asset/${assetId}`);
                     $('#editAset').modal('show');
                 }).fail(function() {
@@ -1670,7 +1676,7 @@
             $('#asetTable').on('click', '.show-asset', function() {
                 const assetId = $(this).data('asset-id');
                 $.get(`/asset/${assetId}/edit`, function(response) {
-                    fillAssetForm('showAset', response.asset);
+                    fillAssetForm('showAset', response);
                     $('#showAset').modal('show');
                 }).fail(function() {
                     console.error("Gagal mengambil data untuk lihat.");

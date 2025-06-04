@@ -21,7 +21,6 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Carbon\Carbon as CarbonCarbon;
 
 class AssetController extends Controller
 {
@@ -387,10 +386,14 @@ class AssetController extends Controller
             ->where('kecamatan_id', Auth::user()->kecamatan_id)
             ->pluck('rfid_number');
 
-        $places = Sekolah::where('kecamatan_id', Auth::user()->kecamatan_id)->get();
         $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
             ? asset('assets/Image/no_image.png')
             : asset(Storage::url('public/assets/' . $asset->foto_awal));
+        $places = Sekolah::where('id', $asset->sekolah_id)
+            ->with('kecamatan')->first();
+        $asset->kecamatan = $places->kecamatan->name;
+        $asset->sekolah = $places->category . ' ' . $places->name;
+        $asset->sekolah_id = $places->id;
 
         return response()->json([
             'asset' => $asset,
@@ -401,14 +404,16 @@ class AssetController extends Controller
 
     public function download($id)
     {
-        $kecamatanId = Auth::user()->kecamatan_id;
         $asset = Asset::findOrFail($id);
+        $kecamatanId = Asset::findOrFail($id)->sekolah->kecamatan_id;
 
         $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
             ? asset('assets/Image/no_image.png')
             : Storage::url('public/assets/' . $asset->foto_awal);
 
-        $places = Sekolah::where('kecamatan_id', $kecamatanId)->get();
+        $places = Sekolah::where('id', $asset->sekolah_id)
+            ->with('kecamatan')->first();
+
         $pdf = Pdf::loadView('asset.download_pdf', compact('asset', 'places'))
             ->setPaper('A4', 'portrait')->setOptions(['isRemoteEnabled' => true]);
 
@@ -591,6 +596,15 @@ class AssetController extends Controller
         $tahun  = $request->query('tahun');
 
         if ($roleId == 2) {
+            if (is_null($tempat)) {
+                return redirect()
+                    ->route('asset.index')
+                    ->with([
+                        'pesan' => 'Mohon pilih satu kecamatan saja untuk di export!',
+                        'level-alert' => 'alert-warning'
+                    ]);
+            }
+
             $tempatForFileName = Kecamatan::where('id', $tempat)->first()->name;
         }
 
@@ -601,17 +615,6 @@ class AssetController extends Controller
         $date = date('Y-m-d');
         $kondisiForFileName = $kondisi ? strtoupper($kondisi) : 'SEMUA KONDISI';
         $fileName = "List Data Aset - $tempatForFileName - $kondisiForFileName - $date.xlsx";
-
-        if (Auth::user()->role_id == 2) {
-            if (is_null($tempat)) {
-                return redirect()
-                    ->route('asset.index')
-                    ->with([
-                        'pesan' => 'Mohon pilih satu kecamatan saja untuk di export!',
-                        'level-alert' => 'alert-warning'
-                    ]);
-            }
-        }
 
         return Excel::download(
             new AssetsExport($kondisi, $tempat, $tahun),
