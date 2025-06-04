@@ -186,7 +186,7 @@
                 createdRow: function(row, data, dataIndex) {
                     if (!data.tanggal_perawatan || data.tanggal_perawatan === '-') return;
                     let parts = data.tanggal_perawatan.split('-');
-                    let tanggalPerawatan = new Date(parts[2], parts[1] - 1, parts[0]);
+                    let tanggalPerawatan = new Date(parts[0], parts[1] - 1, parts[2]);
                     let today = new Date();
                     today.setHours(0, 0, 0, 0);
                     tanggalPerawatan.setHours(0, 0, 0, 0);
