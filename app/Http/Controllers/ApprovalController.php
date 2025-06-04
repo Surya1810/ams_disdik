@@ -24,10 +24,15 @@ class ApprovalController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data = Approval::with(['asset', 'requester'])
-                ->join('assets', 'approvals.asset_id', '=', 'assets.id')
+            $data = Approval::join('assets', 'approvals.asset_id', '=', 'assets.id')
                 ->join('users as u', 'approvals.requested_by', '=', 'u.id')
-                ->select('approvals.*')
+                ->select(
+                    'approvals.*',
+                    'assets.name as asset_name',
+                    'assets.rfid_number as asset_rfid',
+                    'assets.kode as asset_kode',
+                    'u.name as requester_name'
+                )
                 ->orderBy('approvals.created_at', 'desc');
 
             if ($request->filled('status')) {
@@ -45,28 +50,13 @@ class ApprovalController extends Controller
                     }
                     return '';
                 })
-                ->addColumn('rfid_number', fn($row) => $row->asset?->rfid_number ?? '-')
-                ->addColumn('kode', fn($row) => $row->asset?->kode ?? '-')
-                ->addColumn('asset', fn($row) => $row->asset->name ?? '-')
-                ->filterColumn('asset', function ($query, $keyword) {
-                    $query->where('assets.name', 'like', "%{$keyword}%");
-                })
-                ->orderColumn('asset', function ($query, $order) {
-                    $query->orderBy('assets.name', $order);
-                })
-                ->addColumn('requester', fn($row) => $row->requester->name ?? '-')
-                ->filterColumn('requester', function ($query, $keyword) {
-                    $query->where('u.name', 'like', "%{$keyword}%");
-                })
-                ->orderColumn('requester', function ($query, $order) {
-                    $query->orderBy('u.name', $order);
-                })
+                ->addColumn('rfid_number', fn($row) => $row->asset_rfid ?? '-')
+                ->addColumn('kode', fn($row) => $row->asset_kode ?? '-')
+                ->addColumn('asset_name', fn($row) => $row->asset_name ?? '-')
+                ->addColumn('requester', fn($row) => $row->requester_name ?? '-')
                 ->addColumn('keterangan', function ($row) {
                     $payload = json_decode($row->payload, true);
                     return $payload['keterangan'] ?? '-';
-                })
-                ->filterColumn('keterangan', function ($query, $keyword) {
-                    $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
                 })
                 ->addColumn('status', function ($row) {
                     $color = match ($row->status) {
@@ -78,10 +68,33 @@ class ApprovalController extends Controller
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
                 })
                 ->addColumn('waktu', function ($row) {
-                    return \Carbon\Carbon::parse($row->created_at)
-                        ->locale('id')->translatedFormat('d F Y H:i');
+                    return \Carbon\Carbon::parse($row->created_at)->translatedFormat('Y-m-d');
                 })
                 ->addColumn('rejection_note', fn($row) => $row->rejection_note ?? '-')
+                ->orderColumn('asset', function ($query, $order) {
+                    $query->orderBy('assets.name', $order);
+                })
+                ->filterColumn('asset_name', function ($query, $keyword) {
+                    $query->where('assets.name', 'like', "%{$keyword}%");
+                })
+                ->filterColumn('keterangan', function ($query, $keyword) {
+                    $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                })
+                ->filterColumn('status', function ($query, $status) {
+                    $query->where('approvals.status', 'like', strtolower($status));
+                })
+                ->filterColumn('requester', function ($query, $keyword) {
+                    $query->where('u.name', 'like', "%{$keyword}%");
+                })
+                ->filterColumn('waktu', function ($query, $keyword) {
+                    $query->where('approvals.created_at', 'like', "%{$keyword}%");
+                })
+                ->filterColumn('rejection_note', function ($query, $keyword) {
+                    $query->where('approvals.rejection_note', 'like', "%{$keyword}%");
+                })
+                ->orderColumn('requester', function ($query, $order) {
+                    $query->orderBy('u.name', $order);
+                })
                 ->rawColumns(['checkbox', 'status', 'waktu'])
                 ->make(true);
         }
@@ -102,7 +115,7 @@ class ApprovalController extends Controller
                 ->addColumn('rfid_number', fn($row) => $row->asset->rfid_number)
                 ->addColumn('kode', fn($row) => $row->asset->kode)
                 ->addColumn('id', fn($row) => $row->id)
-                ->addColumn('asset_name', fn($row) => $row->asset->name ?? '-')
+                ->addColumn('asset', fn($row) => $row->asset->name ?? '-')
                 ->addColumn('requested_by', fn($row) => $row->requester->name ?? '-')
                 ->addColumn('from', function ($row) {
                     $payload = json_decode($row->payload, true);
@@ -140,9 +153,19 @@ class ApprovalController extends Controller
                     };
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
                 })
-                ->filterColumn('asset_name', function ($query, $keyword) {
+                ->filterColumn('rfid_number', function ($query, $keyword) {
                     $query->whereHas('asset', function ($q) use ($keyword) {
-                        $q->whereRaw('LOWER(name) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                        $q->where('rfid_number', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('kode', function ($query, $keyword) {
+                    $query->whereHas('asset', function ($q) use ($keyword) {
+                        $q->where('kode', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('asset', function ($query, $keyword) {
+                    $query->whereHas('asset', function ($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%");
                     });
                 })
                 ->filterColumn('requested_by', function ($query, $keyword) {
@@ -222,7 +245,7 @@ class ApprovalController extends Controller
                         $kecamatanName
                     ]);
                 })
-                ->addColumn('requested_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
+                ->addColumn('requested_at', fn($row) => $row->created_at->format('Y-m-d'))
                 ->addColumn('status', function ($row) {
                     $color = match ($row->status) {
                         'pending' => 'warning',
@@ -231,6 +254,16 @@ class ApprovalController extends Controller
                         default => 'secondary'
                     };
                     return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
+                })
+                ->filterColumn('rfid_number', function ($query, $keyword) {
+                    $query->whereHas('asset', function ($q) use ($keyword) {
+                        $q->whereRaw('LOWER(rfid_number) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                    });
+                })
+                ->filterColumn('kode', function ($query, $keyword) {
+                    $query->whereHas('asset', function ($q) use ($keyword) {
+                        $q->whereRaw('LOWER(kode) LIKE ?', ['%' . strtolower($keyword) . '%']);
+                    });
                 })
                 ->filterColumn('asset_name', function ($query, $keyword) {
                     $query->whereHas('asset', function ($q) use ($keyword) {
@@ -254,7 +287,7 @@ class ApprovalController extends Controller
                     $query->where('status', 'like', "%{$keyword}%");
                 })
                 ->filterColumn('requested_at', function ($query, $keyword) {
-                    $query->whereRaw("DATE_FORMAT(created_at, '%d-%m-%Y %H:%i') LIKE ?", ["%{$keyword}%"]);
+                    $query->whereRaw("DATE_FORMAT(created_at, '%Y-%m-%d') LIKE ?", ["%{$keyword}%"]);
                 })
                 ->rawColumns(['status'])
                 ->make(true);
@@ -320,9 +353,23 @@ class ApprovalController extends Controller
                 </a>';
                 })
                 ->editColumn('created_at', function ($row) {
-                    return $row->created_at->format('d-m-Y H:i');
+                    return $row->created_at->format('Y-m-d');
                 })
-
+                ->filterColumn('rfid_number', function ($query, $keyword) {
+                    $query->whereHas('asset', function ($q) use ($keyword) {
+                        $q->where('rfid_number', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('kode', function ($query, $keyword) {
+                    $query->whereHas('asset', function ($q) use ($keyword) {
+                        $q->where('kode', 'like', "%{$keyword}%");
+                    });
+                })
+                ->filterColumn('user', function ($query, $keyword) {
+                    $query->whereHas('requester', function ($q) use ($keyword) {
+                        $q->where('name', 'like', "%{$keyword}%");
+                    });
+                })
                 ->filterColumn('keterangan', function ($query, $keyword) {
                     $query->whereRaw('LOWER(payload) LIKE ?', ['%' . strtolower($keyword) . '%']);
                 })
@@ -726,7 +773,8 @@ class ApprovalController extends Controller
     /**
      * Get list sekolah by kecamatan_id via request ajax
      */
-    public function getSchoolsByDistrictJSON(Kecamatan $kecamatan) {
+    public function getSchoolsByDistrictJSON(Kecamatan $kecamatan)
+    {
         if (!$kecamatan) {
             return response()->json([
                 'status' => 'fail',

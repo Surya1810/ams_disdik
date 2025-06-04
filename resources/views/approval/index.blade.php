@@ -71,7 +71,7 @@
                                     <th>Keterangan</th>
                                     <th>Status</th>
                                     <th>Waktu</th>
-                                    <th>Alasan</th>
+                                    <th>Alasan Ditolak</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -105,41 +105,49 @@
      },
      {
       data: 'rfid_number', // data
-      name: 'assets.rfid_number' // name sesuai kolom join
+      name: 'assets.rfid_number', // name sesuai kolom join
+      className: 'text-center'
      },
      {
-      data: 'kode', // data
-      name: 'assets.kode' // name sesuai kolom join
+      data: 'kode',
+      name: 'assets.kode',
+      className: 'text-center'
      },
      {
-      data: 'asset', // data
-      name: 'assets.name' // name sesuai kolom join
+      data: 'asset_name',
+      name: 'asset_name',
+      className: 'text-center'
      },
      {
       data: 'requester',
-      name: 'u.name' // karena join ke 'users as u'
+      name: 'u.name',
+      className: 'text-center'
      },
      {
       data: 'type',
-      name: 'type'
+      name: 'type',
+      className: 'text-center'
      },
      {
       data: 'keterangan',
-      name: 'payload.keterangan', // tetap non-orderable
+      name: 'keterangan',
       orderable: false,
-      searchable: false
      },
      {
       data: 'status',
-      name: 'status'
+      name: 'status',
+      className: 'text-center',
+      orderable: false
      },
      {
       data: 'waktu',
-      name: 'waktu'
+      name: 'waktu',
+      className: 'text-center'
      },
      {
       data: 'rejection_note',
       name: 'rejection_note',
+      className: 'text-center',
       orderable: false,
       searchable: false
      },

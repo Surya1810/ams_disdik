@@ -43,12 +43,15 @@ class ScanController extends Controller
 
             return DataTables::of($query)
                 ->addColumn('created_at', function ($scan) {
-                    return $scan->created_at->format('Y-m-d H:i');
+                    return $scan->created_at->format('Y-m-d');
                 })
                 ->addColumn('actions', function ($row) {
                     $button = '<a href="' . route('scanned.detail', $row->id) . '" class="btn btn-link p-0 edit-asset"><i class="fa-solid fa-eye" data-bs-toggle="tooltip" data-bs-placement="top" title="Detail"></i></a>';
 
                     return $button;
+                })
+                ->filterColumn('created_at', function ($query, $keyword) {
+                    $query->whereRaw("DATE_FORMAT(created_at, '%Y-%m-%d') like ?", ["%$keyword%"]);
                 })
                 ->rawColumns(['actions'])
                 ->make(true);

@@ -177,7 +177,7 @@
                 { data: 'id', name: 'id', visible: false },
                 { data: 'rfid_number', name: 'rfid_number' },
                 { data: 'kode', name: 'kode' },
-                { data: 'asset_name', name: 'asset_name' },
+                { data: 'asset', name: 'asset' },
                 { data: 'requested_by', name: 'requested_by' },
                 {
                     data: 'from',

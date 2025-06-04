@@ -94,7 +94,6 @@
                 <strong>Lantai:</strong> {{ $from['lantai'] ?? '-' }}<br>
                 <strong>Ruangan:</strong> {{ $from['ruangan'] ?? '-' }}<br>
                 <strong>Detail:</strong> {{ $from['detail'] ?? '-' }}<br>
-                <strong>Keterangan:</strong> {{ $from['keterangan'] ?? '-' }}
             </td>
         </tr>
         <tr>
@@ -106,13 +105,17 @@
                 <strong>Lantai:</strong> {{ $to['lantai'] ?? '-' }}<br>
                 <strong>Ruangan:</strong> {{ $to['ruangan'] ?? '-' }}<br>
                 <strong>Detail:</strong> {{ $to['detail'] ?? '-' }}<br>
-                <strong>Keterangan:</strong> {{ $to['keterangan'] ?? '-' }}
             </td>
         </tr>
         <tr>
             <td>Tanggal Peminjaman</td>
             <td>:</td>
             <td>{{ \Carbon\Carbon::parse($loan->created_at)->translatedFormat('d F Y') }}</td>
+        </tr>
+        <tr>
+            <td>Keterangan</td>
+            <td>:</td>
+            <td>{{ $payload['keterangan'] ?? '-' }}</td>
         </tr>
     </table>
 

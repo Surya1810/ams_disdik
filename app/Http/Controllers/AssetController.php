@@ -470,7 +470,7 @@ class AssetController extends Controller
                     'tanggal_perawatan',
                     fn($row) =>
                     $row->tanggal_perawatan
-                        ? \Carbon\Carbon::parse($row->tanggal_perawatan)->format('d-m-Y')
+                        ? \Carbon\Carbon::parse($row->tanggal_perawatan)->format('Y-m-d')
                         : '-'
                 )
                 ->editColumn(
@@ -478,12 +478,38 @@ class AssetController extends Controller
                     fn($row) =>
                     $row->waktu_perawatan ? $row->waktu_perawatan . ' Minggu' : '-'
                 )
+                ->editColumn('harga_perawatan', function ($row) {
+                    return 'Rp' . number_format($row->harga_perawatan, 0, ',', '.');
+                })
                 ->setRowClass(function ($row) {
-                    $waktuPerawatan = is_numeric($row->waktu_perawatan) ? (int) $row->waktu_perawatan : 0;
+                    $waktuPerawatan = is_numeric($row->waktu_perawatan)
+                        ? (int) $row->waktu_perawatan : 0;
                     $jatuhTempo = $row->tanggal_perawatan
                         ? \Carbon\Carbon::parse($row->tanggal_perawatan)->addWeeks($waktuPerawatan)
                         : null;
                     return ($jatuhTempo && $jatuhTempo->isPast()) ? 'table-danger' : '';
+                })
+                ->filterColumn('rfid_number', function ($query, $keyword) {
+                    $query->where('rfid_number', 'like', '%' . $keyword . '%');
+                })
+                ->filterColumn('kode', function ($query, $keyword) {
+                    $query->where('kode', 'like', '%' . $keyword . '%');
+                })
+                ->filterColumn('kecamatan', function ($query, $keyword) {
+                    $query->whereHas('sekolah.kecamatan', function ($q) use ($keyword) {
+                        $q->where('name', 'like', '%' . $keyword . '%');
+                    });
+                })
+                ->filterColumn('tanggal_perawatan', function ($query, $keyword) {
+                    $query->whereDate('tanggal_perawatan', 'like', '%' . $keyword . '%');
+                })
+                ->filterColumn('harga_perawatan', function ($query, $keyword) {
+                    $query->where('harga_perawatan', 'like', '%' . $keyword . '%');
+                })
+                ->filterColumn('harga_perawatan', function ($query, $keyword) {
+                    $cleaned = preg_replace('/[^\d]/', '', $keyword);
+                    $numeric = (float) $cleaned;
+                    $query->whereRaw("CAST(harga_perawatan AS UNSIGNED) = ?", [$numeric]);
                 })
                 ->with('totalSeluruhHarga', $totalSeluruhHarga)
                 ->rawColumns(['checkbox'])

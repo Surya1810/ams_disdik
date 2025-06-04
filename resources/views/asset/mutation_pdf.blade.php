@@ -115,7 +115,6 @@
                 <strong>NIP:</strong> {{ $from['nip_pic'] ?? '-' }}<br>
                 <strong>Jabatan:</strong> {{ $from['jabatan_pic'] ?? '-' }}<br>
                 <strong>No. Telepon:</strong> {{ $from['telp_pic'] ?? '-' }}<br>
-                <strong>Keterangan:</strong> {{ $from['keterangan'] ?? '-' }}
             </td>
         </tr>
         <tr>
@@ -126,8 +125,12 @@
                 <strong>NIP:</strong> {{ $to['nip_pic'] ?? '-' }}<br>
                 <strong>Jabatan:</strong> {{ $to['jabatan_pic'] ?? '-' }}<br>
                 <strong>No. Telepon:</strong> {{ $to['telp_pic'] ?? '-' }}<br>
-                <strong>Keterangan:</strong> {{ $to['keterangan'] ?? '-' }}
             </td>
+        </tr>
+        <tr>
+            <td class="label" valign="top">Keterangan</td>
+            <td class="separator" valign="top">:</td>
+            <td class="content">{{ $payload['keterangan'] ?? '-' }}</td>
         </tr>
     </table>
 

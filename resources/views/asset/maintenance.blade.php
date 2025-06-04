@@ -43,7 +43,7 @@
                                 <option value="">Semua Waktu</option>
                                 @for ($i = 1; $i <= 48; $i++) <option value="{{ $i }}">{{ $i }} Minggu</option>
                                     @endfor
-                            </select>                            
+                            </select>
                         </div>
 
                         <div class="mb-3">
@@ -104,7 +104,7 @@
 <script type="text/javascript">
     $(document).ready(function() {
         let userRoleId = {{ auth()->user()->role->id }};
-        
+
         let columns = [
             {
                 data: null,
@@ -124,14 +124,15 @@
                     return '';
                 }
             },
-            { data: 'rfid_number', name: 'rfid_number' },
-            { data: 'kode', name: 'kode' },
-            { data: 'name', name: 'name' },
-            { data: 'kondisi', name: 'kondisi' },
-            { data: 'tanggal_perawatan', name: 'tanggal_perawatan' },
+            { data: 'rfid_number', name: 'rfid_number', className: 'text-center' },
+            { data: 'kode', name: 'kode', className: 'text-center' },
+            { data: 'name', name: 'name', className: 'text-center' },
+            { data: 'kondisi', name: 'kondisi', className: 'text-center' },
+            { data: 'tanggal_perawatan', name: 'tanggal_perawatan', className: 'text-center' },
             {
                 data: 'waktu_perawatan',
                 name: 'waktu_perawatan',
+                className: 'text-center',
                 render: function(data) {
                     return data ? `${data}` : '-';
                 }
@@ -139,13 +140,7 @@
             {
                 data: 'harga_perawatan',
                 name: 'harga_perawatan',
-                render: function(data) {
-                    data = data || 0;
-                    return 'Rp ' + parseInt(data).toLocaleString('id-ID');
-                },
-                className: 'text-end',
-                orderable: false,
-                searchable: false
+                className: 'text-center',
             }
         ];
 
