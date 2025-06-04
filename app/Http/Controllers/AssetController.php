@@ -595,21 +595,25 @@ class AssetController extends Controller
         $tempat = $request->query('tempat');
         $tahun  = $request->query('tahun');
 
-        if ($roleId == 2) {
-            if (is_null($tempat)) {
-                return redirect()
-                    ->route('asset.index')
-                    ->with([
-                        'pesan' => 'Mohon pilih satu kecamatan saja untuk di export!',
-                        'level-alert' => 'alert-warning'
-                    ]);
+        if ($tempat) {
+            if ($roleId == 2) {
+                if (is_null($tempat)) {
+                    return redirect()
+                        ->route('asset.index')
+                        ->with([
+                            'pesan' => 'Mohon pilih satu kecamatan saja untuk di export!',
+                            'level-alert' => 'alert-warning'
+                        ]);
+                }
+
+                $tempatForFileName = Kecamatan::where('id', $tempat)->first()->name;
             }
 
-            $tempatForFileName = Kecamatan::where('id', $tempat)->first()->name;
-        }
-
-        if ($roleId == 3) {
-            $tempatForFileName = Sekolah::where('id', $tempat)->first()->name;
+            if ($roleId == 3) {
+                $tempatForFileName = Sekolah::where('id', $tempat)->first()->name;
+            }
+        } else {
+            $tempatForFileName = 'Semua Sekolah';
         }
 
         $date = date('Y-m-d');
