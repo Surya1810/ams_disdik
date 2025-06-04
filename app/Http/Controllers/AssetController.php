@@ -597,15 +597,6 @@ class AssetController extends Controller
 
         if ($tempat) {
             if ($roleId == 2) {
-                if (is_null($tempat)) {
-                    return redirect()
-                        ->route('asset.index')
-                        ->with([
-                            'pesan' => 'Mohon pilih satu kecamatan saja untuk di export!',
-                            'level-alert' => 'alert-warning'
-                        ]);
-                }
-
                 $tempatForFileName = Kecamatan::where('id', $tempat)->first()->name;
             }
 
@@ -613,7 +604,7 @@ class AssetController extends Controller
                 $tempatForFileName = Sekolah::where('id', $tempat)->first()->name;
             }
         } else {
-            $tempatForFileName = 'Semua Sekolah';
+            $tempatForFileName = 'SEMUA SEKOLAH';
         }
 
         $date = date('Y-m-d');

@@ -51,7 +51,7 @@ class AssetsExport implements FromQuery, WithEvents, WithTitle, WithMapping, Sho
 
         if ($this->sekolahId) {
             if ($roleId == 3) {
-                $asset->where('tempat', $this->sekolahId);
+                $asset->where('sekolah_id', $this->sekolahId);
             }
 
             if ($roleId == 2) {
