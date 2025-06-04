@@ -56,7 +56,7 @@ class AssetController extends Controller
 
             // Filter berdasarkan kecamatan untuk role 2 dan 3
             $assetsQuery->whereHas('sekolah', function ($query) use ($kecamatanId, $roleId) {
-                if ($roleId === 3) {
+                if ($roleId == 3) {
                     $query->where('kecamatan_id', $kecamatanId);
                 }
             });
@@ -310,7 +310,7 @@ class AssetController extends Controller
             $oldValues = $asset->toArray(); // ambil semua data lama
 
             // Update tag status jika berubah
-            if ($validated['tag'] !== $asset->rfid_number) {
+            if ($validated['tag'] != $asset->rfid_number) {
                 Tag::where('rfid_number', $asset->rfid_number)->update(['status' => 'available']);
                 Tag::where('rfid_number', $validated['tag'])->update(['status' => 'used']);
             }

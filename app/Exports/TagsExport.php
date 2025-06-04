@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Tag;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -23,9 +24,21 @@ class TagsExport implements FromCollection, WithHeadings, WithStyles, WithEvents
     public function collection()
     {
         $selectedColumns = ['rfid_number', 'status', 'created_at'];
-        $query = $this->status
-            ? Tag::where('status', $this->status)->get($selectedColumns)
-            : Tag::get($selectedColumns);
+
+        if (Auth::user()->role_id == 3) {
+            $query = $this->status
+                ? Tag::where('status', $this->status)
+                    ->where('kecamatan_id', Auth::user()->kecamatan_id)
+                    ->get($selectedColumns)
+                : Tag::where('kecamatan_id', Auth::user()->kecamatan_id)
+                    ->get($selectedColumns);
+        }
+
+        if (Auth::user()->role_id == 2) {
+            $query = $this->status
+                ? Tag::where('status', $this->status)->get($selectedColumns)
+                : Tag::get($selectedColumns);
+        }
 
         return $query->map(function ($row) {
             return [
