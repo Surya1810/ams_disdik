@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Kecamatan;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Tag;
 
 class KecamatanController extends Controller
 {
@@ -14,7 +16,6 @@ class KecamatanController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            // Ambil data kecamatan dengan jumlah sekolah, kecuali id 1 dan 2
             $kecamatans = Kecamatan::withCount('sekolahs')
                 ->whereNotIn('id', [1, 2]);
 
@@ -26,21 +27,46 @@ class KecamatanController extends Controller
                     }
                 })
                 ->addColumn('action', function ($row) {
-                    return '
-                <a href="javascript:void(0)" class="text-primary px-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"
-                    onclick="editKecamatan(' . $row->id . ', \'' . addslashes($row->name) . '\')">
-                    <i class="fa-solid fa-pencil"></i>
-                </a>
-                <a href="javascript:void(0)" class="text-danger px-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus"
-                    onclick="deleteKecamatan(' . $row->id . ')">
-                    <i class="fa-solid fa-trash"></i>
-                </a>
-                <form id="delete-form-' . $row->id . '" action="' . route('kecamatan.destroy', $row->id) . '" method="POST" style="display: none;">
-                    ' . csrf_field() . method_field('DELETE') . '
-                </form>
-                    ';
-                })
+                    $user = Auth::user();
+                    $showDelete = true;
 
+                    if ($user->role_id == 2) {
+                        $row->loadMissing('sekolahs.assets');
+
+                        /**
+                         * Jika ada sekolah yang punya asset,
+                         * maka jangan tampilkan tombol hapus
+                         **/
+                        $hasAsset = $row->sekolahs->contains(function ($sekolah) {
+                            return $sekolah->assets->isNotEmpty();
+                        });
+
+                        if ($hasAsset) {
+                            $showDelete = false;
+                        }
+                    }
+
+                    $buttons = '
+                        <a href="javascript:void(0)" class="text-primary px-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Ubah"
+                            onclick="editKecamatan(' . $row->id . ', \'' . addslashes($row->name) . '\')">
+                            <i class="fa-solid fa-pencil"></i>
+                        </a>
+                    ';
+
+                    if ($showDelete) {
+                        $buttons .= '
+                            <a href="javascript:void(0)" class="text-danger px-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus"
+                                onclick="deleteKecamatan(' . $row->id . ')">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                            <form id="delete-form-' . $row->id . '" action="' . route('kecamatan.destroy', $row->id) . '" method="POST" style="display: none;">
+                                ' . csrf_field() . method_field('DELETE') . '
+                            </form>
+                            ';
+                    }
+
+                    return $buttons;
+                })
                 ->rawColumns(['action'])
                 ->make(true);
         }
@@ -85,10 +111,21 @@ class KecamatanController extends Controller
     public function destroy(Kecamatan $kecamatan)
     {
         if ($kecamatan->sekolahs()->exists()) {
-            return redirect()->back()->with(['pesan' => 'Kecamatan ini memiliki sekolah, tidak bisa dihapus.', 'level-alert' => 'alert-danger']);
+            return redirect()->back()->with([
+                'pesan' => 'Kecamatan ini memiliki sekolah, tidak bisa dihapus.',
+                'level-alert' => 'alert-danger'
+            ]);
         }
 
+        // Pindahkan semua tag ke kecamatan_id = 2 (Dispora)
+        Tag::where('kecamatan_id', $kecamatan->id)
+            ->update(['kecamatan_id' => 2]);
+
         $kecamatan->delete();
-        return redirect()->route('kecamatan.index')->with(['pesan' => 'Kecamatan berhasil dihapus', 'level-alert' => 'alert-success']);
+
+        return redirect()->route('kecamatan.index')->with([
+            'pesan' => 'Kecamatan berhasil dihapus dan semua tag dikembalikan ke Dispora.',
+            'level-alert' => 'alert-success'
+        ]);
     }
 }

@@ -153,10 +153,11 @@
     function deleteKecamatan(id) {
         Swal.fire({
             title: 'Apakah Anda yakin?',
-            text: "Data kecamatan akan dihapus permanen!",
+            text: "Data kecamatan akan dihapus permanen dan tag dikembalikan ke Dispora! Pastikan tidak ada sekolah dan aset di kecamatan ini!",
             icon: 'warning',
             confirmButtonColor: '#d33',
             confirmButtonText: 'Hapus',
+            showCancelButton: true
         }).then((result) => {
             if (result.isConfirmed) {
                 document.getElementById('delete-form-' + id).submit();
