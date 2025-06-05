@@ -627,7 +627,7 @@
 
     <!-- Modal Edit Aset -->
     <div class="modal fade" id="editAset" aria-labelledby="editAsetLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">
@@ -1100,7 +1100,7 @@
 
     <!-- Modal Show Aset -->
     <div class="modal fade" id="showAset" aria-labelledby="showAsetLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">
