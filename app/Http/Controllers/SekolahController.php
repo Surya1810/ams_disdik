@@ -94,7 +94,6 @@ class SekolahController extends Controller
         ]);
     }
 
-
     public function edit($id)
     {
         $sekolah = Sekolah::findOrFail($id);
@@ -113,13 +112,31 @@ class SekolahController extends Controller
     public function update(Request $request, Sekolah $sekolah)
     {
         $request->validate([
-            'name' => 'required|string|unique:sekolahs,name,' . $sekolah->id,
-            'kecamatan_id' => 'required|exists:kecamatans,id',
+            'name' => 'required|string|max:255',
+            'category' => 'required|string',
+            'kecamatan_id' => 'required|integer|exists:kecamatans,id',
         ]);
 
+        $rawName = $request->name;
+        $cleanedName = preg_replace('/^(SD|SMP|SMA|SMK|MA|MTS|TK|Kantor)\s+/i', '', $rawName);
+
+        // Cek apakah ada sekolah lain dengan nama dan kategori yang sama
+        $duplicate = Sekolah::where('id', '!=', $sekolah->id)
+            ->where('name', 'like', "%$cleanedName%")
+            ->where('category', $request->category)
+            ->first();
+
+        if ($duplicate) {
+            return redirect()->back()->with([
+                'pesan' => 'Sekolah dengan nama dan kategori yang sama sudah ada',
+                'level-alert' => 'alert-danger'
+            ]);
+        }
+
         $sekolah->update([
-            'name' => $request->input('name'),
-            'kecamatan_id' => $request->input('kecamatan_id'),
+            'name' => $cleanedName,
+            'category' => $request->category,
+            'kecamatan_id' => $request->kecamatan_id,
         ]);
 
         return redirect()->route('sekolah.index')->with([
@@ -127,6 +144,7 @@ class SekolahController extends Controller
             'level-alert' => 'alert-success'
         ]);
     }
+
 
     /**
      * Remove the specified resource from storage.

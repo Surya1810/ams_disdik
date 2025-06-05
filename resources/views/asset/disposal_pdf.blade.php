@@ -83,6 +83,11 @@ $penanggungJawab = $asset->location->name ?? '........';
 
     <table>
         <tr>
+            <td width="30%">RFID Number</td>
+            <td width="5%">:</td>
+            <td>{{ $asset->rfid_number ?? '-' }}</td>
+        </tr>
+        <tr>
             <td width="30%">Nama Aset</td>
             <td width="5%">:</td>
             <td>{{ $asset->name ?? '-' }}</td>

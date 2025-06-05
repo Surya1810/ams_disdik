@@ -98,6 +98,11 @@
 
     <table>
         <tr>
+            <td class="label">RFID Number</td>
+            <td class="separator">:</td>
+            <td class="content">{{ $mutation->asset->rfid_number ?? '-' }}</td>
+        </tr>
+        <tr>
             <td class="label">Nama Aset</td>
             <td class="separator">:</td>
             <td class="content">{{ $mutation->asset->name ?? '-' }}</td>

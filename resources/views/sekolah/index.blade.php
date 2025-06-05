@@ -152,11 +152,12 @@
                             <!-- Body Modal -->
                             <div class="card-body mb-3">
                                 <input type="hidden" id="edit_sekolah_id" name="sekolah_id">
+                                <input type="hidden" id="edit_category_hidden" name="category" value="">
 
                                 <!-- Input Kategori -->
                                 <div class="mb-3">
                                     <label for="edit_category" class="form-label">Kategori</label>
-                                    <input type="text" id="edit_category" name="name" class="form-control" disabled>
+                                    <input type="text" id="edit_category" class="form-control" disabled>
                                 </div>
 
                                 <!-- Input Nama Sekolah -->
@@ -267,6 +268,7 @@
             $('#edit_name').val(name);
             $('#edit_kecamatan_id').val(kecamatan_id).trigger('change');
             $('#edit_category').val(category).trigger('change');
+            $('#edit_category_hidden').val(category);
 
             let actionUrl = "{{ route('sekolah.update', ':id') }}".replace(':id', id);
             $('#editSekolahForm').attr('action', actionUrl);

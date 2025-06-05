@@ -609,7 +609,8 @@ class AssetController extends Controller
 
         $date = date('Y-m-d');
         $kondisiForFileName = $kondisi ? strtoupper($kondisi) : 'SEMUA KONDISI';
-        $fileName = "List Data Aset - $tempatForFileName - $kondisiForFileName - $date.xlsx";
+        $tahunForFileName = $tahun ? $tahun : 'SEMUA TAHUN';
+        $fileName = "List Data Aset - $kondisiForFileName - $tempatForFileName - $tahunForFileName - $date.xlsx";
 
         return Excel::download(
             new AssetsExport($kondisi, $tempat, $tahun),

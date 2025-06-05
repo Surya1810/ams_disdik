@@ -64,6 +64,9 @@
         $('#disposalHistoryTable').DataTable({
             processing: true,
             serverSide: true,
+            responsive: true,
+            scrollX: true,
+            headerScroll: true,
             ajax: '{{ route('histories.disposal') }}',
             language: {
                     searchPlaceholder: "Input RFID Number"

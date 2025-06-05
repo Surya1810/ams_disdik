@@ -143,7 +143,7 @@ class ApprovalController extends Controller
                     }
                     return '-';
                 })
-                ->addColumn('requested_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
+                ->addColumn('requested_at', fn($row) => $row->created_at->format('Y-m-d'))
                 ->addColumn('status', function ($row) {
                     $color = match ($row->status) {
                         'pending' => 'warning',

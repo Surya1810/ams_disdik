@@ -62,6 +62,9 @@
             $('#changesTable').DataTable({
                 processing: true,
                 serverSide: true,
+                responsive: true,
+                scrollX: true,
+                headerScroll: true,
                 ajax: "{{ route('histories.changes') }}",
                 language: {
                     searchPlaceholder: "Input RFID Number"

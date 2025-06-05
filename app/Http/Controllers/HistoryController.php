@@ -93,7 +93,7 @@ class HistoryController extends Controller
                 ->filterColumn('rfid_number', function ($query, $keyword) {
                     $query->whereRaw("LOWER(JSON_UNQUOTE(JSON_EXTRACT(old_asset, '$.rfid_number'))) LIKE ?", ["%" . strtolower($keyword) . "%"]);
                 })
-                ->editColumn('created_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
+                ->editColumn('created_at', fn($row) => $row->created_at->format('Y-m-d'))
                 ->rawColumns(['perubahan'])
                 ->make(true);
         }
@@ -173,7 +173,7 @@ class HistoryController extends Controller
                 ->filterColumn('rfid_number', function ($query, $keyword) {
                     $query->whereRaw("LOWER(JSON_UNQUOTE(JSON_EXTRACT(old_asset, '$.rfid_number'))) LIKE ?", ["%" . strtolower($keyword) . "%"]);
                 })
-                ->editColumn('created_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
+                ->editColumn('created_at', fn($row) => $row->created_at->format('Y-m-d'))
                 ->rawColumns(['dari', 'ke'])
                 ->make(true);
         }
@@ -218,7 +218,7 @@ class HistoryController extends Controller
                     // Ambil nama sekolah jika ada
                     if (isset($oldValues['sekolah_id'])) {
                         $sekolah = \App\Models\Sekolah::find($oldValues['sekolah_id']);
-                        $oldValues['sekolah'] = $sekolah->name ?? '-';
+                        $oldValues['sekolah'] = $sekolah->category . ' ' . $sekolah->name;
                         unset($oldValues['sekolah_id']);
                     }
 
@@ -247,7 +247,7 @@ class HistoryController extends Controller
 
                     if (isset($newValues['sekolah_id'])) {
                         $sekolah = \App\Models\Sekolah::find($newValues['sekolah_id']);
-                        $newValues['sekolah'] = $sekolah->name ?? '-';
+                        $newValues['sekolah'] = $sekolah->category . ' ' . $sekolah->name;
                         unset($newValues['sekolah_id']);
                     }
 
@@ -273,7 +273,7 @@ class HistoryController extends Controller
                 ->filterColumn('rfid_number', function ($query, $keyword) {
                     $query->whereRaw("LOWER(JSON_UNQUOTE(JSON_EXTRACT(old_asset, '$.rfid_number'))) LIKE ?", ["%" . strtolower($keyword) . "%"]);
                 })
-                ->editColumn('created_at', fn($row) => $row->created_at->format('d-m-Y H:i'))
+                ->editColumn('created_at', fn($row) => $row->created_at->format('Y-m-d'))
                 ->rawColumns(['dari', 'ke'])
                 ->make(true);
         }
@@ -343,7 +343,7 @@ class HistoryController extends Controller
                     return '<span class="badge bg-' . $statusBadge . '">' . $statusText . '</span>';
                 })
                 ->editColumn('created_at', function ($row) {
-                    return $row->created_at->format('d-m-Y H:i');
+                    return $row->created_at->format('Y-m-d');
                 })
                 ->filterColumn('rfid_number', function ($query, $keyword) {
                     $query->whereRaw("LOWER(JSON_UNQUOTE(JSON_EXTRACT(old_asset, '$.rfid_number'))) LIKE ?", ["%" . strtolower($keyword) . "%"]);
