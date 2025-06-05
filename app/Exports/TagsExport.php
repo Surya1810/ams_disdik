@@ -34,7 +34,7 @@ class TagsExport implements FromCollection, WithHeadings, WithStyles, WithEvents
                     ->get($selectedColumns);
         }
 
-        if (Auth::user()->role_id == 2) {
+        if (Auth::user()->role_id == 2 || Auth::user()->role_id == 1) {
             $query = $this->status
                 ? Tag::where('status', $this->status)->get($selectedColumns)
                 : Tag::get($selectedColumns);
