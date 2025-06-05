@@ -115,7 +115,7 @@
                     render: function(data, type, row) {
                         if (!row.tanggal_perawatan || row.tanggal_perawatan === '-') return '';
                         let parts = row.tanggal_perawatan.split('-');
-                        let tanggalPerawatan = new Date(parts[2], parts[1] - 1, parts[0]);
+                        let tanggalPerawatan = new Date(parts[0], parts[1] - 1, parts[2]);
                         let today = new Date();
                         today.setHours(0, 0, 0, 0);
                         tanggalPerawatan.setHours(0, 0, 0, 0);
