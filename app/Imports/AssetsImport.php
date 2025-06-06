@@ -13,6 +13,7 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 
 use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
 {
@@ -65,8 +66,16 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
                     continue;
                 }
 
-                // Mengonversi tanggal perawatan menjadi format yang benar
-                $tanggalPerawatan = Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['tanggal_perawatan']));
+                $tanggalPerawatan = null;
+                if (is_numeric($row['tanggal_perawatan'])) {
+                    $tanggalPerawatan = Carbon::instance(Date::excelToDateTimeObject($row['tanggal_perawatan']));
+                } elseif (is_string($row['tanggal_perawatan'])) {
+                    try {
+                        $tanggalPerawatan = Carbon::parse($row['tanggal_perawatan']);
+                    } catch (\Exception $e) {
+                        $tanggalPerawatan = null;
+                    }
+                }
 
                 $data = [
                     'rfid_number' => $row['tag'],
