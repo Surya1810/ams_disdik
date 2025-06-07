@@ -90,6 +90,7 @@
     <table>
         <thead>
             <tr>
+                <th>RFID Number</th>
                 <th>Nama Barang</th>
                 <th>Kondisi</th>
                 <th>Tanggal Perawatan</th>
@@ -101,6 +102,7 @@
             @php $total = 0; @endphp
             @forelse($maintenanceList as $item)
             <tr>
+                <td>{{ $item->rfid_number ?? '-' }}</td>
                 <td>{{ $item->name ?? '-' }}</td>
                 <td>{{ $item->kondisi ?? '-' }}</td>
                 <td>{{ \Carbon\Carbon::parse($item->tanggal_perawatan)->translatedFormat('d F Y') }}</td>

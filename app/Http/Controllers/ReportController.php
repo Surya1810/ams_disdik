@@ -192,7 +192,7 @@ class ReportController extends Controller
                 }
             ])
             ->select('id', 'name')
-            ->whereNotIn('id', [1, 2]);
+            ->whereNot('id', 1);
 
         if ($request->filled('kecamatan')) {
             $query = $query->where('id', $request->kecamatan);
