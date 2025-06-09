@@ -58,6 +58,12 @@ class SekolahController extends Controller
         return view('sekolah.index', compact('kecamatans'));
     }
 
+    private function normalizeSchoolName($name)
+    {
+        // Hilangkan prefix dan spasi berlebih, lowercase
+        $name = preg_replace('/^(SD|SMP|SMA|SMK|MA|MTS|TK|Kantor)\s+/i', '', $name);
+        return strtolower(trim(preg_replace('/\s+/', ' ', $name)));
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -70,12 +76,14 @@ class SekolahController extends Controller
             'kecamatan_id' => 'required|integer|exists:kecamatans,id',
         ]);
 
-        $rawName = $request->name;
-        $cleanedName = preg_replace('/^(SD|SMP|SMA|SMK|MA|MTS|TK|Kantor)\s+/i', '', $rawName);
+        $cleanedName = $this->normalizeSchoolName($request->name);
 
-        $sekolah = Sekolah::where('name', 'like', "%$cleanedName%")->first();
+        $sekolah = Sekolah::get()->first(function ($item) use ($cleanedName, $request) {
+            $itemName = $this->normalizeSchoolName($item->name);
+            return $itemName === $cleanedName && $item->category == $request->category;
+        });
 
-        if ($sekolah && $sekolah->category == $request->category) {
+        if ($sekolah) {
             return redirect()->back()->with([
                 'pesan' => 'Sekolah dengan nama dan kategori yang sama sudah ada',
                 'level-alert' => 'alert-danger'
@@ -83,7 +91,7 @@ class SekolahController extends Controller
         }
 
         Sekolah::create([
-            'name' => $cleanedName,
+            'name' => $request->name,
             'category' => $request->category,
             'kecamatan_id' => $request->kecamatan_id,
         ]);
@@ -93,6 +101,7 @@ class SekolahController extends Controller
             'level-alert' => 'alert-success'
         ]);
     }
+
 
     public function edit($id)
     {
@@ -117,14 +126,13 @@ class SekolahController extends Controller
             'kecamatan_id' => 'required|integer|exists:kecamatans,id',
         ]);
 
-        $rawName = $request->name;
-        $cleanedName = preg_replace('/^(SD|SMP|SMA|SMK|MA|MTS|TK|Kantor)\s+/i', '', $rawName);
+        $cleanedName = $this->normalizeSchoolName($request->name);
 
-        // Cek apakah ada sekolah lain dengan nama dan kategori yang sama
-        $duplicate = Sekolah::where('id', '!=', $sekolah->id)
-            ->where('name', 'like', "%$cleanedName%")
-            ->where('category', $request->category)
-            ->first();
+        $duplicate = Sekolah::get()->first(function ($item) use ($cleanedName, $request, $sekolah) {
+            return $item->id !== $sekolah->id &&
+                $this->normalizeSchoolName($item->name) === $cleanedName &&
+                $item->category == $request->category;
+        });
 
         if ($duplicate) {
             return redirect()->back()->with([
@@ -134,7 +142,7 @@ class SekolahController extends Controller
         }
 
         $sekolah->update([
-            'name' => $cleanedName,
+            'name' => $request->name,
             'category' => $request->category,
             'kecamatan_id' => $request->kecamatan_id,
         ]);
@@ -144,7 +152,6 @@ class SekolahController extends Controller
             'level-alert' => 'alert-success'
         ]);
     }
-
 
     /**
      * Remove the specified resource from storage.
