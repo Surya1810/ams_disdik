@@ -107,9 +107,12 @@ class ApiController extends Controller
     {
         $limit = (int) $request->input('limit', 10);
         $page = (int) $request->input('page', 1);
-
         $query = $this->filterSekolahByRole(Sekolah::query());
-        $totalData = $query->count();
+        $totalSchools = $query->count();
+        $allSekolahs = $query->get();
+        $totalAssets = $allSekolahs->sum(function ($sekolah) {
+            return $sekolah->assets()->count();
+        });
         $sekolahs = $query->offset(($page - 1) * $limit)->limit($limit)->get();
 
         $data = $sekolahs->map(function ($sekolah) {
@@ -126,12 +129,14 @@ class ApiController extends Controller
             'status' => 'success',
             'data' => [
                 'listSchool' => $data,
+                'totalAssets' => $totalAssets,
+                'totalSchools' => $totalSchools,
             ],
             'paging' => [
                 'currentPage' => $page,
                 'limit' => $limit,
-                'totalData' => $totalData,
-                'totalPage' => ceil($totalData / $limit),
+                'totalData' => $totalSchools,
+                'totalPage' => ceil($totalSchools / $limit),
             ]
         ]);
     }
