@@ -116,8 +116,12 @@ class ApiController extends Controller
         });
 
         $filteredQuery = clone $baseQuery;
-        if ($category !== 'ALL') {
+        if ($category != 'ALL') {
             $filteredQuery->where('category', $category);
+        }
+
+        if ($category == 'KANTOR') {
+            $filteredQuery->where('category', 'Kantor');
         }
 
         $totalData = $filteredQuery->count();
