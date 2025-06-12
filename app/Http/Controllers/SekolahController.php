@@ -83,22 +83,22 @@ class SekolahController extends Controller
             return $itemName === $cleanedName && $item->category == $request->category;
         });
 
-        if ($sekolah) {
-            return redirect()->back()->with([
-                'pesan' => 'Sekolah dengan nama dan kategori yang sama sudah ada',
-                'level-alert' => 'alert-danger'
+        if (!$sekolah || $sekolah?->kecamatan_id != $request->kecamatan_id) {
+            Sekolah::create([
+                'name' => $request->name,
+                'category' => $request->category,
+                'kecamatan_id' => $request->kecamatan_id,
+            ]);
+
+            return redirect()->route('sekolah.index')->with([
+                'pesan' => 'Sekolah berhasil ditambahkan',
+                'level-alert' => 'alert-success'
             ]);
         }
 
-        Sekolah::create([
-            'name' => $request->name,
-            'category' => $request->category,
-            'kecamatan_id' => $request->kecamatan_id,
-        ]);
-
-        return redirect()->route('sekolah.index')->with([
-            'pesan' => 'Sekolah berhasil ditambahkan',
-            'level-alert' => 'alert-success'
+        return redirect()->back()->with([
+            'pesan' => 'Sekolah dengan nama dan kategori yang sama sudah ada',
+            'level-alert' => 'alert-danger'
         ]);
     }
 
@@ -134,22 +134,22 @@ class SekolahController extends Controller
                 $item->category == $request->category;
         });
 
-        if ($duplicate) {
-            return redirect()->back()->with([
-                'pesan' => 'Sekolah dengan nama dan kategori yang sama sudah ada',
-                'level-alert' => 'alert-danger'
+        if (!$duplicate || $sekolah?->kecamatan_id != $request->kecamatan_id) {
+            $sekolah->update([
+                'name' => $request->name,
+                'category' => $request->category,
+                'kecamatan_id' => $request->kecamatan_id,
+            ]);
+
+            return redirect()->route('sekolah.index')->with([
+                'pesan' => 'Sekolah berhasil diperbarui',
+                'level-alert' => 'alert-success'
             ]);
         }
 
-        $sekolah->update([
-            'name' => $request->name,
-            'category' => $request->category,
-            'kecamatan_id' => $request->kecamatan_id,
-        ]);
-
-        return redirect()->route('sekolah.index')->with([
-            'pesan' => 'Sekolah berhasil diperbarui',
-            'level-alert' => 'alert-success'
+        return redirect()->back()->with([
+            'pesan' => 'Sekolah dengan nama dan kategori yang sama sudah ada',
+            'level-alert' => 'alert-danger'
         ]);
     }
 

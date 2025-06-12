@@ -9,15 +9,12 @@ use App\Models\Asset;
 use App\Models\Approval;
 use App\Models\Scan;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use App\Models\ScannedTag;
 use App\Models\Kecamatan;
-use App\Models\History;
-
 use Illuminate\Support\Facades\DB;
 
 class ApiController extends Controller
@@ -43,7 +40,6 @@ class ApiController extends Controller
             'message' => $message
         ], $statusCode);
     }
-
 
     public function login(Request $request)
     {
@@ -76,7 +72,6 @@ class ApiController extends Controller
         ]);
     }
 
-
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
@@ -108,16 +103,20 @@ class ApiController extends Controller
         return $query->where('kecamatan_id', $user->kecamatan_id);
     }
 
-
-    public function getsekolah()
+    public function getsekolah(Request $request)
     {
-        $sekolahs = $this->filterSekolahByRole(Sekolah::query())->get();
+        $limit = (int) $request->input('limit', 10);
+        $page = (int) $request->input('page', 1);
 
-        $result = $sekolahs->map(function ($sekolah) {
+        $query = $this->filterSekolahByRole(Sekolah::query());
+        $totalData = $query->count();
+        $sekolahs = $query->offset(($page - 1) * $limit)->limit($limit)->get();
+
+        $data = $sekolahs->map(function ($sekolah) {
             return [
                 'id' => $sekolah->id,
                 'schoolName' => $sekolah->category . ' ' . $sekolah->name,
-                'lastStockOpname' => Scan::where('place_name', $sekolah->category . ' ' . $sekolah->name,)
+                'lastStockOpname' => Scan::where('place_name', $sekolah->category . ' ' . $sekolah->name)
                     ->orderBy('created_at', 'desc')->first()?->created_at->format('Y-m-d H:i'),
                 'totalAset' => $sekolah->assets()->count(),
             ];
@@ -126,7 +125,13 @@ class ApiController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => [
-                'listSchool' => $result,
+                'listSchool' => $data,
+            ],
+            'paging' => [
+                'currentPage' => $page,
+                'limit' => $limit,
+                'totalData' => $totalData,
+                'totalPage' => ceil($totalData / $limit),
             ]
         ]);
     }
