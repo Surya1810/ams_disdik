@@ -16,6 +16,10 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\ScannedTag;
 use App\Models\Kecamatan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
+use Illuminate\Support\Str;
 
 class ApiController extends Controller
 {
@@ -387,9 +391,13 @@ class ApiController extends Controller
                     'lastMaintenance' => optional($asset->tanggal_perawatan)->format('d/m/Y'),
                     'merk' => $asset->merk,
                     'condition' => $asset->kondisi,
-                    'imageUrl' => (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
+                    'imageUrl' => (!$asset->foto_awal || $asset->foto_awal == 'dummy.jpg')
                         ? asset('assets/Image/no_image.png')
                         : asset(Storage::url('/public/assets/' . $asset->foto_awal)),
+                    'secondImageUrl' => is_null($asset->foto_kondisi)
+                        ? asset('assets/Image/no_image.png')
+                        : asset(Storage::url('/public/assets/' . $asset->foto_kondisi)),
+                    'isMainImageCanBeUpdated' => (!$asset->foto_awal || $asset->foto_awal == 'dummy.jpg') ?? false
                 ],
                 'personInCharge' => [
                     'nip' => $asset->nip_pic,
@@ -561,11 +569,61 @@ class ApiController extends Controller
 
     public function inspection(Request $request, $idItem)
     {
-        $asset = Asset::findOrFail($idItem);
+        $validatedRequest = Validator::make($request->all(), [
+            'condition' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp',
+            'isMainImage' => 'nullable'
+        ]);
+
+        if ($validatedRequest->fails()) {
+            return response()->json([
+                'status' => 'fail',
+                'message' => $validatedRequest->errors()->first()
+            ], 400);
+        }
+
+        $asset = Asset::where('id', $idItem)->first();
+
+        if (!$asset->exists()) {
+            return response()->json([
+                'status' => 'fail',
+                'message' => 'Asset tidak ditemukan'
+            ], 404);
+        }
+
         $asset->kondisi = $request->condition;
+
+        if ($request->hasFile('image')) {
+            $isMainImage = $request->input('isMainImage', false);
+            $isMainImage = filter_var($isMainImage, FILTER_VALIDATE_BOOLEAN);
+            $filename = Str::uuid() . '.webp';
+            $path = 'assets/' . $filename;
+            $manager = new ImageManager(new Driver());
+            $image = $manager->read($request->file('image')->getPathname())
+                ->scale(width: 800)
+                ->toWebp(quality:75);
+
+            Storage::disk('public')->put($path, (string) $image);
+
+            if ($isMainImage) {
+
+                if ($asset->foto_awal && $asset->foto_awal != 'dummy.jpg') {
+                    return response()->json([
+                        'status' => 'fail',
+                        'message' => 'Foto awal asset sudah ada'
+                    ], 400);
+                }
+
+                $asset->foto_awal = $filename;
+            } else {
+                $asset->foto_kondisi = $filename;
+            }
+        }
+
         $asset->save();
 
         return response()->json([
+            'status' => 'success',
             'message' => 'Kondisi asset berhasil diperbarui'
         ]);
     }
