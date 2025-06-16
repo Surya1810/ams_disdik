@@ -450,10 +450,10 @@ class AssetController extends Controller
         $kecamatanId = Asset::findOrFail($id)->sekolah->kecamatan_id;
 
         $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
-            ? asset('assets/Image/no_image.png')
+            ? null
             : Storage::url('public/assets/' . $asset->foto_awal);
         $asset->foto_kondisi = is_null($asset->foto_kondisi)
-            ? asset('assets/Image/no_image.png')
+            ? null
             : Storage::url('public/assets/' . $asset->foto_kondisi);
 
         $places = Sekolah::where('id', $asset->sekolah_id)

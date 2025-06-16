@@ -1486,7 +1486,7 @@
 
                 if (isCondition == 1) {
                     const previewCondition = isEdit == '0'
-                        ? document.getElementById('previewImgCondition') 
+                        ? document.getElementById('previewImgCondition')
                         : document.getElementById('previewImgConditionEdit');
                     const reader = new FileReader();
                     reader.onload = function(e) {
@@ -1731,25 +1731,33 @@
             }
 
             // Event klik tombol edit
-            $('#asetTable').on('click', '.edit-asset', function() {
+            $('#asetTable').on('click', '.edit-asset', function(e) {
+                e.preventDefault();
+                $.LoadingOverlay('show');
                 const assetId = $(this).data('asset-id');
                 $.get(`/asset/${assetId}/edit`, function(response) {
                     fillAssetForm('editAset', response);
                     $('#form-edit-asset').attr('action', `/asset/${assetId}`);
                     $('#editAset').modal('show');
+                    $.LoadingOverlay('hide');
                 }).fail(function() {
                     console.error("Gagal mengambil data untuk edit.");
+                    $.LoadingOverlay('hide');
                 });
             });
 
             // Event klik tombol show
-            $('#asetTable').on('click', '.show-asset', function() {
+            $('#asetTable').on('click', '.show-asset', function(e) {
+                e.preventDefault();
+                $.LoadingOverlay('show');
                 const assetId = $(this).data('asset-id');
                 $.get(`/asset/${assetId}/edit`, function(response) {
                     fillAssetForm('showAset', response);
                     $('#showAset').modal('show');
+                    $.LoadingOverlay('hide');
                 }).fail(function() {
                     console.error("Gagal mengambil data untuk lihat.");
+                    $.LoadingOverlay('hide');
                 });
             });
 
