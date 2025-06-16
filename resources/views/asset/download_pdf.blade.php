@@ -83,7 +83,15 @@
     <div class="image-container">
         <h4>Foto Aset</h4>
         @if ($asset->foto_awal)
-        <img src="{{ $asset->foto_awal }}" alt="Foto Aset" width="300"/>
+        <img src="{{ $asset->foto_awal }}" alt="Foto Awal Aset" width="300"/>
+        @else
+        <p><em>Gambar tidak tersedia</em></p>
+        @endif
+    </div>
+    <div class="image-container">
+        <h4>Foto Aset</h4>
+        @if ($asset->foto_awal)
+        <img src="{{ $asset->foto_kondisi }}" alt="Foto Kondisi Aset Terbaru" width="300"/>
         @else
         <p><em>Gambar tidak tersedia</em></p>
         @endif

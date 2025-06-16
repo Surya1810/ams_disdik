@@ -111,10 +111,11 @@
                         <button class="btn btn-primary rounded-partner" id="exportFound" data-scan-id="{{ $scan->id }}">
                             <i class="fa-solid fa-download"></i> Export Found
                         </button>
-                        <button class="btn btn-primary rounded-partner" id="exportMissing" data-scan-id="{{ $scan->id }}">
+                        <button class="btn btn-primary rounded-partner" id="exportMissing"
+                            data-scan-id="{{ $scan->id }}">
                             <i class="fa-solid fa-download"></i> Export Missing
                         </button>
-                    </div>                    
+                    </div>
                 </div>
             </div>
         </div>
@@ -137,10 +138,21 @@
 
                                 <!-- Gambar -->
                                 <div class="col-4">
-                                    <label>Foto Awal:</label>
-                                    <div id="preview" style="margin-top: 15px;">
-                                        <img id="previewImg" src="" alt="Preview"
-                                            style="display: none; max-width: 100%; height: auto;" />
+                                    <div>
+                                        <label>Foto Awal:</label>
+                                        <div style="margin-top: 15px">
+                                            <img id="previewImg" src="" alt="Preview Foto Awal"
+                                                style="display: none; max-width: 100%; max-height: 120px;"
+                                                class="img-fluid m-0" />
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <label>Foto Kondisi Terbaru:</label>
+                                        <div style="margin-top: 15px">
+                                            <img id="previewImgConditionShow" src="" alt="Preview Foto Kondisi"
+                                                style="display: none; max-width: 100%; max-height: 120px;"
+                                                class="img-fluid m-0" />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -335,11 +347,13 @@
         const table = $('#assetTable').DataTable({
             pageLength: 10,
             lengthMenu: [
-                [10, 25, 50],
-                [10, 25, 50]
+                [10, 25, 50, 100],
+                [10, 25, 50, 100]
             ],
             processing: true,
             serverSide: true,
+            scrollX: true,
+            headerScroll: true,
             ajax: {
                 url: '{{ route('scanned.detail', $scan['id']) }}',
                 data: function(d) {
@@ -424,14 +438,14 @@
         });
 
         // Tombol untuk mengekspor data Found
-        document.getElementById('exportFound').addEventListener('click', function () {
-        const scanId = this.getAttribute('data-scan-id');
-        window.location.href = `/scan/export-found/${scanId}`;
+        document.getElementById('exportFound').addEventListener('click', function() {
+            const scanId = this.getAttribute('data-scan-id');
+            window.location.href = `/scan/export-found/${scanId}`;
         });
-        
-        document.getElementById('exportMissing').addEventListener('click', function () {
-        const scanId = this.getAttribute('data-scan-id');
-        window.location.href = `/scan/export-missing/${scanId}`;
+
+        document.getElementById('exportMissing').addEventListener('click', function() {
+            const scanId = this.getAttribute('data-scan-id');
+            window.location.href = `/scan/export-missing/${scanId}`;
         });
 
         $('#filterStatus').on('change', function() {
@@ -506,6 +520,16 @@
 
             // Preview gambar
             const $previewImg = $(`${selector} #previewImg`);
+
+            // Preview foto kondisi
+            $('#previewImgConditionShow').nextAll('span').remove();
+            asset.foto_kondisi
+                ? $('#previewImgConditionShow')
+                    .attr('src', `${asset.foto_kondisi}`)
+                    .show()
+                : $('#previewImgConditionShow')
+                    .removeAttr('src')
+                    .hide();
 
             if (asset.foto_awal) {
                 $previewImg.attr('src', `${asset.foto_awal}`).show();

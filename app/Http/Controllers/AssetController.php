@@ -196,7 +196,8 @@ class AssetController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp',
+            'image_condition' => 'nullable|image|mimes:jpeg,png,jpg,webp',
             'tag' => 'required|exists:tags,rfid_number',
             'sekolah_id' => 'required',
             'kode' => 'required|string|max:255',
@@ -231,18 +232,30 @@ class AssetController extends Controller
             $validated['rfid_number'] = $validated['tag'];
             unset($validated['tag']);
 
-            // Upload gambar
+            // Upload foto awal
             if ($request->hasFile('image') && $request->file('image')->isValid()) {
                 $filename = Str::uuid() . '.webp';
                 $path = 'assets/' . $filename;
 
                 $manager = new ImageManager(new Driver());
                 $image = $manager->read($request->file('image')->getPathname())
-                    ->scale(width: 800)
                     ->toWebp(quality: 75);
 
                 Storage::disk('public')->put($path, (string) $image);
                 $validated['foto_awal'] = $filename;
+            }
+
+            // Upload foto kondisi
+            if ($request->hasFile('image_condition') && $request->file('image_condition')->isValid()) {
+                $filename = Str::uuid() . '.webp';
+                $path = 'assets/' . $filename;
+
+                $manager = new ImageManager(new Driver());
+                $image = $manager->read($request->file('image_condition')->getPathname())
+                    ->toWebp(quality: 75);
+
+                Storage::disk('public')->put($path, (string) $image);
+                $validated['foto_kondisi'] = $filename;
             }
 
             // Simpan asset
@@ -251,7 +264,10 @@ class AssetController extends Controller
             // Update status tag jadi used
             Tag::where('rfid_number', $asset->rfid_number)->update(['status' => 'used']);
 
-            return redirect()->route('asset.index')->with(['pesan' => 'Aset berhasil ditambahkan', 'level-alert' => 'alert-success']);
+            return redirect()->route('asset.index')->with([
+                'pesan' => 'Aset berhasil ditambahkan',
+                'level-alert' => 'alert-success'
+            ]);
         } catch (\Exception $e) {
             return redirect()->back()->with([
                 'pesan' => 'Terjadi kesalahan saat menambahkan aset: ' . $e->getMessage(),
@@ -275,7 +291,8 @@ class AssetController extends Controller
         }
 
         $validated = $request->validate([
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp',
+            'image_condition' => 'nullable|image|mimes:jpeg,png,jpg,webp',
             'tag' => 'required|exists:tags,rfid_number',
             'sekolah_id' => 'required',
             'kode' => 'required|string|max:255',
@@ -318,13 +335,13 @@ class AssetController extends Controller
             $validated['rfid_number'] = $validated['tag'];
             unset($validated['tag']);
 
+            // Upload foto awal
             if ($request->hasFile('image') && $request->file('image')->isValid()) {
                 $filename = Str::uuid() . '.webp';
                 $path = 'assets/' . $filename;
 
                 $manager = new ImageManager(new Driver());
                 $image = $manager->read($request->file('image')->getPathname())
-                    ->scale(width: 800)
                     ->toWebp(quality: 75);
 
                 Storage::disk('public')->put($path, (string) $image);
@@ -334,6 +351,24 @@ class AssetController extends Controller
                 }
 
                 $validated['foto_awal'] = $filename;
+            }
+
+            // Upload foto kondisi
+            if ($request->hasFile('image_condition') && $request->file('image_condition')->isValid()) {
+                $filename = Str::uuid() . '.webp';
+                $path = 'assets/' . $filename;
+
+                $manager = new ImageManager(new Driver());
+                $image = $manager->read($request->file('image_condition')->getPathname())
+                    ->toWebp(quality: 75);
+
+                Storage::disk('public')->put($path, (string) $image);
+
+                if ($asset->foto_kondisi && Storage::disk('public')->exists('assets/' . $asset->foto_kondisi)) {
+                    Storage::disk('public')->delete('assets/' . $asset->foto_kondisi);
+                }
+
+                $validated['foto_kondisi'] = $filename;
             }
 
             $asset->update($validated);
@@ -367,7 +402,11 @@ class AssetController extends Controller
                 'old_asset' => json_encode($asset)
             ]);
 
-            return redirect()->route('asset.index')->with(['pesan' => 'Aset berhasil diperbarui', 'level-alert' => 'alert-success']);
+            return redirect()->route('asset.index')
+                ->with([
+                    'pesan' => 'Aset berhasil diperbarui',
+                    'level-alert' => 'alert-success'
+                ]);
         } catch (\Exception $e) {
             return redirect()->back()->with([
                 'pesan' => 'Terjadi kesalahan saat memperbarui aset: ' . $e->getMessage(),
@@ -413,6 +452,9 @@ class AssetController extends Controller
         $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
             ? asset('assets/Image/no_image.png')
             : Storage::url('public/assets/' . $asset->foto_awal);
+        $asset->foto_kondisi = is_null($asset->foto_kondisi)
+            ? asset('assets/Image/no_image.png')
+            : Storage::url('public/assets/' . $asset->foto_kondisi);
 
         $places = Sekolah::where('id', $asset->sekolah_id)
             ->with('kecamatan')->first();

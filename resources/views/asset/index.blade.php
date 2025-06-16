@@ -169,7 +169,7 @@
                 <div class="modal-body p-0">
                     <div class="card card-plain">
                         <form action="{{ route('asset.store') }}" method="POST" autocomplete="off"
-                            enctype="multipart/form-data">
+                            enctype="multipart/form-data" id="form-add-asset">
                             <div class="card-header pb-0 text-left">
                                 <h4 class="text-primary text-gradient">Tambah <strong>Aset</strong></h4>
                             </div>
@@ -180,13 +180,24 @@
                                         <h6>Informasi Barang</h6>
                                     </div>
                                     <div class="col-4">
-                                        <label for="image">Pilih Foto Awal:</label>
-                                        <input type="file" name="image" accept="image/*" class="form-control"
-                                            onchange="previewImage(event)" data-edit="0">
-
-                                        <div id="preview" style="margin-top: 15px;">
-                                            <img id="previewImg" src="" alt="Preview" style="display: none;" />
-                                            <p id="fileName" style="margin-top: 5px;"></p>
+                                        <div>
+                                            <label for="image">Pilih Foto Awal:</label>
+                                            <input type="file" name="image" accept="image/*" class="form-control"
+                                                onchange="previewImage(event)" data-edit="0" data-condition="0">
+                                            <div id="preview" style="margin-top: 15px; max-height: 120px;">
+                                                <img id="previewImg" src="" alt="Preview Foto Awal"
+                                                    style="display: none; max-height: 120px" class="m-0" />
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <label for="image_condition">Pilih Foto Kondisi:</label>
+                                            <input type="file" name="image_condition" accept="image/*"
+                                                class="form-control" onchange="previewImage(event)" data-edit="0"
+                                                data-condition="1" id="image_condition">
+                                            <div id="preview2" style="margin-top: 15px; max-height: 120px;">
+                                                <img id="previewImgCondition" src="" alt="Preview Foto Kondisi"
+                                                    style="display: none; max-height: 120px;" />
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-8">
@@ -644,14 +655,25 @@
                                         <h6>Informasi Barang</h6>
                                     </div>
                                     <div class="col-4">
-                                        <label for="image">Pilih Foto Awal:</label>
-                                        <input type="file" name="image" accept="image/*" class="form-control"
-                                            onchange="previewImage(event)" data-edit="1">
-
-                                        <div id="preview" style="margin-top: 15px;">
-                                            <img id="previewImgEdit" src="" alt="Preview"
-                                                style="display: none; max-width: 100%; height: auto;" />
-                                            <p id="fileNameEdit" style="margin-top: 5px;"></p>
+                                        <div>
+                                            <label for="image">Pilih Foto Awal:</label>
+                                            <input type="file" name="image" accept="image/*" class="form-control"
+                                            onchange="previewImage(event)" data-edit="1" data-condition="0">
+                                            <div id="preview" style="margin-top: 15px;" class="text-start">
+                                                <img id="previewImgEdit" src="" alt="Preview Foto Awal"
+                                                style="display: none;height: 120px;" class="img-fluid m-0"/>
+                                                <p id="fileNameEdit" style="margin-top: 5px;"></p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <label for="image_condition_edit">Pilih Foto Kondisi:</label>
+                                            <input type="file" name="image_condition" accept="image/*"
+                                                class="form-control" onchange="previewImage(event)" data-edit="1"
+                                                data-condition="1" id="image_condition_edit">
+                                            <div id="previewEdit" style="margin-top: 15px; max-height: 120px;" class="text-start">
+                                                <img id="previewImgConditionEdit" src="" alt="Preview Foto Kondisi"
+                                                    style="display: none; max-height: 120px;" class="img-fluid m-0" />
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-8">
@@ -1117,23 +1139,27 @@
 
                                 <!-- Gambar -->
                                 <div class="col-4">
-                                    <label>Foto Awal:</label>
-                                    <div id="preview" class="p-2" style="margin-top: 15px; width: 100%;">
-                                        <img id="previewImg" src="" alt="Preview"
-                                            style="display: none; max-width: 100%; max-height: 200px;"
+                                    <div>
+                                        <label>Foto Awal:</label>
+                                        <div style="margin-top: 15px">
+                                            <img id="previewImg" src="" alt="Preview Foto Awal"
+                                            style="display: none; max-width: 100%; max-height: 120px;"
                                             class="img-fluid m-0" />
+                                        </div>
                                     </div>
-                                    <hr>
-                                    <label>Foto Kondisi Terbaru: <a id="previewImgKondisiLink" target="_blank" rel="noopener noreferrer"
-                                            class="text-decoration-none">
-                                            <i class="fa fa-eye"></i>
-                                        </a></label>
+                                    <div class="mt-3">
+                                        <label>Foto Kondisi Terbaru:</label>
+                                        <div style="margin-top: 15px">
+                                            <img id="previewImgConditionShow" src="" alt="Preview Foto Kondisi"
+                                            style="display: none; max-width: 100%; max-height: 120px;"
+                                            class="img-fluid m-0" />
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <!-- Informasi -->
                                 <div class="col-8">
                                     <div class="row">
-
                                         <div class="col-12 col-md-6">
                                             <label>Nomor RFID</label>
                                             <input type="text" class="form-control muted" id="tag_show" readonly>
@@ -1453,21 +1479,32 @@
             window.previewImage = function(event) {
                 const input = event.target;
                 const isEdit = event.target.dataset.edit;
+                const isCondition = event.target.dataset.condition;
                 const preview = isEdit == '0' ?
                     document.getElementById('previewImg') :
                     document.getElementById('previewImgEdit');
-                const fileName = isEdit == '0' ?
-                    document.getElementById('fileName') :
-                    document.getElementById('fileNameEdit');
+
+                if (isCondition == 1) {
+                    const previewCondition = isEdit == '0'
+                        ? document.getElementById('previewImgCondition') 
+                        : document.getElementById('previewImgConditionEdit');
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewCondition.src = e.target.result;
+                        previewCondition.style.display = 'block';
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                    return
+                }
 
                 if (input.files && input.files[0]) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         preview.src = e.target.result;
                         preview.style.display = 'block';
-                        fileName.innerText = input.files[0].name;
                     };
                     reader.readAsDataURL(input.files[0]);
+                    return;
                 }
             };
 
@@ -1622,8 +1659,18 @@
                 if (prefix === 'editAset') {
                     $(`${selector} #waktu_perawatan_edit`).val(asset.waktu_perawatan ?? '').trigger('change');
 
-                    // Preview gambar
+                    // Preview foto awal
                     const $previewImg = $(`${selector} #previewImgEdit`);
+
+                    // Preview foto kondisi
+                    $('#previewImgConditionEdit').nextAll('span').remove();
+                    asset.foto_kondisi
+                        ? $('#previewImgConditionEdit')
+                            .attr('src', `${asset.foto_kondisi}`)
+                            .show()
+                        : $('#previewImgConditionEdit')
+                            .removeAttr('src')
+                            .hide();
 
                     if (asset.foto_awal) {
                         $previewImg.attr('src', `${asset.foto_awal}`).show();
@@ -1635,24 +1682,21 @@
                 if (prefix === 'showAset') {
                     $(`${selector} #waktu_perawatan_show`).val(asset.waktu_perawatan ?? '').trigger('change');
 
-                    // Preview gambar
+                    // Preview foto awal
                     const $previewImg = $(`${selector} #previewImg`);
+
+                    // Preview foto kondisi
+                    $('#previewImgConditionShow').nextAll('span').remove();
+                    asset.foto_kondisi
+                        ? $('#previewImgConditionShow')
+                            .attr('src', `${asset.foto_kondisi}`)
+                            .show()
+                        : $('#previewImgConditionShow')
+                            .removeAttr('src')
+                            .hide();
 
                     if (asset.foto_awal) {
                         $previewImg.attr('src', `${asset.foto_awal}`).show();
-
-                        asset.foto_kondisi
-                            ? $('#previewImgKondisiLink')
-                                .attr('href', `${asset.foto_kondisi}`)
-                                .prop('disabled', false)
-                                .html('<i class="fa fa-eye"></i>')
-                                .addClass('badge bg-primary')
-                                .css('cursor', 'pointer')
-                            : $('#previewImgKondisiLink')
-                                .prop('disabled', true).html('-')
-                                .removeAttr('href')
-                                .removeClass('badge bg-primary')
-                                .css('cursor', 'not-allowed');
                     } else {
                         $previewImg.hide();
                     }
@@ -1737,6 +1781,14 @@
             $('#buttonShowImportModal').on('click', function() {
                 $('#showImportModal').modal('show');
             })
+
+            /**
+             * Date: 16 June 2025
+             * Show loading overlay when submit add and edit asset
+             **/
+            $('#form-edit-asset, #form-add-asset').on('submit', function(e) {
+                $.LoadingOverlay('show');
+            });
         });
 
         /**

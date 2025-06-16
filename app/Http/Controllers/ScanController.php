@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Asset;
 use App\Models\Scan;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ScanExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\ScannedTag;
 use Illuminate\Support\Facades\Auth;
@@ -120,6 +118,9 @@ class ScanController extends Controller
                 $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
                     ? asset('assets/Image/no_image.png')
                     : asset(Storage::url('/public/assets/' . $asset->foto_awal));
+                $asset->foto_kondisi = $asset->foto_kondisi
+                    ? asset('assets/Image/no_image.png')
+                    : asset(Storage::url('/public/assets/' . $asset->foto_kondisi));
                 $asset->nilai_perolehan = formatRupiah($asset->nilai_perolehan);
                 $asset->harga_perawatan = formatRupiah($asset->harga_perawatan);
 
@@ -152,7 +153,6 @@ class ScanController extends Controller
 
         return $pdf->download('berita_acara_penemuan.pdf');
     }
-
 
     public function exportMissing($id)
     {
