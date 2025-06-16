@@ -599,14 +599,11 @@ class ApiController extends Controller
             $filename = Str::uuid() . '.webp';
             $path = 'assets/' . $filename;
             $manager = new ImageManager(new Driver());
-            $image = $manager->read($request->file('image')->getPathname())
-                ->scale(width: 800)
-                ->toWebp(quality:75);
+            $image = $manager->read($request->file('image')->getPathname())->toWebp(quality:100);
 
             Storage::disk('public')->put($path, (string) $image);
 
             if ($isMainImage) {
-
                 if ($asset->foto_awal && $asset->foto_awal != 'dummy.jpg') {
                     return response()->json([
                         'status' => 'fail',
