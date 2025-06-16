@@ -599,7 +599,7 @@ class ApiController extends Controller
             $filename = Str::uuid() . '.webp';
             $path = 'assets/' . $filename;
             $manager = new ImageManager(new Driver());
-            $image = $manager->read($request->file('image')->getPathname())->toWebp(quality: 100);
+            $image = $manager->read($request->file('image')->getPathname())->toWebp(quality: 70);
 
             Storage::disk('public')->put($path, (string) $image);
 
