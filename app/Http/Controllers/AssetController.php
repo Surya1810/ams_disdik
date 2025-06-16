@@ -389,6 +389,9 @@ class AssetController extends Controller
         $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
             ? asset('assets/Image/no_image.png')
             : asset(Storage::url('public/assets/' . $asset->foto_awal));
+        $asset->foto_kondisi = !$asset->foto_kondisi
+            ? null
+            : asset(Storage::url('public/assets/' . $asset->foto_kondisi));
         $places = Sekolah::where('id', $asset->sekolah_id)
             ->with('kecamatan')->first();
         $asset->kecamatan = $places->kecamatan->name;

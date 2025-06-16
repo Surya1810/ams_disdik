@@ -392,10 +392,10 @@ class ApiController extends Controller
                     'merk' => $asset->merk,
                     'condition' => $asset->kondisi,
                     'imageUrl' => (!$asset->foto_awal || $asset->foto_awal == 'dummy.jpg')
-                        ? asset('assets/Image/no_image.png')
+                        ? asset('assets/Image/add_image.png')
                         : asset(Storage::url('/public/assets/' . $asset->foto_awal)),
                     'secondImageUrl' => is_null($asset->foto_kondisi)
-                        ? asset('assets/Image/no_image.png')
+                        ? asset('assets/Image/add_image.png')
                         : asset(Storage::url('/public/assets/' . $asset->foto_kondisi)),
                     'isMainImageCanBeUpdated' => (!$asset->foto_awal || $asset->foto_awal == 'dummy.jpg') ?? false
                 ],

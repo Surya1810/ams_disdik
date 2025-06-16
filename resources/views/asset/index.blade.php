@@ -193,7 +193,8 @@
                                         <div class="row">
                                             <div class="col-12 col-md-6">
                                                 <label>Nomor RFID</label>
-                                                <select class="form-control select2 tag" id="tag" name="tag" required>
+                                                <select class="form-control select2 tag" id="tag" name="tag"
+                                                    required>
                                                     <option></option>
                                                     @foreach ($tags as $tag)
                                                         <option value="{{ $tag }}"
@@ -1007,8 +1008,8 @@
 
                                     <div class="col-12 col-md-6">
                                         <label>Kecamatan</label>
-                                        <input type="text" class="form-control"
-                                            value="" id="kecamatan_edit" disabled>
+                                        <input type="text" class="form-control" value="" id="kecamatan_edit"
+                                            disabled>
 
                                         @error('harga_perawatan')
                                             <span class="invalid-feedback" role="alert">
@@ -1025,7 +1026,8 @@
                                             readonly disabled>
                                             <option value=""></option>
                                             @foreach ($places as $place)
-                                                <option value="{{ $place->id }}">{{ $place->category . ' ' . $place->name }}</option>
+                                                <option value="{{ $place->id }}">
+                                                    {{ $place->category . ' ' . $place->name }}</option>
                                             @endforeach
                                         </select>
                                         @error('sekolah_id')
@@ -1116,10 +1118,16 @@
                                 <!-- Gambar -->
                                 <div class="col-4">
                                     <label>Foto Awal:</label>
-                                    <div id="preview" style="margin-top: 15px;">
+                                    <div id="preview" class="p-2" style="margin-top: 15px; width: 100%;">
                                         <img id="previewImg" src="" alt="Preview"
-                                            style="display: none; max-width: 100%; height: auto;" />
+                                            style="display: none; max-width: 100%; max-height: 200px;"
+                                            class="img-fluid m-0" />
                                     </div>
+                                    <hr>
+                                    <label>Foto Kondisi Terbaru: <a id="previewImgKondisiLink" target="_blank" rel="noopener noreferrer"
+                                            class="text-decoration-none">
+                                            <i class="fa fa-eye"></i>
+                                        </a></label>
                                 </div>
 
                                 <!-- Informasi -->
@@ -1273,8 +1281,8 @@
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label>Kecamatan</label>
-                                    <input type="text" class="form-control"
-                                        value="" id="kecamatan_show" disabled>
+                                    <input type="text" class="form-control" value="" id="kecamatan_show"
+                                        disabled>
 
                                     @error('harga_perawatan')
                                         <span class="invalid-feedback" role="alert">
@@ -1324,7 +1332,8 @@
                             <h4 class="text-primary text-gradient">Import <strong>Data Aset</strong></h4>
                         </div>
                         <div class="card-body">
-                            <form action="{{ route('asset.import') }}" method="POST" enctype="multipart/form-data">
+                            <form action="{{ route('asset.import') }}" method="POST" enctype="multipart/form-data"
+                                id="formImportAssets">
                                 @csrf
                                 <div class="mb-3">
                                     <label class="d-flex align-items-center gap-2">
@@ -1403,6 +1412,9 @@
 @endsection
 
 @push('scripts')
+    {{-- Loading Overlay --}}
+    <script src="{{ asset('assets/js/loading-overlay.js') }}"></script>
+
     <script>
         const roleId = "{{ auth()->user()->role_id }}";
 
@@ -1515,6 +1527,8 @@
             const table = $('#asetTable').DataTable({
                 processing: true,
                 serverSide: true,
+                scrollX: true,
+                headerScroll: true,
                 ajax: {
                     url: '{{ route('asset.index') }}',
                     data: function(d) {
@@ -1538,7 +1552,6 @@
 
             // Fungsi untuk mengisi form modal (add, edit, show)
             function fillAssetForm(prefix, response) {
-                console.log(response);
                 const asset = response.asset;
                 const places = response.places;
                 const selector = `#${prefix}`;
@@ -1627,6 +1640,19 @@
 
                     if (asset.foto_awal) {
                         $previewImg.attr('src', `${asset.foto_awal}`).show();
+
+                        asset.foto_kondisi
+                            ? $('#previewImgKondisiLink')
+                                .attr('href', `${asset.foto_kondisi}`)
+                                .prop('disabled', false)
+                                .html('<i class="fa fa-eye"></i>')
+                                .addClass('badge bg-primary')
+                                .css('cursor', 'pointer')
+                            : $('#previewImgKondisiLink')
+                                .prop('disabled', true).html('-')
+                                .removeAttr('href')
+                                .removeClass('badge bg-primary')
+                                .css('cursor', 'not-allowed');
                     } else {
                         $previewImg.hide();
                     }
@@ -1689,6 +1715,7 @@
             // Event klik tombol export
             $('#buttonExport').on('click', function(e) {
                 e.preventDefault();
+                $.LoadingOverlay('show');
 
                 const kondisi = $('#filterKondisi').find(':selected').val();
                 const tempat = $('#filterTempat').find(':selected').val();
@@ -1702,7 +1729,8 @@
                 if (tahun !== '') params.append('tahun', tahun);
 
                 const url = '/export/asset' + (params.toString() ? '?' + params.toString() : '');
-                window.location.href = url;
+                $.LoadingOverlay('hide');
+                window.open(url, '_blank');
             });
 
             // Event untuk buka modal import data aset
@@ -1717,6 +1745,7 @@
          **/
         $('#buttonDownloadTemplateImport').on('click', function(e) {
             e.preventDefault();
+            $.LoadingOverlay('show');
             $.ajax({
                 url: '{{ route('asset.download.template.import') }}',
                 method: 'GET',
@@ -1733,6 +1762,7 @@
                     a.click();
                     a.remove();
                     window.URL.revokeObjectURL(url);
+                    $.LoadingOverlay('hide');
                 },
                 error: function(xhr) {
                     const Toast = Swal.mixin({
@@ -1751,8 +1781,17 @@
                         icon: 'error',
                         title: 'File Template untuk Import Data Aset Gagal Diunduh'
                     });
+
+                    $.LoadingOverlay('hide');
                 }
             });
+        });
+
+        /**
+         * Date: 16 June 2025
+         * */
+        $('#formImportAssets').on('submit', function(e) {
+            $.LoadingOverlay('show');
         });
     </script>
 @endpush
