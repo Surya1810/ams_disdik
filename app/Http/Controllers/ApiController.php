@@ -599,7 +599,7 @@ class ApiController extends Controller
             $filename = Str::uuid() . '.webp';
             $path = 'assets/' . $filename;
             $manager = new ImageManager(new Driver());
-            $image = $manager->read($request->file('image')->getPathname())->toWebp(quality:100);
+            $image = $manager->read($request->file('image')->getPathname())->toWebp(quality: 100);
 
             Storage::disk('public')->put($path, (string) $image);
 
@@ -613,6 +613,10 @@ class ApiController extends Controller
 
                 $asset->foto_awal = $filename;
             } else {
+                if ($asset->foto_kondisi && Storage::disk('public')->exists('assets/' . $asset->foto_kondisi)) {
+                    Storage::disk('public')->delete('assets/' . $asset->foto_kondisi);
+                }
+
                 $asset->foto_kondisi = $filename;
             }
         }
