@@ -118,7 +118,7 @@ class ScanController extends Controller
                 $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
                     ? asset('assets/Image/no_image.png')
                     : asset(Storage::url('/public/assets/' . $asset->foto_awal));
-                $asset->foto_kondisi = $asset->foto_kondisi
+                $asset->foto_kondisi = !$asset->foto_kondisi
                     ? asset('assets/Image/no_image.png')
                     : asset(Storage::url('/public/assets/' . $asset->foto_kondisi));
                 $asset->nilai_perolehan = formatRupiah($asset->nilai_perolehan);
