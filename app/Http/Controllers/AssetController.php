@@ -209,7 +209,7 @@ class AssetController extends Controller
             'nip_pic' => 'required|string|max:255',
             'nama_pic' => 'required|string|max:255',
             'jabatan_pic' => 'required|string|max:255',
-            'telp_pic' => 'required|min:10',
+            'telp_pic' => 'required|string|max:255',
             'asal_perolehan' => 'required|string|max:255',
             'nilai_perolehan' => 'required|numeric|min:0',
             'kondisi' => 'required',
@@ -304,7 +304,7 @@ class AssetController extends Controller
             'nip_pic' => 'required|string|max:255',
             'nama_pic' => 'required|string|max:255',
             'jabatan_pic' => 'required|string|max:255',
-            'telp_pic' => 'required|min:10',
+            'telp_pic' => 'required|string|max:255',
             'asal_perolehan' => 'required|string|max:255',
             'nilai_perolehan' => 'required|numeric|min:0',
             'kondisi' => 'required',
@@ -462,7 +462,7 @@ class AssetController extends Controller
         $pdf = Pdf::loadView('asset.download_pdf', compact('asset', 'places'))
             ->setPaper('A4', 'portrait')->setOptions(['isRemoteEnabled' => true]);
 
-        return $pdf->download('Detail-Aset-' . $asset->rfid_number . '.pdf');
+        return $pdf->download('Detail Aset - ' . $asset->rfid_number . '.pdf');
     }
 
     public function maintenance(Request $request)

@@ -3,7 +3,6 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Detail Aset</title>
     <style>
         body {
             font-family: sans-serif;
@@ -12,12 +11,11 @@
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
         }
 
         .image-container {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         .info-table {
@@ -77,13 +75,13 @@
 
 <body>
     <div class="header">
-        <h2>Detail Aset</h2>
+        <h2>Detail Aset - {{ $asset->rfid_number }}</h2>
     </div>
 
     <div class="image-container">
         <h4>Foto Awal Aset</h4>
         @if ($asset->foto_awal)
-        <img src="{{ $asset->foto_awal }}" alt="Foto Awal Aset" width="300"/>
+        <img src="{{ $asset->foto_awal }}" alt="Foto Awal Aset" width="200"/>
         @else
         <p><em>Gambar tidak tersedia</em></p>
         @endif
@@ -91,7 +89,7 @@
     <div class="image-container">
         <h4>Foto Kondisi Terbaru Aset</h4>
         @if ($asset->foto_kondisi)
-        <img src="{{ $asset->foto_kondisi }}" alt="Foto Kondisi Aset Terbaru" width="300"/>
+        <img src="{{ $asset->foto_kondisi }}" alt="Foto Kondisi Aset Terbaru" width="200"/>
         <br/>
         <br/>
         @else
