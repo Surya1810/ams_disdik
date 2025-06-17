@@ -658,10 +658,10 @@
                                         <div>
                                             <label for="image">Pilih Foto Awal:</label>
                                             <input type="file" name="image" accept="image/*" class="form-control"
-                                            onchange="previewImage(event)" data-edit="1" data-condition="0">
+                                                onchange="previewImage(event)" data-edit="1" data-condition="0">
                                             <div id="preview" style="margin-top: 15px;" class="text-start">
                                                 <img id="previewImgEdit" src="" alt="Preview Foto Awal"
-                                                style="display: none;height: 120px;" class="img-fluid m-0"/>
+                                                    style="display: none;height: 120px;" class="img-fluid m-0" />
                                                 <p id="fileNameEdit" style="margin-top: 5px;"></p>
                                             </div>
                                         </div>
@@ -670,9 +670,11 @@
                                             <input type="file" name="image_condition" accept="image/*"
                                                 class="form-control" onchange="previewImage(event)" data-edit="1"
                                                 data-condition="1" id="image_condition_edit">
-                                            <div id="previewEdit" style="margin-top: 15px; max-height: 120px;" class="text-start">
-                                                <img id="previewImgConditionEdit" src="" alt="Preview Foto Kondisi"
-                                                    style="display: none; max-height: 120px;" class="img-fluid m-0" />
+                                            <div id="previewEdit" style="margin-top: 15px; max-height: 120px;"
+                                                class="text-start">
+                                                <img id="previewImgConditionEdit" src=""
+                                                    alt="Preview Foto Kondisi" style="display: none; max-height: 120px;"
+                                                    class="img-fluid m-0" />
                                             </div>
                                         </div>
                                     </div>
@@ -1143,16 +1145,16 @@
                                         <label>Foto Awal:</label>
                                         <div style="margin-top: 15px">
                                             <img id="previewImg" src="" alt="Preview Foto Awal"
-                                            style="display: none; max-width: 100%; max-height: 120px;"
-                                            class="img-fluid m-0" />
+                                                style="display: none; max-width: 100%; max-height: 120px;"
+                                                class="img-fluid m-0" />
                                         </div>
                                     </div>
                                     <div class="mt-3">
                                         <label>Foto Kondisi Terbaru:</label>
                                         <div style="margin-top: 15px">
                                             <img id="previewImgConditionShow" src="" alt="Preview Foto Kondisi"
-                                            style="display: none; max-width: 100%; max-height: 120px;"
-                                            class="img-fluid m-0" />
+                                                style="display: none; max-width: 100%; max-height: 120px;"
+                                                class="img-fluid m-0" />
                                         </div>
                                     </div>
                                 </div>
@@ -1478,33 +1480,37 @@
             // Preview gambar sebelum upload
             window.previewImage = function(event) {
                 const input = event.target;
-                const isEdit = event.target.dataset.edit;
-                const isCondition = event.target.dataset.condition;
-                const preview = isEdit == '0' ?
-                    document.getElementById('previewImg') :
-                    document.getElementById('previewImgEdit');
 
-                if (isCondition == 1) {
-                    const previewCondition = isEdit == '0'
-                        ? document.getElementById('previewImgCondition')
-                        : document.getElementById('previewImgConditionEdit');
-                    const reader = new FileReader();
+                if (!input.files || !input.files[0]) {
+                    console.warn('Tidak ada file yang dipilih.');
+                    return;
+                }
+
+                const isEdit = input.dataset.edit;
+                const isCondition = input.dataset.condition;
+
+                const reader = new FileReader();
+
+                if (isCondition == '1') {
+                    const previewCondition = isEdit == '0' ?
+                        document.getElementById('previewImgCondition') :
+                        document.getElementById('previewImgConditionEdit');
+
                     reader.onload = function(e) {
                         previewCondition.src = e.target.result;
                         previewCondition.style.display = 'block';
                     };
                     reader.readAsDataURL(input.files[0]);
-                    return
-                }
+                } else {
+                    const preview = isEdit == '0' ?
+                        document.getElementById('previewImg') :
+                        document.getElementById('previewImgEdit');
 
-                if (input.files && input.files[0]) {
-                    const reader = new FileReader();
                     reader.onload = function(e) {
                         preview.src = e.target.result;
                         preview.style.display = 'block';
                     };
                     reader.readAsDataURL(input.files[0]);
-                    return;
                 }
             };
 
@@ -1664,13 +1670,13 @@
 
                     // Preview foto kondisi
                     $('#previewImgConditionEdit').nextAll('span').remove();
-                    asset.foto_kondisi
-                        ? $('#previewImgConditionEdit')
-                            .attr('src', `${asset.foto_kondisi}`)
-                            .show()
-                        : $('#previewImgConditionEdit')
-                            .removeAttr('src')
-                            .hide();
+                    asset.foto_kondisi ?
+                        $('#previewImgConditionEdit')
+                        .attr('src', `${asset.foto_kondisi}`)
+                        .show() :
+                        $('#previewImgConditionEdit')
+                        .removeAttr('src')
+                        .hide();
 
                     if (asset.foto_awal) {
                         $previewImg.attr('src', `${asset.foto_awal}`).show();
@@ -1687,13 +1693,13 @@
 
                     // Preview foto kondisi
                     $('#previewImgConditionShow').nextAll('span').remove();
-                    asset.foto_kondisi
-                        ? $('#previewImgConditionShow')
-                            .attr('src', `${asset.foto_kondisi}`)
-                            .show()
-                        : $('#previewImgConditionShow')
-                            .removeAttr('src')
-                            .hide();
+                    asset.foto_kondisi ?
+                        $('#previewImgConditionShow')
+                        .attr('src', `${asset.foto_kondisi}`)
+                        .show() :
+                        $('#previewImgConditionShow')
+                        .removeAttr('src')
+                        .hide();
 
                     if (asset.foto_awal) {
                         $previewImg.attr('src', `${asset.foto_awal}`).show();
@@ -1736,6 +1742,7 @@
                 $.LoadingOverlay('show');
                 const assetId = $(this).data('asset-id');
                 $.get(`/asset/${assetId}/edit`, function(response) {
+                    resetAssetForm('editAset');
                     fillAssetForm('editAset', response);
                     $('#form-edit-asset').attr('action', `/asset/${assetId}`);
                     $('#editAset').modal('show');
@@ -1752,6 +1759,7 @@
                 $.LoadingOverlay('show');
                 const assetId = $(this).data('asset-id');
                 $.get(`/asset/${assetId}/edit`, function(response) {
+                    resetAssetForm('showAset');
                     fillAssetForm('showAset', response);
                     $('#showAset').modal('show');
                     $.LoadingOverlay('hide');
@@ -1853,5 +1861,32 @@
         $('#formImportAssets').on('submit', function(e) {
             $.LoadingOverlay('show');
         });
+
+        /**
+         * Date: 17 June 2025
+         **/
+        function resetAssetForm(prefix) {
+            const selector = `#${prefix}`;
+
+            $(`${selector} input:not([type=hidden]), ${selector} select, ${selector} textarea`).each(function() {
+                $(this).val('').trigger('change');
+            });
+
+            if (prefix === 'editAset') {
+                $('#previewImgEdit, #previewImgConditionEdit')
+                    .removeAttr('src')
+                    .hide();
+            }
+
+            if (prefix === 'showAset') {
+                $('#previewImg, #previewImgConditionShow')
+                    .removeAttr('src')
+                    .hide();
+            }
+
+            $(`${selector} .select2`).each(function() {
+                $(this).val(null).trigger('change');
+            });
+        }
     </script>
 @endpush
