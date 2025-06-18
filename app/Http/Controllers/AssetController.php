@@ -429,7 +429,7 @@ class AssetController extends Controller
             ? asset('assets/Image/no_image.png')
             : asset(Storage::url('public/assets/' . $asset->foto_awal));
         $asset->foto_kondisi = !$asset->foto_kondisi
-            ? null
+            ? asset('assets/Image/no_image.png')
             : asset(Storage::url('public/assets/' . $asset->foto_kondisi));
         $places = Sekolah::where('id', $asset->sekolah_id)
             ->with('kecamatan')->first();

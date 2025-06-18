@@ -1691,6 +1691,8 @@
                     // Preview foto awal
                     const $previewImg = $(`${selector} #previewImg`);
 
+                    console.log(asset);
+
                     // Preview foto kondisi
                     $('#previewImgConditionShow').nextAll('span').remove();
                     asset.foto_kondisi ?
