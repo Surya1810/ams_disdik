@@ -87,7 +87,7 @@ class ApiController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role_id == 1) {
+        if ($user->role_id == 2) {
             return $query;
         }
 
@@ -443,7 +443,9 @@ class ApiController extends Controller
 
     public function getSchoolsByDistrict($kecamatanId)
     {
-        $schools = Sekolah::where('kecamatan_id', $kecamatanId)->get();
+        $schools = Auth::user()->role_id == 2
+            ? Sekolah::whereNot('kecamatan_id', 1)->get()
+            : Sekolah::where('kecamatan_id', $kecamatanId)->get();
 
         $result = $schools->map(function ($sekolah) {
             return [
