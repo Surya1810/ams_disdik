@@ -106,12 +106,19 @@ class ApiController extends Controller
 
         return $query->where('kecamatan_id', $user->kecamatan_id);
     }
+        private function normalizeSchoolName($name)
+    {
+        // Hilangkan prefix dan spasi berlebih, lowercase
+        $name = preg_replace('/^(SD|SMP|SMA|SMK|MA|MTS|TK|Kantor)\s+/i', '', $name);
+        return strtolower(trim(preg_replace('/\s+/', ' ', $name)));
+    }
 
     public function getsekolah(Request $request)
     {
         $limit = (int) $request->input('limit', 10);
         $page = (int) $request->input('page', 1);
         $category = strtoupper(trim($request->input('category', 'ALL')));
+        $search = trim($request->input('search'));
         $baseQuery = $this->filterSekolahByRole(Sekolah::query());
         $totalSchools = $baseQuery->count();
 
@@ -126,6 +133,12 @@ class ApiController extends Controller
 
         if ($category == 'KANTOR') {
             $filteredQuery->where('category', 'Kantor');
+        }
+
+
+        if (!is_null($search) || $search != '') {
+            $cleanedName = $this->normalizeSchoolName($search);
+            $filteredQuery->where('name', 'like', "%{$cleanedName}%");
         }
 
         $totalData = $filteredQuery->count();
