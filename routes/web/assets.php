@@ -4,6 +4,8 @@ use App\Http\Controllers\AssetController;
 
 Route::controller(AssetController::class)->group(function () {
     Route::resource('asset', AssetController::class);
+    Route::get('/asset/images/{path}', 'streamImage')
+        ->name('asset.image.stream');
     Route::get('/asset/templates/download', 'downloadTemplateImport')
         ->name('asset.download.template.import');
     Route::get('/asset/{id}/download', [AssetController::class, 'download'])->name('asset.download');

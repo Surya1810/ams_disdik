@@ -21,6 +21,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AssetController extends Controller
 {
@@ -235,26 +236,26 @@ class AssetController extends Controller
             // Upload foto awal
             if ($request->hasFile('image') && $request->file('image')->isValid()) {
                 $filename = Str::uuid() . '.webp';
-                $path = 'assets/' . $filename;
+                $path = 'ams_disdikpora_assets/' . $filename;
 
                 $manager = new ImageManager(new Driver());
                 $image = $manager->read($request->file('image')->getPathname())
                     ->toWebp(quality: 75);
 
-                Storage::disk('public')->put($path, (string) $image);
+                Storage::disk('gcs')->put($path, (string) $image, 'public');
                 $validated['foto_awal'] = $filename;
             }
 
             // Upload foto kondisi
             if ($request->hasFile('image_condition') && $request->file('image_condition')->isValid()) {
                 $filename = Str::uuid() . '.webp';
-                $path = 'assets/' . $filename;
+                $path = 'ams_disdikpora_assets/' . $filename;
 
                 $manager = new ImageManager(new Driver());
                 $image = $manager->read($request->file('image_condition')->getPathname())
                     ->toWebp(quality: 75);
 
-                Storage::disk('public')->put($path, (string) $image);
+                Storage::disk('gcs')->put($path, (string) $image, 'public');
                 $validated['foto_kondisi'] = $filename;
             }
 
@@ -338,16 +339,17 @@ class AssetController extends Controller
             // Upload foto awal
             if ($request->hasFile('image') && $request->file('image')->isValid()) {
                 $filename = Str::uuid() . '.webp';
-                $path = 'assets/' . $filename;
+                $folder = 'ams_disdikpora_assets/';
+                $path = $folder . $filename;
 
                 $manager = new ImageManager(new Driver());
-                $image = $manager->read($request->file('image')->getPathname())
+                $image = $manager->read($request->file('image')->getRealPath())
                     ->toWebp(quality: 75);
 
-                Storage::disk('public')->put($path, (string) $image);
+                Storage::disk('gcs')->put($path, (string) $image, 'public');
 
-                if ($asset->foto_awal && Storage::disk('public')->exists('assets/' . $asset->foto_awal)) {
-                    Storage::disk('public')->delete('assets/' . $asset->foto_awal);
+                if (Storage::disk('gcs')->exists($folder . $asset->foto_awal)) {
+                    Storage::disk('gcs')->delete($folder . $asset->foto_awal);
                 }
 
                 $validated['foto_awal'] = $filename;
@@ -356,16 +358,17 @@ class AssetController extends Controller
             // Upload foto kondisi
             if ($request->hasFile('image_condition') && $request->file('image_condition')->isValid()) {
                 $filename = Str::uuid() . '.webp';
-                $path = 'assets/' . $filename;
+                $folder = 'ams_disdikpora_assets/';
+                $path = $folder . $filename;
 
                 $manager = new ImageManager(new Driver());
                 $image = $manager->read($request->file('image_condition')->getPathname())
                     ->toWebp(quality: 75);
 
-                Storage::disk('public')->put($path, (string) $image);
+                Storage::disk('gcs')->put($path, (string) $image, 'public');
 
-                if ($asset->foto_kondisi && Storage::disk('public')->exists('assets/' . $asset->foto_kondisi)) {
-                    Storage::disk('public')->delete('assets/' . $asset->foto_kondisi);
+                if (Storage::disk('gcs')->exists($folder . $asset->foto_kondisi)) {
+                    Storage::disk('gcs')->delete($folder . $asset->foto_kondisi);
                 }
 
                 $validated['foto_kondisi'] = $filename;
@@ -408,6 +411,7 @@ class AssetController extends Controller
                     'level-alert' => 'alert-success'
                 ]);
         } catch (\Exception $e) {
+            dd($e);
             return redirect()->back()->with([
                 'pesan' => 'Terjadi kesalahan saat memperbarui aset: ' . $e->getMessage(),
                 'level-alert' => 'alert-danger',
@@ -427,10 +431,10 @@ class AssetController extends Controller
 
         $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
             ? asset('assets/Image/no_image.png')
-            : asset(Storage::url('public/assets/' . $asset->foto_awal));
+            : route('asset.image.stream', $asset->foto_awal);
         $asset->foto_kondisi = !$asset->foto_kondisi
             ? asset('assets/Image/no_image.png')
-            : asset(Storage::url('public/assets/' . $asset->foto_kondisi));
+            : route('asset.image.stream', $asset->foto_kondisi);
         $places = Sekolah::where('id', $asset->sekolah_id)
             ->with('kecamatan')->first();
         $asset->kecamatan = $places->kecamatan->name;
@@ -444,6 +448,26 @@ class AssetController extends Controller
         ]);
     }
 
+    public function streamImage($image)
+    {
+        $path = 'ams_disdikpora_assets/' . $image;
+
+        if (!Storage::disk('gcs')->exists($path)) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        $stream = Storage::disk('gcs')->readStream($path);
+        $mime = Storage::disk('gcs')->mimeType($path);
+
+        return new StreamedResponse(function () use ($stream) {
+            fpassthru($stream);
+            fclose($stream);
+        }, 200, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="' . basename($path) . '"',
+        ]);
+    }
+
     public function download($id)
     {
         $asset = Asset::findOrFail($id);
@@ -451,16 +475,16 @@ class AssetController extends Controller
 
         $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
             ? null
-            : Storage::url('public/assets/' . $asset->foto_awal);
+            : route('asset.image.stream', $asset->foto_awal);
         $asset->foto_kondisi = is_null($asset->foto_kondisi)
             ? null
-            : Storage::url('public/assets/' . $asset->foto_kondisi);
+            : route('asset.image.stream', $asset->foto_kondisi);
 
         $places = Sekolah::where('id', $asset->sekolah_id)
             ->with('kecamatan')->first();
 
         $pdf = Pdf::loadView('asset.download_pdf', compact('asset', 'places'))
-            ->setPaper('A4', 'portrait')->setOptions(['isRemoteEnabled' => true]);
+            ->setPaper('A4', 'portrait');
 
         return $pdf->download('Detail Aset - ' . $asset->rfid_number . '.pdf');
     }

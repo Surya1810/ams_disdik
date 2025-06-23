@@ -9,6 +9,9 @@
 
     <title>@yield('title') | Asset Management System by Partnership</title>
 
+    {{-- Meta Robots --}}
+    <meta name="robots" content="noindex,nofollow">
+
     {{-- Favicons --}}
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('assets/Image/favicons/apple-touch-icon.png') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/Image/favicons/favicon-32x32.png') }}">

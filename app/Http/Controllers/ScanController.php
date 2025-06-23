@@ -117,10 +117,10 @@ class ScanController extends Controller
             if ($asset->exists()) {
                 $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
                     ? asset('assets/Image/no_image.png')
-                    : asset(Storage::url('/public/assets/' . $asset->foto_awal));
+                    : route('asset.image.stream', $asset->foto_awal);
                 $asset->foto_kondisi = !$asset->foto_kondisi
                     ? asset('assets/Image/no_image.png')
-                    : asset(Storage::url('/public/assets/' . $asset->foto_kondisi));
+                    : route('asset.image.stream', $asset->foto_kondisi);
                 $asset->nilai_perolehan = formatRupiah($asset->nilai_perolehan);
                 $asset->harga_perawatan = formatRupiah($asset->harga_perawatan);
 
