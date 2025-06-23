@@ -81,19 +81,30 @@
     <div class="image-container">
         <h4>Foto Awal Aset</h4>
         @if ($asset->foto_awal)
-        <img src="{{ $asset->foto_awal }}" alt="Foto Awal Aset" width="200"/>
+            @php
+                $imgContent = file_get_contents($asset->foto_awal);
+                $base64 = base64_encode($imgContent);
+                $mime = 'image/webp';
+            @endphp
+            <img src="data:{{ $mime }};base64,{{ $base64 }}" alt="Foto Awal Aset" width="200" />
         @else
-        <p><em>Gambar tidak tersedia</em></p>
+            <p><em>Gambar tidak tersedia</em></p>
         @endif
     </div>
     <div class="image-container">
         <h4>Foto Kondisi Terbaru Aset</h4>
         @if ($asset->foto_kondisi)
-        <img src="{{ $asset->foto_kondisi }}" alt="Foto Kondisi Aset Terbaru" width="200"/>
-        <br/>
-        <br/>
+            @php
+                $imgContent = file_get_contents($asset->foto_kondisi);
+                $base64 = base64_encode($imgContent);
+                $mime = 'image/webp';
+            @endphp
+            <img src="data:{{ $mime }};base64,{{ $base64 }}" alt="Foto Kondisi Aset Terbaru"
+                width="200" />
+            <br />
+            <br />
         @else
-        <p><em>Gambar tidak tersedia</em></p>
+            <p><em>Gambar tidak tersedia</em></p>
         @endif
     </div>
 

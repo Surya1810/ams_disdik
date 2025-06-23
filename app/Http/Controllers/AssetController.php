@@ -474,10 +474,10 @@ class AssetController extends Controller
 
         $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
             ? null
-            : route('asset.image.stream', $asset->foto_awal);
+            : Storage::disk('gcs')->url('ams_disdikpora_assets/' . $asset->foto_awal);
         $asset->foto_kondisi = is_null($asset->foto_kondisi)
             ? null
-            : route('asset.image.stream', $asset->foto_kondisi);
+            : Storage::disk('gcs')->url('ams_disdikpora_assets/' . $asset->foto_kondisi);
 
         $places = Sekolah::where('id', $asset->sekolah_id)
             ->with('kecamatan')->first();
