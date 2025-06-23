@@ -430,10 +430,10 @@ class AssetController extends Controller
 
         $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
             ? asset('assets/Image/no_image.png')
-            : route('asset.image.stream', $asset->foto_awal);
+            : route('asset.image.stream', $asset->foto_awal) . '?token=' . getenv('STATIC_TOKEN_IMAGE_URL');
         $asset->foto_kondisi = !$asset->foto_kondisi
             ? asset('assets/Image/no_image.png')
-            : route('asset.image.stream', $asset->foto_kondisi);
+            : route('asset.image.stream', $asset->foto_kondisi) . '?token=' . getenv('STATIC_TOKEN_IMAGE_URL');;
         $places = Sekolah::where('id', $asset->sekolah_id)
             ->with('kecamatan')->first();
         $asset->kecamatan = $places->kecamatan->name;
@@ -449,6 +449,15 @@ class AssetController extends Controller
 
     public function streamImage($image)
     {
+        $token = request('token');
+
+        if ($token != getenv('STATIC_TOKEN_IMAGE_URL')) {
+            return response()->json([
+                'status' => 'fail',
+                'message' => 'Invalid token'
+            ], 401);
+        }
+
         $path = 'ams_disdikpora_assets/' . $image;
 
         if (!Storage::disk('gcs')->exists($path)) {
@@ -474,10 +483,12 @@ class AssetController extends Controller
 
         $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
             ? null
-            : Storage::disk('gcs')->url('ams_disdikpora_assets/' . $asset->foto_awal);
+            : Storage::disk('gcs')->url('ams_disdikpora_assets/' . $asset->foto_awal)
+                . '?token=' . getenv('STATIC_TOKEN_IMAGE_URL');
         $asset->foto_kondisi = is_null($asset->foto_kondisi)
             ? null
-            : Storage::disk('gcs')->url('ams_disdikpora_assets/' . $asset->foto_kondisi);
+            : Storage::disk('gcs')->url('ams_disdikpora_assets/' . $asset->foto_kondisi)
+                . '?token=' . getenv('STATIC_TOKEN_IMAGE_URL');
 
         $places = Sekolah::where('id', $asset->sekolah_id)
             ->with('kecamatan')->first();

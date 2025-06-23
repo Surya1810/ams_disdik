@@ -406,10 +406,12 @@ class ApiController extends Controller
                     'condition' => $asset->kondisi,
                     'imageUrl' => (!$asset->foto_awal || $asset->foto_awal == 'dummy.jpg')
                         ? asset('assets/Image/add_image.png')
-                        : Storage::disk('gcs')->url('ams_disdikpora_assets/' . $asset->foto_awal),
+                        : Storage::disk('gcs')->url('ams_disdikpora_assets/' . $asset->foto_awal)
+                            . '?token=' . getenv('STATIC_TOKEN_IMAGE_URL'),
                     'secondImageUrl' => is_null($asset->foto_kondisi)
                         ? asset('assets/Image/add_image.png')
-                        : Storage::disk('gcs')->url('ams_disdikpora_assets/' . $asset->foto_kondisi),
+                        : Storage::disk('gcs')->url('ams_disdikpora_assets/' . $asset->foto_kondisi)
+                            . '?token=' . getenv('STATIC_TOKEN_IMAGE_URL'),
                     'isMainImageCanBeUpdated' => (!$asset->foto_awal || $asset->foto_awal == 'dummy.jpg') ?? false
                 ],
                 'personInCharge' => [

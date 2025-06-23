@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AssetController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -8,6 +9,10 @@ Route::get('/', function () {
 });
 
 Auth::routes();
+
+// Get Images to GCS use static token
+Route::get('/asset/images/{path}', [AssetController::class, 'streamImage'])
+        ->name('asset.image.stream');
 
 Route::middleware('auth')->group(function () {
 
