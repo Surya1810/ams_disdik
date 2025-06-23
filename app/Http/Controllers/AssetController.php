@@ -348,7 +348,7 @@ class AssetController extends Controller
 
                 Storage::disk('gcs')->put($path, (string) $image, 'public');
 
-                if (Storage::disk('gcs')->exists($folder . $asset->foto_awal)) {
+                if ($asset->foto_awal != 'dummy.jpg' && Storage::disk('gcs')->exists($folder . $asset->foto_awal)) {
                     Storage::disk('gcs')->delete($folder . $asset->foto_awal);
                 }
 
@@ -367,7 +367,7 @@ class AssetController extends Controller
 
                 Storage::disk('gcs')->put($path, (string) $image, 'public');
 
-                if (Storage::disk('gcs')->exists($folder . $asset->foto_kondisi)) {
+                if ($asset->foto_kondisi != null && Storage::disk('gcs')->exists($folder . $asset->foto_kondisi)) {
                     Storage::disk('gcs')->delete($folder . $asset->foto_kondisi);
                 }
 
@@ -411,7 +411,6 @@ class AssetController extends Controller
                     'level-alert' => 'alert-success'
                 ]);
         } catch (\Exception $e) {
-            dd($e);
             return redirect()->back()->with([
                 'pesan' => 'Terjadi kesalahan saat memperbarui aset: ' . $e->getMessage(),
                 'level-alert' => 'alert-danger',

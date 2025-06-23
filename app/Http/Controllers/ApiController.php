@@ -406,10 +406,10 @@ class ApiController extends Controller
                     'condition' => $asset->kondisi,
                     'imageUrl' => (!$asset->foto_awal || $asset->foto_awal == 'dummy.jpg')
                         ? asset('assets/Image/add_image.png')
-                        : asset(Storage::url('/public/assets/' . $asset->foto_awal)),
+                        : route('asset.image.stream', $asset->foto_awal),
                     'secondImageUrl' => is_null($asset->foto_kondisi)
                         ? asset('assets/Image/add_image.png')
-                        : asset(Storage::url('/public/assets/' . $asset->foto_kondisi)),
+                        : route('asset.image.stream', $asset->foto_kondisi),
                     'isMainImageCanBeUpdated' => (!$asset->foto_awal || $asset->foto_awal == 'dummy.jpg') ?? false
                 ],
                 'personInCharge' => [
@@ -612,11 +612,9 @@ class ApiController extends Controller
             $isMainImage = $request->input('isMainImage', false);
             $isMainImage = filter_var($isMainImage, FILTER_VALIDATE_BOOLEAN);
             $filename = Str::uuid() . '.webp';
-            $path = 'assets/' . $filename;
+            $path = 'ams_disdikpora_assets/' . $filename;
             $manager = new ImageManager(new Driver());
             $image = $manager->read($request->file('image')->getPathname())->toWebp(quality: 70);
-
-            Storage::disk('public')->put($path, (string) $image);
 
             if ($isMainImage) {
                 if ($asset->foto_awal && $asset->foto_awal != 'dummy.jpg') {
@@ -628,12 +626,14 @@ class ApiController extends Controller
 
                 $asset->foto_awal = $filename;
             } else {
-                if ($asset->foto_kondisi && Storage::disk('public')->exists('assets/' . $asset->foto_kondisi)) {
-                    Storage::disk('public')->delete('assets/' . $asset->foto_kondisi);
+                if ($asset->foto_kondisi && Storage::disk('gcs')->exists('ams_disdikpora_assets/' . $asset->foto_kondisi)) {
+                    Storage::disk('gcs')->delete('ams_disdikpora_assets/' . $asset->foto_kondisi);
                 }
 
                 $asset->foto_kondisi = $filename;
             }
+
+            Storage::disk('gcs')->put($path, (string) $image, 'public');
         }
 
         $asset->save();
