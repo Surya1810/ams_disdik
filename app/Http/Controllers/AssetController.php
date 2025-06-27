@@ -343,7 +343,7 @@ class AssetController extends Controller
                 $path = $folder . $filename;
 
                 $manager = new ImageManager(new Driver());
-                $image = $manager->read($request->file('image')->getRealPath())
+                $image = $manager->read($request->file('image')->getPathname())
                     ->toWebp(quality: 75);
 
                 Storage::disk('gcs')->put($path, (string) $image, 'public');

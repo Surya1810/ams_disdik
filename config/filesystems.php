@@ -65,7 +65,7 @@ return [
             'project_id' => env('GOOGLE_CLOUD_PROJECT_ID'),
             'bucket' => env('GOOGLE_CLOUD_STORAGE_BUCKET'),
             'key_file'   => json_decode(
-                file_get_contents(base_path('storage/app/gcs/key.json')), true
+                file_get_contents(base_path((string) env('GOOGLE_CLOUD_KEY_FILE'))), true
             ),
             'metadata' => ['cacheControl' => 'public,max-age=86400'],
         ],
