@@ -96,22 +96,6 @@
             <p><em>Foto kondisi tidak tersedia</em></p>
         @endif
     </div>
-    <div class="image-container">
-        <h4>Foto Kondisi Terbaru Aset</h4>
-        @if ($asset->foto_kondisi)
-            @php
-                $imgContent = file_get_contents($asset->foto_kondisi);
-                $base64 = base64_encode($imgContent);
-                $mime = 'image/webp';
-            @endphp
-            <img src="data:{{ $mime }};base64,{{ $base64 }}" alt="Foto Kondisi Aset Terbaru"
-                width="200" />
-            <br />
-            <br />
-        @else
-            <p><em>Gambar tidak tersedia</em></p>
-        @endif
-    </div>
 
     <div class="section-title">Informasi Barang</div>
     <table class="info-table">
