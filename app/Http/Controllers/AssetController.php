@@ -478,26 +478,57 @@ class AssetController extends Controller
 
     public function download($id)
     {
-        $asset = Asset::findOrFail($id);
-        $kecamatanId = Asset::findOrFail($id)->sekolah->kecamatan_id;
+        try {
+            $asset = Asset::findOrFail($id);
+            $places = Sekolah::where('id', $asset->sekolah_id)->with('kecamatan')->first();
 
-        $asset->foto_awal = (!$asset->foto_awal || $asset->foto_awal === 'dummy.jpg')
-            ? null
-            : Storage::disk('gcs')->url('ams_disdikpora_assets/' . $asset->foto_awal)
-                . '?token=' . getenv('STATIC_TOKEN_IMAGE_URL');
-        $asset->foto_kondisi = is_null($asset->foto_kondisi)
-            ? null
-            : Storage::disk('gcs')->url('ams_disdikpora_assets/' . $asset->foto_kondisi)
-                . '?token=' . getenv('STATIC_TOKEN_IMAGE_URL');
+            // Inisialisasi base64 default
+            $foto_awal_base64 = null;
+            $foto_awal_mime = null;
+            $foto_kondisi_base64 = null;
+            $foto_kondisi_mime = null;
 
-        $places = Sekolah::where('id', $asset->sekolah_id)
-            ->with('kecamatan')->first();
+            $disk = Storage::disk('gcs');
+            $token = getenv('STATIC_TOKEN_IMAGE_URL');
 
-        $pdf = Pdf::loadView('asset.download_pdf', compact('asset', 'places'))
-            ->setPaper('A4', 'portrait');
+            // Proses Foto Awal
+            if ($asset->foto_awal && $asset->foto_awal !== 'dummy.jpg') {
+                $path = 'ams_disdikpora_assets/' . $asset->foto_awal;
+                if ($disk->exists($path)) {
+                    $content = $disk->get($path);
+                    $foto_awal_base64 = base64_encode($content);
+                    $foto_awal_mime = $disk->mimeType($path);
+                }
+            }
 
-        return $pdf->download('Detail Aset - ' . $asset->rfid_number . '.pdf');
+            // Proses Foto Kondisi
+            if ($asset->foto_kondisi) {
+                $path = 'ams_disdikpora_assets/' . $asset->foto_kondisi;
+                if ($disk->exists($path)) {
+                    $content = $disk->get($path);
+                    $foto_kondisi_base64 = base64_encode($content);
+                    $foto_kondisi_mime = $disk->mimeType($path);
+                }
+            }
+
+            $pdf = Pdf::loadView('asset.download_pdf', [
+                'asset' => $asset,
+                'places' => $places,
+                'foto_awal_base64' => $foto_awal_base64,
+                'foto_awal_mime' => $foto_awal_mime ?? 'image/webp',
+                'foto_kondisi_base64' => $foto_kondisi_base64,
+                'foto_kondisi_mime' => $foto_kondisi_mime ?? 'image/webp',
+            ])->setPaper('A4', 'portrait');
+
+            return $pdf->download('Detail Aset - ' . $asset->rfid_number . '.pdf');
+        } catch (\Exception $e) {
+            return redirect()->back()->with([
+                'pesan' => 'Terjadi kesalahan: ' . $e->getMessage(),
+                'level-alert' => 'alert-danger'
+            ]);
+        }
     }
+
 
     public function maintenance(Request $request)
     {
