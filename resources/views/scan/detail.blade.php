@@ -7,6 +7,21 @@
         #filterStatus:hover {
             cursor: pointer;
         }
+
+        .modal-dialog {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            max-height: 90vh;
+            overflow: auto;
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            max-height: 70vh;
+        }
     </style>
 @endpush
 
@@ -122,8 +137,8 @@
     </div>
 
     <!-- Modal Show Aset -->
-    <div class="modal fade" id="showAset" aria-labelledby="showAsetLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
+    <div class="modal fade" id="showAset" aria-labelledby="showAsetLabel" aria-hidden="true" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">
@@ -523,13 +538,13 @@
 
             // Preview foto kondisi
             $('#previewImgConditionShow').nextAll('span').remove();
-            asset.foto_kondisi
-                ? $('#previewImgConditionShow')
-                    .attr('src', `${asset.foto_kondisi}`)
-                    .show()
-                : $('#previewImgConditionShow')
-                    .removeAttr('src')
-                    .hide();
+            asset.foto_kondisi ?
+                $('#previewImgConditionShow')
+                .attr('src', `${asset.foto_kondisi}`)
+                .show() :
+                $('#previewImgConditionShow')
+                .removeAttr('src')
+                .hide();
 
             if (asset.foto_awal) {
                 $previewImg.attr('src', `${asset.foto_awal}`).show();

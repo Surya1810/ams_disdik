@@ -22,6 +22,21 @@
         #filterWrapper select:hover {
             cursor: pointer;
         }
+
+        .modal-dialog {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            max-height: 90vh;
+            overflow: auto;
+        }
+
+        .modal-body {
+            overflow-y: auto;
+            max-height: 70vh;
+        }
     </style>
 @endpush
 
@@ -638,8 +653,8 @@
     </div>
 
     <!-- Modal Edit Aset -->
-    <div class="modal fade" id="editAset" aria-labelledby="editAsetLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal fade" id="editAset" aria-labelledby="editAsetLabel" aria-hidden="true" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">
@@ -1125,8 +1140,8 @@
     </div>
 
     <!-- Modal Show Aset -->
-    <div class="modal fade" id="showAset" aria-labelledby="showAsetLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal fade" id="showAset" aria-labelledby="showAsetLabel" aria-hidden="true" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">

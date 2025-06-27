@@ -106,12 +106,6 @@ class ApiController extends Controller
 
         return $query->where('kecamatan_id', $user->kecamatan_id);
     }
-        private function normalizeSchoolName($name)
-    {
-        // Hilangkan prefix dan spasi berlebih, lowercase
-        $name = preg_replace('/^(SD|SMP|SMA|SMK|MA|MTS|TK|Kantor)\s+/i', '', $name);
-        return strtolower(trim(preg_replace('/\s+/', ' ', $name)));
-    }
 
     public function getsekolah(Request $request)
     {
@@ -135,10 +129,8 @@ class ApiController extends Controller
             $filteredQuery->where('category', 'Kantor');
         }
 
-
         if (!is_null($search) || $search != '') {
-            $cleanedName = $this->normalizeSchoolName($search);
-            $filteredQuery->where('name', 'like', "%{$cleanedName}%");
+            $filteredQuery->whereRaw("LOWER(CONCAT(category, ' ', name)) LIKE ?", ["%{$search}%"]);
         }
 
         $totalData = $filteredQuery->count();
@@ -407,11 +399,11 @@ class ApiController extends Controller
                     'imageUrl' => (!$asset->foto_awal || $asset->foto_awal == 'dummy.jpg')
                         ? asset('assets/Image/add_image.png')
                         : route('asset.image.stream', $asset->foto_awal)
-                            . '?token=' . getenv('STATIC_TOKEN_IMAGE_URL'),
+                        . '?token=' . getenv('STATIC_TOKEN_IMAGE_URL'),
                     'secondImageUrl' => is_null($asset->foto_kondisi)
                         ? asset('assets/Image/add_image.png')
                         : route('asset.image.stream', $asset->foto_kondisi)
-                            . '?token=' . getenv('STATIC_TOKEN_IMAGE_URL'),
+                        . '?token=' . getenv('STATIC_TOKEN_IMAGE_URL'),
                     'isMainImageCanBeUpdated' => (!$asset->foto_awal || $asset->foto_awal == 'dummy.jpg') ?? false
                 ],
                 'personInCharge' => [
