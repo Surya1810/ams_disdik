@@ -16,26 +16,20 @@
             width: auto;
             display: block;
             margin: 0 auto;
-            /* center image */
         }
 
         #filterWrapper select:hover {
             cursor: pointer;
         }
 
-        .modal-dialog {
+        .modal-dialog-scrollable .modal-content {
             max-height: 90vh;
-            overflow-y: auto;
+            overflow: hidden;
         }
 
-        .modal-content {
-            max-height: 90vh;
-            overflow: auto;
-        }
-
-        .modal-body {
+        .modal-dialog-scrollable .modal-body {
             overflow-y: auto;
-            max-height: 70vh;
+            max-height: calc(90vh - 60px);
         }
     </style>
 @endpush
@@ -63,7 +57,7 @@
                             <h6 class="text-white text-capitalize ps-3">List Asset</h6>
                         </div>
                     </div>
-                    <div class="card-body table-responsive pb-2">
+                    <div class="card-body pb-2">
                         @if (session('list_errors'))
                             <div class="alert alert-warning alert-dismissible fade show">
                                 <button type="button" class="btn-close fw-bold text-dark" data-bs-dismiss="alert"
@@ -151,26 +145,29 @@
                                 </button>
                             </div>
                         </div>
-                        <table id="asetTable" class="table text-sm">
-                            <thead class="font-weight-bolder">
-                                <tr>
-                                    <th class="text-uppercase">RFID</th>
-                                    <th class="text-uppercase">Kode Barang</th>
-                                    <th class="text-uppercase">Nama/Jenis Barang</th>
-                                    <th class="text-uppercase">Merk/Type</th>
-                                    <th class="text-uppercase">Tahun Pembelian</th>
-                                    <th class="text-uppercase">Kondisi</th>
-                                    <th class="text-uppercase">Tempat</th>
-                                    @if (auth()->user()->role_id == 2)
-                                        <th class="text-uppercase">Kecamatan</th>
-                                    @endif
-                                    <th class="text-uppercase">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
 
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table id="asetTable" class="table text-sm">
+                                <thead class="font-weight-bolder">
+                                    <tr>
+                                        <th class="text-uppercase">RFID</th>
+                                        <th class="text-uppercase">Kode Barang</th>
+                                        <th class="text-uppercase">Nama/Jenis Barang</th>
+                                        <th class="text-uppercase">Merk/Type</th>
+                                        <th class="text-uppercase">Tahun Pembelian</th>
+                                        <th class="text-uppercase">Kondisi</th>
+                                        <th class="text-uppercase">Tempat</th>
+                                        @if (auth()->user()->role_id == 2)
+                                            <th class="text-uppercase">Kecamatan</th>
+                                        @endif
+                                        <th class="text-uppercase">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -179,7 +176,7 @@
 
     <!-- Modal Add Aset -->
     <div class="modal fade" id="addAset" aria-labelledby="addAset" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">
@@ -654,7 +651,7 @@
 
     <!-- Modal Edit Aset -->
     <div class="modal fade" id="editAset" aria-labelledby="editAsetLabel" aria-hidden="true" tabindex="-1">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">
@@ -1141,7 +1138,7 @@
 
     <!-- Modal Show Aset -->
     <div class="modal fade" id="showAset" aria-labelledby="showAsetLabel" aria-hidden="true" tabindex="-1">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">
