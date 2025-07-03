@@ -7,21 +7,6 @@
         #filterStatus:hover {
             cursor: pointer;
         }
-
-        .modal-dialog {
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-content {
-            max-height: 90vh;
-            overflow: auto;
-        }
-
-        .modal-body {
-            overflow-y: auto;
-            max-height: 70vh;
-        }
     </style>
 @endpush
 
@@ -138,9 +123,9 @@
 
     <!-- Modal Show Aset -->
     <div class="modal fade" id="showAset" aria-labelledby="showAsetLabel" aria-hidden="true" tabindex="-1">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="modal-body p-0">
+                <div class="modal-body">
                     <div class="card card-plain">
                         <div class="card-header pb-0 text-left">
                             <h4 class="text-primary text-gradient">Show <strong>Aset</strong></h4>

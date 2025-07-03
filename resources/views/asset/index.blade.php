@@ -21,16 +21,6 @@
         #filterWrapper select:hover {
             cursor: pointer;
         }
-
-        .modal-dialog-scrollable .modal-content {
-            max-height: 90vh;
-            overflow: hidden;
-        }
-
-        .modal-dialog-scrollable .modal-body {
-            overflow-y: auto;
-            max-height: calc(90vh - 60px);
-        }
     </style>
 @endpush
 
@@ -176,9 +166,9 @@
 
     <!-- Modal Add Aset -->
     <div class="modal fade" id="addAset" aria-labelledby="addAset" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="modal-body p-0">
+                <div class="modal-body">
                     <div class="card card-plain">
                         <form action="{{ route('asset.store') }}" method="POST" autocomplete="off"
                             enctype="multipart/form-data" id="form-add-asset">
@@ -651,9 +641,9 @@
 
     <!-- Modal Edit Aset -->
     <div class="modal fade" id="editAset" aria-labelledby="editAsetLabel" aria-hidden="true" tabindex="-1">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                <div class="modal-body p-0">
+                <div class="modal-body">
                     <div class="card card-plain">
                         <form id="form-edit-asset" method="POST" autocomplete="off" enctype="multipart/form-data">
                             @csrf
@@ -1138,7 +1128,7 @@
 
     <!-- Modal Show Aset -->
     <div class="modal fade" id="showAset" aria-labelledby="showAsetLabel" aria-hidden="true" tabindex="-1">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">
