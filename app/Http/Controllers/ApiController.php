@@ -414,7 +414,7 @@ class ApiController extends Controller
                 ],
                 'location' => [
                     'building' => $asset->gedung,
-                    'floor' => (int) $asset->lantai,
+                    'floor' => $asset->lantai ?? '-',
                     'room' => $asset->ruangan,
                     'information' => $asset->detail,
                 ],
