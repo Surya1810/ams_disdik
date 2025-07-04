@@ -165,8 +165,8 @@
     </div>
 
     <!-- Modal Add Aset -->
-    <div class="modal fade" id="addAset" aria-labelledby="addAset" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
+    <div class="modal fade" id="addAset" aria-labelledby="addAset" aria-hidden="true" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-body">
                     <div class="card card-plain">
@@ -641,7 +641,7 @@
 
     <!-- Modal Edit Aset -->
     <div class="modal fade" id="editAset" aria-labelledby="editAsetLabel" aria-hidden="true" tabindex="-1">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-body">
                     <div class="card card-plain">
@@ -1128,7 +1128,7 @@
 
     <!-- Modal Show Aset -->
     <div class="modal fade" id="showAset" aria-labelledby="showAsetLabel" aria-hidden="true" tabindex="-1">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-body p-0">
                     <div class="card card-plain">

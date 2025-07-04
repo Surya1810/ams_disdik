@@ -5,17 +5,6 @@
     font-family: "Montserrat", sans-serif;
 }
 
-/* Untuk semua browser */
-::-webkit-scrollbar {
-    display: none;
-}
-
-html,
-body {
-    scrollbar-width: none; /* Untuk Firefox */
-    -ms-overflow-style: none; /* Untuk Internet Explorer */
-}
-
 .rounded-partner {
     border-radius: 20px;
 }
