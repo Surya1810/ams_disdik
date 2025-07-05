@@ -169,6 +169,8 @@
         $('#mutationTable').DataTable({
             processing: true,
             serverSide: true,
+            scrollX: true,
+            headerScroll: true,
             ajax: {
                 url: '{{ route('asset.mutation') }}',
                 type: 'GET',

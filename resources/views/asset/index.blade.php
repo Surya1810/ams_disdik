@@ -1379,32 +1379,67 @@
                                     <div class="input-group">
                                         <input type="text" class="form-control"
                                             value="{{ $availableTags['firstTagAvailable'] }}" style="text-align: center"
-                                            disabled>
+                                            id="firstTagAvailable" disabled>
                                         <span class="input-group-text">s.d.</span>
                                         <input type="text" class="form-control"
                                             value="{{ $availableTags['lastTagAvailable'] }}" style="text-align: center"
-                                            disabled>
+                                            id="lastTagAvailable" disabled>
                                     </div>
                                 </div>
-                                <div class="col-12 mb-3">
-                                    <label for="sekolah_id_import">Tempat</label>
-                                    <select name="sekolah_id_import" id="sekolah_id_import"
-                                        class="form-control place @error('sekolah_id_import') is-invalid @enderror"
-                                        @if (!$availableTags['firstTagAvailable']) {{ 'disabled ' }} @endif required>
-                                        <option value="" selected disabled hidden>
-                                        </option>
-                                        @foreach ($places as $place)
-                                            <option value="{{ $place->id }}">
-                                                {{ $place->category . ' ' . $place->name }}
+
+                                @if (!in_array(auth()->user()->role_id, [2]))
+                                    <div class="col-12 mb-3">
+                                        <label for="sekolah_id_import">Tempat</label>
+                                        <select name="sekolah_id_import" id="sekolah_id_import"
+                                            class="form-control place @error('sekolah_id_import') is-invalid @enderror"
+                                            @if (!$availableTags['firstTagAvailable']) {{ 'disabled ' }} @endif required>
+                                            <option value="" selected disabled hidden>
                                             </option>
-                                        @endforeach
-                                    </select>
-                                    @error('sekolah_id_import')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
-                                </div>
+                                            @foreach ($places as $place)
+                                                <option value="{{ $place->id }}">
+                                                    {{ $place->category . ' ' . $place->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('sekolah_id_import')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+                                @else
+                                    <div class="col-12 mb-3">
+                                        <label for="kecamatan_id_import">Kecamatan</label>
+                                        <select name="kecamatan_id_import" id="kecamatan_id_import"
+                                            class="form-control place @error('kecamatan_id_import') is-invalid @enderror"
+                                            required>
+                                            @foreach ($placesForFilter as $place)
+                                                <option value="{{ $place->id }}">
+                                                    {{ $place->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('kecamatan_id_import')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        <label for="sekolah_id_import">Sekolah</label>
+                                        <select name="sekolah_id_import" id="sekolah_id_import"
+                                            class="form-control place @error('sekolah_id_import') is-invalid @enderror"
+                                            disabled required>
+                                            <option value="" selected disabled>Pilih Kecamatan Terlebih Dahulu
+                                            </option>
+                                        </select>
+                                        @error('sekolah_id_import')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+                                @endif
                                 <div class="mb-3">
                                     <label for="formImportExcel" class="form-label">
                                         Import Data Aset dari File Excel
@@ -1419,15 +1454,15 @@
                                         Download Template
                                     </button>
                                     <button class="btn btn-sm bg-gradient-warning"
-                                        @if (!$availableTags['firstTagAvailable']) {{ 'disabled ' }} @endif>
+                                        @if (!$availableTags['firstTagAvailable']) {{ 'disabled ' }} @endif id="buttonImport">
                                         <i class="fa-solid fa-upload"></i> Import
                                     </button>
                                 </div>
-                                @if (!$availableTags['firstTagAvailable'])
-                                    <div class="small text-danger">
-                                        *Import tidak bisa dilakukan, karena tag tidak tersedia.
-                                    </div>
-                                @endif
+
+                                <div class="small text-danger" id="tagNotAvailable"
+                                    style="display: {{ !$availableTags['firstTagAvailable'] ? 'block' : 'none' }}">
+                                    *Import tidak bisa dilakukan, karena tag tidak tersedia.
+                                </div>
                             </form>
                         </div>
 
@@ -1477,6 +1512,71 @@
                 autoGroup: true,
                 removeMaskOnSubmit: true,
                 rightAlign: false
+            });
+
+            $('#kecamatan_id_import').on('change', function() {
+                const kecamatanId = $(this).val();
+                const $sekolahDropdown = $('#sekolah_id_import');
+
+                $sekolahDropdown.prop('disabled', true).empty().append(
+                    '<option value="">Memuat...</option>');
+
+                if (kecamatanId) {
+                    $.ajax({
+                        url: '{{ url('/loan/json/schools') }}/' + kecamatanId,
+                        type: 'GET',
+                        success: function(response) {
+                            $sekolahDropdown.empty().append(
+                                '<option value="">Pilih Sekolah</option>');
+
+                            if (response.data.length > 0) {
+                                response.data.forEach(function(school) {
+                                    $sekolahDropdown.append(
+                                        $('<option>', {
+                                            value: school.id,
+                                            text: school.category + ' ' + school
+                                                .name
+                                        })
+                                    );
+                                });
+
+                                $sekolahDropdown.prop('disabled', false).prop('required', true);
+                            } else {
+                                $sekolahDropdown.append(
+                                    '<option value="">List sekolah belum tersedia</option>');
+                            }
+                        },
+                        error: function() {
+                            $sekolahDropdown.empty().append(
+                                '<option value="">Gagal memuat</option>');
+                        }
+                    });
+
+                    $.ajax({
+                        url: '{{ route('asset.tags.available.json', ':id') }}'.replace(':id',
+                            kecamatanId),
+                        type: 'GET',
+                        success: function(response) {
+                            if (response.data.firstTagAvailable != null && response.data
+                                .lastTagAvailable != null) {
+                                $('#firstTagAvailable').val(response.data.firstTagAvailable);
+                                $('#lastTagAvailable').val(response.data.lastTagAvailable);
+                                $('#buttonDownloadTemplateImport').prop('disabled', false);
+                                $('#buttonImport').prop('disabled', false);
+                                $('#tagNotAvailable').hide();
+                            } else {
+                                $('#firstTagAvailable').val('');
+                                $('#lastTagAvailable').val('');
+                                $('#buttonDownloadTemplateImport').prop('disabled', true);
+                                $('#buttonImport').prop('disabled', true);
+                                $('#tagNotAvailable').show();
+                            }
+                        }
+                    });
+                } else {
+                    $sekolahDropdown.empty().append(
+                        '<option value="">Pilih Kecamatan Terlebih Dahulu</option>');
+                }
             });
 
             // Preview gambar sebelum upload

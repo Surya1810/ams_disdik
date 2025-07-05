@@ -105,7 +105,13 @@ $penanggungJawab = $asset->location->name ?? '........';
         <tr>
             <td>Keterangan</td>
             <td>:</td>
-            <td>{{ $payload['keterangan'] ?? '-' }}</td>
+            <td>
+                {{ $payload['keterangan'] ?? '-' }}
+                <hr/>
+                {{ $asset['merk'] ?? '-' }}
+                <br/>
+                {{ $asset['detail'] ?? '-' }}
+            </td>
         </tr>
         <tr>
             <td>Jenis</td>

@@ -291,6 +291,8 @@
                 $('#loanTable').DataTable({
                     processing: true,
                     serverSide: true,
+                    headerScroll: true,
+                    scrollX: true,
                     ajax: {
                         url: '{{ route('asset.loan') }}',
                         type: 'GET',

@@ -20,6 +20,4 @@ Route::controller(ApprovalController::class)->group(function () {
     Route::get('/mutation/pdf/{id}', 'mutationPdf')->name('mutation.pdf');
     Route::get('/loan/pdf/{id}', 'loanPdf')->name('loan.pdf');
     Route::get('/disposal/pdf/{id}', 'disposalPdf')->name('disposal.pdf');
-
-    Route::get('/loan/json/schools/{kecamatan:id}', 'getSchoolsByDistrictJSON')->name('loan.json.schools');
 });

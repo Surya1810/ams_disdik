@@ -18,18 +18,29 @@ use PhpOffice\PhpSpreadsheet\Shared\Date;
 class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
 {
     protected $errors = [];
+    protected $kecamatanId;
     protected $sekolahId;
     protected $availableTags;
 
-    public function __construct($sekolahId)
+    public function __construct($sekolahId, $kecamatanId = null)
     {
         $this->sekolahId = $sekolahId;
 
+        if ($kecamatanId) {
+            $this->kecamatanId = $kecamatanId;
+        }
+
         // Cache data tag yang tersedia sekali saja
         $this->availableTags = Tag::where('status', 'available')
-            ->where('kecamatan_id', Auth::user()->kecamatan_id)
+            ->when(Auth::user()->role_id == 3, function ($query) {
+                $query->where('kecamatan_id', Auth::user()->kecamatan_id);
+            })
+            ->when($this->kecamatanId, function ($query) {
+                $query->where('kecamatan_id', $this->kecamatanId);
+            })
             ->get()
             ->keyBy('rfid_number');
+
     }
 
     public function chunkSize(): int
@@ -42,7 +53,8 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
         foreach ($rows as $index => $row) {
             $rowNumber = $index + 2;
             $rowContent = preg_replace('/\s+/', '', implode('', $row->toArray()));
-            if ($rowContent === '') {
+
+            if ($rowContent == '') {
                 continue;
             }
 
@@ -52,10 +64,14 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading
                     continue;
                 }
 
+                if (!in_array(trim($row['kondisi']), ['Baik', 'Perlu Perbaikan', 'Rusak Ringan', 'Rusak Sedang', 'Rusak Berat'])) {
+                    $this->errors[] = "Baris {$rowNumber}: nilai pada kolom kondisi tidak tersedia.";
+                }
+
                 $tag = $this->availableTags[$row['tag']] ?? null;
 
                 if (!$tag) {
-                    $this->errors[] = "Baris {$rowNumber}: tag '{$row['tag']}' tidak ditemukan, tidak tersedia, atau sudah digunakan.";
+                    $this->errors[] = "Baris {$rowNumber}: tag '{$row['tag']}' tidak ditemukan, tidak tersedia, sudah digunakan, atau bukan milik dari kecamatan yang dipilih.";
                     continue;
                 }
 

@@ -144,6 +144,8 @@
             $('#disposalTable').DataTable({
                 processing: true,
                 serverSide: true,
+                scrollX: true,
+                headerScroll: true,
                 ajax: '{{ route('asset.disposal') }}',
                 columns: [{
                         data: 'id',

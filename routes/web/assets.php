@@ -12,4 +12,5 @@ Route::controller(AssetController::class)->group(function () {
     Route::post('/import/asset', 'import')->name('asset.import');
     Route::get('/maintenance', 'maintenance')->name('asset.maintenance');
     Route::get('/maintenance/pdf', 'maintenancePdf')->name('maintenance.pdf');
+    Route::get('/asset/tags/available/json/{id}', 'getRangeTagsAvailableByDistrictId')->name('asset.tags.available.json');
 });

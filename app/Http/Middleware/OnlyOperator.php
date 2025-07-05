@@ -19,6 +19,9 @@ class OnlyOperator
         if (Auth::user()->role_id == 2) {
             return $next($request);
         }
-        abort(403);
+        return redirect()->back()->with([
+            'pesan' => 'Anda tidak memiliki akses ke halaman tersebut',
+            'level-alert' => 'alert-danger',
+        ]);
     }
 }

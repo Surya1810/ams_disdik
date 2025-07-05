@@ -171,11 +171,15 @@ class AssetController extends Controller
 
         // Get available tag in range
         $firstTagAvailable = Tag::where('status', 'available')
-            ->where('kecamatan_id', $kecamatanId)
+            ->when(Auth::user()->role_id == 3, function ($query) {
+                $query->where('kecamatan_id', Auth::user()->kecamatan_id);
+            })
             ->orderBy('rfid_number', 'ASC')
             ->value('rfid_number');
         $lastTagAvailable = Tag::where('status', 'available')
-            ->where('kecamatan_id', $kecamatanId)
+            ->when(Auth::user()->role_id == 3, function ($query) {
+                $query->where('kecamatan_id', Auth::user()->kecamatan_id);
+            })
             ->orderBy('rfid_number', 'DESC')
             ->value('rfid_number');
         $availableTags = [
@@ -734,17 +738,25 @@ class AssetController extends Controller
      */
     public function import(Request $request)
     {
-        $validated = $request->validate([
-            'file' => 'required|file|mimes:xlsx',
-            'sekolah_id_import' => 'required|exists:sekolahs,id',
-        ]);
+        if (Auth::user()->role_id == 2) {
+            $validated = $request->validate([
+                'file' => 'required|file|mimes:xlsx',
+                'sekolah_id_import' => 'required|exists:sekolahs,id',
+                'kecamatan_id_import' => 'required|exists:kecamatans,id',
+            ]);
+        } else {
+            $validated = $request->validate([
+                'file' => 'required|file|mimes:xlsx',
+                'sekolah_id_import' => 'required|exists:sekolahs,id',
+            ]);
+        }
 
-        $import = new AssetsImport($validated['sekolah_id_import']);
+        $import = new AssetsImport($validated['sekolah_id_import'], isset($validated['kecamatan_id_import']) ? $validated['kecamatan_id_import'] : null);
         Excel::import($import, $request->file('file'));
 
         if ($import->getErrors()) {
             return redirect()->route('asset.index')->with([
-                'pesan' => 'Import data aset tidak sepenuhnya berhasil. Silahkan cek pesan yang muncul',
+                'pesan' => 'Import data aset tidak sepenuhnya berhasil. Silahkan periksa pesan yang muncul di atas tabel.',
                 'list_errors' => $import->getErrors(),
                 'level-alert' => 'alert-warning',
             ]);
@@ -769,5 +781,26 @@ class AssetController extends Controller
         }
 
         return response()->download($path, 'template_import_data_aset.xlsx');
+    }
+
+    public function getRangeTagsAvailableByDistrictId($id)
+    {
+        $firstTagAvailable = Tag::where('status', 'available')
+            ->where('kecamatan_id', $id)
+            ->orderBy('rfid_number', 'ASC')
+            ->value('rfid_number');
+        $lastTagAvailable = Tag::where('status', 'available')
+            ->where('kecamatan_id', $id)
+            ->orderBy('rfid_number', 'DESC')
+            ->value('rfid_number');
+        $availableTags = [
+            'firstTagAvailable' => $firstTagAvailable,
+            'lastTagAvailable' => $lastTagAvailable
+        ];
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $availableTags
+        ]);
     }
 }
