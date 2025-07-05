@@ -1413,6 +1413,8 @@
                                         <select name="kecamatan_id_import" id="kecamatan_id_import"
                                             class="form-control place @error('kecamatan_id_import') is-invalid @enderror"
                                             required>
+                                            <option value="" selected disabled hidden>
+                                            </option>
                                             @foreach ($placesForFilter as $place)
                                                 <option value="{{ $place->id }}">
                                                     {{ $place->name }}
